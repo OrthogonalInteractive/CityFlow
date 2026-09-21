@@ -41,9 +41,17 @@ Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForU
 Editor内では `NuGet > Restore Packages` でも復元可能。
 `CityFlow/Assets/packages.config` の変更時は復元を再実行する。復元された `CityFlow/Assets/Packages` はGit管理対象外。
 
-### C#プロジェクトファイル
+### VS CodeとC#プロジェクトファイル
 
-VS Codeで編集する場合は、リポジトリ直下ではなくUnityプロジェクトの `CityFlow/` フォルダーを開く。IDE連携には `com.unity.ide.visualstudio` を使用する。
+VS Codeではリポジトリ直下の `CityFlow.code-workspace` を開く。このワークスペースはUnityプロジェクトの `CityFlow/` をルートとし、`CityFlow.slnx` を使用する。
+
+```sh
+code CityFlow.code-workspace
+```
+
+推奨拡張の **Unity**（Microsoft / `visualstudiotoolsforunity.vstuc`）をインストールする。C# Dev KitとC#拡張も依存として導入される。
+Unity側は **Visual Studio Editor**（`com.unity.ide.visualstudio`）2.0.27を導入済み。VS Codeもこのパッケージで連携する。[公式手順](https://code.visualstudio.com/docs/other/unity)に従い、旧 `com.unity.ide.vscode` は使用しない。UnityのExternal Script EditorにはVisual Studio Codeを指定する。
+
 Unity Editor起動後、次のコマンドでソリューションと各アセンブリの `.csproj` を再生成できる。
 
 ```sh
@@ -51,6 +59,8 @@ uloop --project-path CityFlow execute-dynamic-code --code 'Unity.CodeEditor.Code
 ```
 
 VS Code選択時は `CityFlow/CityFlow.slnx`（新しいソリューション形式）と `CityFlow/CityFlow.*.csproj` が生成される。生成物と `CityFlow/.vscode/` はローカル環境用のためGit管理せず、手編集しない。
+
+ワークスペースにはuloop経由のタスク `Unity: Compile`（既定のビルドタスク）と `Unity: Generate C# Projects` を用意している。デバッグでは `Attach to City Flow Unity Editor` を選び、起動済みのUnity Editorに接続する。
 
 ## 構成
 

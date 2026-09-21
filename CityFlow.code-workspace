@@ -1,0 +1,61 @@
+{
+  "folders": [
+    {
+      "path": "CityFlow"
+    }
+  ],
+  "settings": {
+    "dotnet.defaultSolution": "CityFlow.slnx",
+    "dotnet.enableWorkspaceBasedDevelopment": false
+  },
+  "extensions": {
+    "recommendations": [
+      "visualstudiotoolsforunity.vstuc"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Attach to City Flow Unity Editor",
+        "type": "vstuc",
+        "request": "attach"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Unity: Compile",
+        "type": "process",
+        "command": "uloop",
+        "args": ["--project-path", "CityFlow", "compile"],
+        "options": {
+          "cwd": "${workspaceFolder}/.."
+        },
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Unity: Generate C# Projects",
+        "type": "process",
+        "command": "uloop",
+        "args": [
+          "--project-path",
+          "CityFlow",
+          "execute-dynamic-code",
+          "--code",
+          "Unity.CodeEditor.CodeEditor.CurrentEditor.SyncAll();"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder}/.."
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+}
