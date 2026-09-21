@@ -91,7 +91,7 @@ namespace CityFlow.Presentation.UI
                     view.Generated = node.GeneratedCount;
                     view.LastGeneration = simulation.ElapsedSeconds;
                 }
-                int count = node.Buffer.Count, capacity = network.Settings.MaxBuffer;
+                int count = node.Buffer.Count, capacity = network.Settings.SourceBufferCapacity;
                 view.Buffer.highValue = capacity; view.Buffer.value = Mathf.Min(count, capacity);
                 view.Buffer.title = $"BUFFER  {count} / {capacity}";
                 double preparing = simulation.SourceStartRemaining(id);

@@ -80,9 +80,12 @@ namespace CityFlow.Presentation.UI
                 nodeRows.Add(id, (incoming, outgoing, buffer));
                 Label label = Cell(labels, $"{id.ToUpperInvariant()} · {node.Definition.Kind.ToString().ToUpperInvariant()}",
                     "node-label", $"node-label-{id}");
-                var gauge = new VisualElement(); gauge.AddToClassList("node-gauge");
-                var fill = new VisualElement { name = $"node-fill-{id}" }; fill.AddToClassList("node-fill");
-                gauge.Add(fill); label.Add(gauge);
+                if (node.BufferCapacity.HasValue)
+                {
+                    var gauge = new VisualElement(); gauge.AddToClassList("node-gauge");
+                    var fill = new VisualElement { name = $"node-fill-{id}" }; fill.AddToClassList("node-fill");
+                    gauge.Add(fill); label.Add(gauge);
+                }
                 nodeLabels.Add(id, label);
             }
             foreach (LineSnapshot line in snapshot.Lines)
@@ -134,13 +137,18 @@ namespace CityFlow.Presentation.UI
             {
                 var row = nodeRows[node.Definition.Id];
                 row.incoming.text = $"{node.IncomingUsed}/{node.Definition.MaxIncoming}";
-                row.outgoing.text = $"{node.OutgoingUsed}/{node.Definition.MaxOutgoing}";
-                row.buffer.text = node.Buffer.Count.ToString();
+                row.outgoing.text = node.Definition.Kind == NodeKind.Sink ? "—" : $"{node.OutgoingUsed}/{node.Definition.MaxOutgoing}";
+                row.buffer.text = node.BufferCapacity.HasValue ? $"{node.Buffer.Count}/{node.BufferCapacity.Value}" : "—";
                 Label marker = nodeLabels[node.Definition.Id];
-                marker.text = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}  {node.Buffer.Count}/{network.Settings.MaxBuffer}";
+                marker.text = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}";
                 marker.EnableInClassList("input-stopped", node.IsInputStopped);
-                marker.Q<VisualElement>($"node-fill-{node.Definition.Id}").style.width = Length.Percent(Mathf.Min(100, 100f * node.Buffer.Count / network.Settings.MaxBuffer));
-                row.buffer.EnableInClassList("full", node.Buffer.Count >= network.Settings.MaxBuffer);
+                if (node.BufferCapacity.HasValue)
+                {
+                    int capacity = node.BufferCapacity.Value;
+                    marker.text += $"  {node.Buffer.Count}/{capacity}";
+                    marker.Q<VisualElement>($"node-fill-{node.Definition.Id}").style.width = Length.Percent(Mathf.Min(100, 100f * node.Buffer.Count / capacity));
+                }
+                row.buffer.EnableInClassList("full", node.IsInputStopped);
             }
             foreach (LineSnapshot line in snapshot.Lines)
             {

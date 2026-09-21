@@ -72,7 +72,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void PreviewAndCancelDoNotCreateLinesOrUseConnectionSlots()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var n = new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+            var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null); var r = Current(preview);
             Assert.That(r.CanConfirm, Is.True); Assert.That(r.OutgoingAfter, Is.EqualTo(1)); Assert.That(r.IncomingAfter, Is.EqualTo(1));
@@ -83,7 +83,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void FailedAutomaticSearchRetainsEndpointsForManualEditing()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(5,10,50)));
-            var n = new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+            var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null); Assert.That(Current(preview).CanConfirm, Is.False);
             Assert.That(Current(preview).Geometry.Failure, Is.EqualTo(RouteFailure.SearchFailed));
@@ -92,7 +92,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void EditedPreviewValidatesAllSegmentsAndKeepsEndpointsFixed()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f)),new GroundRoutePlanner(stage,0.5f));
+            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f)),new GroundRoutePlanner(stage,0.5f));
             preview.Generate("A","B"); preview.UpdatePoints(new[] { A,B });
             Assert.That(Current(preview).Geometry.Failure, Is.EqualTo(RouteFailure.Obstacle));
             preview.UpdatePoints(new[] { A,new Vector3(-15,0,-10),new Vector3(15,0,-10),B });
@@ -102,7 +102,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void DuplicateConnectionIsReportedWithoutChangingExistingNetwork()
         {
-            var stage = Stage(); var n = new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+            var stage = Stage(); var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             n.TryConnect("A","B",new[] { A,B });
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null);
@@ -115,7 +115,7 @@ namespace CityFlow.Tests.EditMode
                 new NodeDefinition("A",NodeKind.Source,A,2,1),
                 new NodeDefinition("B",NodeKind.Sink,B,1,2,FlowColor.Red),
                 new NodeDefinition("C",NodeKind.Relay,new Vector3(0,0,15),2,2) });
-            var n = new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+            var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             Assert.That(n.TryConnect(outgoing ? "A" : "C",outgoing ? "C" : "B",
                 outgoing ? new[] { A,new Vector3(0,0,15) } : new[] { new Vector3(0,0,15),B }).Succeeded, Is.True);
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
@@ -128,7 +128,7 @@ namespace CityFlow.Tests.EditMode
             Assert.That(planner.Validate(Array.Empty<Vector3>()).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
             Assert.That(planner.Validate(new[] { A,A,B }).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
             Assert.That(planner.Validate(new[] { A,new Vector3(float.NaN,0,0),B }).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
-            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f)),planner);
+            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f)),planner);
             preview.Generate("missing","B");
             Assert.That(Current(preview).ConnectionFailure, Is.EqualTo(ConnectionFailure.UnknownSource));
         }
@@ -136,7 +136,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void GeneratedRouteIsTheSameRouteUsedForTransportAndDistance()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var n = new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+            var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             var candidate = Current(preview);
             Assert.That(n.TryConnect("A","B",candidate.Points).Succeeded, Is.True);

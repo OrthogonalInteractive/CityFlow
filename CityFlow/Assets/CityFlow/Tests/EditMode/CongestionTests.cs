@@ -18,7 +18,7 @@ namespace CityFlow.Tests.EditMode
                 new NodeDefinition("S", NodeKind.Source, Vector3.zero, 4, 4, generationInterval: 1000),
                 new NodeDefinition("R", NodeKind.Relay, new Vector3(10, 0, 0), 4, 4),
                 new NodeDefinition("T", NodeKind.Sink, new Vector3(20, 0, 0), 4, 4, FlowColor.Red) }),
-            new NetworkSettings(2, 2, 10, 0));
+            new NetworkSettings(2,2, 2, 10, 0));
         private static NodeSnapshot Node(FlowNetwork n, string id) => n.Snapshot().Nodes.Single(x => x.Definition.Id == id);
         private static void Fill(FlowNetwork n)
         { n.GenerateFlow("S", FlowColor.Red); n.GenerateFlow("S", FlowColor.Red); }

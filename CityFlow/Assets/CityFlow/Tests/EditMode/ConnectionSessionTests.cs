@@ -20,7 +20,7 @@ namespace CityFlow.Tests.EditMode
                 new NodeDefinition("B",NodeKind.Sink,new Vector3(30,0,0),incoming,3,FlowColor.Red),
                 new NodeDefinition("C",NodeKind.Relay,new Vector3(70,0,0)),
                 new NodeDefinition("D",NodeKind.Relay,new Vector3(90,0,0)) });
-        private static FlowNetwork Network(StageDefinition stage) => new FlowNetwork(stage,new NetworkSettings(50,10,20,0.5f));
+        private static FlowNetwork Network(StageDefinition stage) => new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
         [Test] public void BeginPreviewAndConfirmCreateExactlyOneDirectedLine()
         {
             var stage = Stage(); var n = Network(stage);

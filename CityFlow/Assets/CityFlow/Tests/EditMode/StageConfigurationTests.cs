@@ -21,7 +21,7 @@ namespace CityFlow.Tests.EditMode
         public void OutsideGroundOrInsideInflatedFootprintIsRejected(float x, float y, float z) =>
             Assert.Throws<ArgumentException>(() => Stage(new Vector3(x, y, z)).Validate(0.5f));
 
-        [TestCase("MaxBuffer", 0)] [TestCase("MaxInFlight", -1)]
+        [TestCase("SourceBufferCapacity", 0)] [TestCase("RelayBufferCapacity", 0)] [TestCase("MaxInFlight", -1)]
         public void NonPositiveCapacitiesAreRejected(string field, int value)
         {
             var settings = ScriptableObject.CreateInstance<GameplaySettings>();

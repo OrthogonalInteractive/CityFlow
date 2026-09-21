@@ -85,7 +85,7 @@ FLOWは小さな発光粒子で表現する。各FLOWは1色を持ち、その�
 
 - FLOWはSourceで生成され、NodeのBufferとLine上を移動する。
 - 同色Sinkに到着すると即座に消化され、処理成功として計上する。
-- 異なる色のSinkへ到着しても消化されず、通常の中継対象となる。
+- 異なる色のSinkへのLineにはFLOWを送らない。Sinkは終点であり、中継しない。
 - FLOWはネットワーク全体の経路探索や、目的Sinkへの到達可能性判定を行わない。
 - 輸送を待つためのPulse、車両、時刻表は導入しない。出発可能になったFLOWからLineへ送る。
 
@@ -93,27 +93,27 @@ FLOWは小さな発光粒子で表現する。各FLOWは1色を持ち、その�
 
 ### 4.1 共通機能
 
-すべてのNodeは、3D位置、Buffer、Incoming Line、Outgoing Line、IN接続上限、OUT接続上限を持つ。Node種類と接続能力は別に扱う。
+すべてのNodeは、3D位置とLineの接続枠を持つ。Bufferを持つのはSourceとRelayのみ。Sinkは同色FLOWを即時消化する終点で、BufferとOutgoing Lineを持たない（OUT上限0）。
 
 | 種類 | FLOW生成 | FLOW消化 | 中継 |
 | --- | --- | --- | --- |
 | Source | 一定間隔で生成 | なし | 可能 |
-| Sink | なし | 自分の色のみ即時消化 | 他の色を中継可能 |
+| Sink | なし | 自分の色のみ即時消化 | 不可 |
 | Relay | なし | なし | 可能 |
 
 ### 4.2 Source
 
 現在存在するSink色の中からランダムに色を選び、FLOWを生成する。Sourceの色は固定しない。生成したFLOWは自分のBufferに入る。
 
-Sourceは他のNodeから到着したFLOWも中継できる。
+SourceはランダムRoutingの接続先には含めない。
 
 ### 4.3 Sink
 
-各Sinkは1つのSink Colorを持つ。同色FLOWは到着時に消化し、Bufferに滞留させない。他の色はBufferへ受け入れ、Outgoing Lineへ転送できる。
+各Sinkは1つのSink Colorを持つ。同色FLOWは到着時に即時消化する。Buffer容量・入力停止・中継機能は持たず、異色FLOWを送信候補にも受け取り対象にも含めない。Sinkから出るLineは作成できない。
 
 ### 4.4 RelayとHub
 
-Relayは生成も消化も行わない。HubはSource、Sink、Relayのいずれでも構成できる。
+Relayは生成も消化も行わない。HubはSourceまたはRelayのOutgoing構成で作る。SinkはHubにならない。
 
 現在存在するすべてのSink色へ直接Outgoing Lineを持つNodeを「完全Hub」と呼ぶ。ここに到着した各FLOWは対応色Sinkへ確実に振り分けられる。ただしLineの空き待ちは発生するため、完全Hubでも処理能力が無制限になるわけではない。
 
@@ -122,10 +122,11 @@ Relayは生成も消化も行わない。HubはSource、Sink、Relayのいずれ
 NodeのBuffer量は、次の収支で変化する。
 
 ```text
-Bufferの増減 = Sourceでの生成 + Lineからの受け取り完了 − Lineへの出発 − Sinkでの消化
+Source / RelayのBuffer増減 = Sourceでの生成 + Lineからの受け取り完了 − Lineへの出発
+Sink = 同色FLOWを即時消化（Bufferなし）
 ```
 
-MVPでは全NodeのBuffer容量を原則共通にし、`Buffer >= MaxBuffer`をOverloadとする。**RelayのOverloadでは入力が止まり、SourceのOverloadがGame Overにつながる。**
+v0.1の基本Buffer容量はSource（S1を含む）10 FLOW、Relay 5 FLOWとし、種別ごとに設定する。SinkにはBuffer容量を設けない。各Nodeで`Buffer >= BufferCapacity`をOverloadとする。**RelayのOverloadでは入力が止まり、SourceのOverloadがGame Overにつながる。**
 
 ### 5.1 Relayの入力停止と再開
 
@@ -139,15 +140,15 @@ MVPでは全NodeのBuffer容量を原則共通にし、`Buffer >= MaxBuffer`をO
 
 SourceがFLOWを送り出せずBufferにため続けるとOverloadになる。敗北判定はSourceだけを対象とする。
 
-**補完案：** 既存案の猶予時間をSourceに限定して維持する。SourceのOverloadが連続して猶予時間以上続くとGame Overとし、`Buffer < MaxBuffer`に回復すればタイマーをリセットする。初期検証用の猶予は5秒とする。
+**補完案：** 既存案の猶予時間をSourceに限定して維持する。SourceのOverloadが連続して猶予時間以上続くとGame Overとし、`Buffer < SourceBufferCapacity`に回復すればタイマーをリセットする。初期検証用の猶予は5秒とする。
 
 **補完案：Source自身の生成と外部入力**
 
 SourceもBufferが満杯ならLineからの受け取りを停止する。一方、Source自身の生成は止めず、猶予中の生成分は超過Bufferとして保持する。FLOWを捨てたり、生成の自動停止だけで敗北を回避したりはしない。
 
-### 5.3 Sinkが中継する色の扱い
+### 5.3 SinkはBufferを持たない
 
-**補完案：** Sinkは同色FLOWを即時消化し、異なる色に対してはRelayと同じBuffer入力制限を適用する。異色Bufferが満杯でも、受け渡し可能な位置にある同色FLOWは受け取って消化できる。Sink自身のOverloadは敗北条件にしない。
+**v0.1仕様変更の採用：** Sinkの異色中継を廃止する。Routingで異色FLOWをSink行きLineへ送らず、同色FLOWの到着時だけ即時消化する。SinkにはBufferゲージ・容量・Overload判定を表示しない。
 
 ### 5.4 混雑の上流への波及
 
@@ -181,18 +182,18 @@ NodeはFLOWを送り出せるか評価する際に、現在Nodeと直接接続�
 
 1. 現在Nodeが同色Sinkなら即座に消化する。
 2. 同色Sinkへの直接Outgoing Lineがある場合、そのLineへ送る。
-3. 同色Sinkへの直接Outgoing Lineがない場合、空き容量のあるOutgoing Lineからランダムに1本選び、送る。
+3. 同色Sinkへの直接Outgoing Lineがない場合、**Relayを終点とする空きOutgoing Lineだけ**から等確率で1本選び、送る。異色SinkとSourceは候補に含めない。
 4. 出発できるLineがない場合はBufferに残り、後で再評価する。
 
 ここで利用できるOutgoing Lineは、新規FLOWの流入を受け付け、MaxInFlightに空きがあるLineとする。受け取り先Nodeが停止していても、Lineに空きがあればそのLineをバッファとして利用できる。削除予約中・経路切替待ちのLineは、新規FLOWの候補から外す。
 
 **補完案：優先Lineが満杯の場合**
 
-新規流入を受け付ける同色Sinkへの直結が存在していても、そのLineが満杯ならBufferで待つ。他の色のSinkやRelayへ迂回させない。同色Sinkへの直結が複数あれば、空きのある直結Lineから選ぶ。削除予約などで新規流入を停止したLineは、この直結判定からも外す。
+新規流入を受け付ける同色Sinkへの直結が存在していても、そのLineが満杯ならBufferで待つ。他の色のSinkやRelayへ迂回させない。同色Sinkへの直結が複数あれば、空きのある直結Lineを接続作成順で選ぶ（ランダム選択はRelay間だけ）。削除予約などで新規流入を停止したLineは、この直結判定からも外す。
 
 **補完案：Buffer内の処理順**
 
-待機時間の長いFLOWから出発可否を評価し、出発できないFLOWは残して、後続も評価する。ある色の出口が満杯でも、別の出口を使える色まで停止させない。ランダム選択は利用可能なLine間で等確率とし、出発する時点で決める。
+待機時間の長いFLOWから出発可否を評価し、出発できないFLOWは残して、後続も評価する。ある色の出口が満杯でも、別の出口を使える色まで停止させない。ランダム選択は利用可能なRelay行きLine間で等確率とし、出発する時点で決める。
 
 ### Routingが生む特徴
 
@@ -429,9 +430,9 @@ Escでゲーム時間を停止する。停止中も、カメラ操作、Node／L
 | 対象 | 通常時 | ホバー時・選択時・警告時 |
 | --- | --- | --- |
 | FLOW | 色付き発光粒子の移動 | 色と流れる方向を識別可能にする |
-| Node | 種類・Sink色・Buffer使用率 | 種類、Buffer数／上限、色別内訳、IN／OUT使用数、入力停止の有無 |
+| Node | 種類・Sink色・Source/RelayのBuffer使用率 | 種類、Source/RelayのBuffer数／上限・色別内訳、IN／OUT使用数、入力停止の有無 |
 | Source | 生成とBufferの状態 | 生成間隔、Overload中はGame Overまでの残り猶予時間 |
-| Relay／中継中のSink | Overload・入力停止の警告 | 受け取り待ちのIncoming Lineと、詰まりを解消するために確認すべき出力接続 |
+| Relay | Overload・入力停止の警告 | 受け取り待ちのIncoming Lineと、詰まりを解消するために確認すべき出力接続 |
 | Line | 方向矢印・移動／停止中FLOW | 始点→終点、長さ、停止なしの移動時間、In-Flight／上限、停止数、推定Throughput、停止理由 |
 | 削除予約Line | 通常Lineと区別した表示 | 削除予約中、残りFLOW数、受け取り先の状態、予約取消操作 |
 | 経路Preview | 本線と区別した経路表示 | 有効／無効と理由、編集制御点 |
@@ -487,7 +488,7 @@ Lineが無料であることだけでは、I/Oの空きやネットワーク全�
 
 ### 16.3 Game Over
 
-§5.2の補完案に従い、いずれかのSourceでOverloadが連続して猶予時間以上続いた場合、Game Overとする。Relay・SinkのOverload、Lineの満杯、削除予約の待機自体は敗北条件にしない。
+§5.2の補完案に従い、いずれかのSourceでOverloadが連続して猶予時間以上続いた場合、Game Overとする。RelayのOverload、Lineの満杯、削除予約の待機自体は敗北条件にしない。
 
 終了時には到達Wave、生存時間、累積処理成功数、原因となったSourceを表示する。
 
@@ -498,7 +499,8 @@ Lineが無料であることだけでは、I/Oの空きやネットワーク全�
 | 項目 | 初期検証用の値・方針 |
 | --- | --- |
 | 色数 | 開始時2色、最大5色 |
-| MaxBuffer | 全Node共通で50 FLOW |
+| SourceBufferCapacity | Source共通で10 FLOW（S1を含む基本設定） |
+| RelayBufferCapacity | Relay共通で5 FLOW（基本設定）。SinkはBufferなし |
 | MaxInFlight | 全Line共通で10 FLOW |
 | FLOW Speed | 全Line共通で8 m/s（視認性確認のため20から減速。最終採用値はプレイ比較で判断） |
 | SourceのOverload猶予 | 5秒（補完案）。Relay・Sinkには敗北用タイマーを設けない |
@@ -516,14 +518,14 @@ Lineが無料であることだけでは、I/Oの空きやネットワーク全�
 - OverviewとNode 360を切り替え、距離別に候補を探せる。
 - 自動経路をPreviewし、見下ろしカメラでXZ制御点を修正して確定できる。
 - 制御点が障害物の外でも、途中の区間が貫通していれば確定できない。
-- 同色Sinkへの直結が優先され、直結がなければ空きLineへランダムに送られる。
+- 同色Sinkへの直結が優先され、直結がなければ空きRelay行きLineだけへランダムに送られる。異色Sinkへは送られない。
 - Line満杯時に出発Nodeで待機し、長いLineほど容量の回転が遅くなる。
 - IN／OUTの上限を超えて接続できない。
 - Escでシミュレーション全体を停止・再開でき、停止中も配線操作と情報確認ができる。
 - NodeとLineをホバーすると、それぞれの詳細情報が表示される。
 - RelayのBufferが満杯になると入力が止まり、出力によって空きができると受け取りが再開する。
 - 受け取り先が停止したFLOWはLine上に残り、停止中もMaxInFlightを占有する。
-- Relay・SinkのOverloadではGame Overにならず、SourceのOverloadが継続するとGame Overになる。
+- RelayのOverloadではGame Overにならず、SinkはBufferを持たず、SourceのOverloadが継続するとGame Overになる。
 - 削除予約は新規流入を止め、In-Flightの受け渡し完了後にだけLineと接続枠を解放する。
 - 受け取り先が満杯なら削除予約が完了せず、削除前に予約を取り消すと残存FLOWを維持して運行に戻る。
 - 確定済みLineの編集・削除によってFLOWが消失せず、移動が飛ばされない。

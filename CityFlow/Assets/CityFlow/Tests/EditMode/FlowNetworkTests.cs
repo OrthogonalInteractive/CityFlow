@@ -23,7 +23,7 @@ namespace CityFlow.Tests.EditMode
                 new[] { new NodeDefinition("A", NodeKind.Source, A, maxOutgoing: outgoing),
                     new NodeDefinition("B", NodeKind.Relay, B, maxIncoming: incoming),
                     new NodeDefinition("C", NodeKind.Sink, C, sinkColor: FlowColor.Red),
-                    new NodeDefinition("D", NodeKind.Sink, D, sinkColor: FlowColor.Blue) }), new NetworkSettings(2, 2, 10, 0.5f));
+                    new NodeDefinition("D", NodeKind.Sink, D, sinkColor: FlowColor.Blue) }), new NetworkSettings(2,2, 2, 10, 0.5f));
 
         [Test] public void DirectedConnectionReservesBothEndsAtomically()
         {

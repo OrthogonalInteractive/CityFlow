@@ -34,7 +34,7 @@ namespace CityFlow.Tests.PlayMode
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>();
             var sim=scope.Container.Resolve<FlowSimulation>(); var network=scope.Container.Resolve<FlowNetwork>();
             var session=scope.Container.Resolve<ConnectionSession>(); var preview=scope.Container.Resolve<LinePreviewService>();
-            Connect(session,"S1","RED");
+            Connect(session,"S1","RED"); Connect(session,"S1","BLUE");
             Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Node("S1"));
             var controller=Object.FindAnyObjectByType<NodeConnectionController>(); controller.BeginSelected();
             sim.Tick(60-sim.ElapsedSeconds); sim.SetPaused(true); yield return null; yield return null;
@@ -60,7 +60,7 @@ namespace CityFlow.Tests.PlayMode
             yield return null;
             Assert.That(controller.AttentionId,Is.EqualTo("GREEN"));
             Assert.That(preview.Current?.DestinationId,Is.EqualTo("GREEN")); Assert.That(preview.Current!.CanConfirm,Is.True);
-            Assert.That(network.Snapshot().Lines.Count,Is.EqualTo(1),"Selecting a candidate must only create a Preview.");
+            Assert.That(network.Snapshot().Lines.Count,Is.EqualTo(2),"Selecting a candidate must only create a Preview.");
             green.Focus(); using(var e=NavigationSubmitEvent.GetPooled()) green.SendEvent(e); yield return null;
             Assert.That(network.Snapshot().Lines.Any(l=>l.SourceId=="S1" && l.DestinationId=="GREEN"),Is.True);
             Assert.That(root.Q("candidate-list-panel").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
@@ -98,7 +98,7 @@ namespace CityFlow.Tests.PlayMode
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var sim=scope.Container.Resolve<FlowSimulation>();
             var n=scope.Container.Resolve<FlowNetwork>(); Assert.That(n.Snapshot().Lines,Is.Empty); sim.Tick(1000); yield return null;
             var result=sim.Result ?? throw new AssertionException("Missing result"); Assert.That(result.SourceId,Is.EqualTo("S1"));
-            Assert.That(result.Wave,Is.EqualTo(2)); var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            Assert.That(result.Wave,Is.EqualTo(1)); var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             Assert.That(root.Q("result-overlay").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
             string text=root.Q<Label>("result-detail").text;
             Assert.That(text,Does.Contain($"WAVE {result.Wave}").And.Contain($"{result.SurvivalSeconds:0.0} s").And.Contain($"DELIVERED {result.Delivered}").And.Contain("S1"));
@@ -124,16 +124,19 @@ namespace CityFlow.Tests.PlayMode
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             var sim=scope.Container.Resolve<FlowSimulation>(); var s=scope.Container.Resolve<ConnectionSession>();
             Connect(s,"S1","RED"); Connect(s,"S1","BLUE"); sim.Tick(60-sim.ElapsedSeconds);
-            Connect(s,"S1","GREEN"); Connect(s,"S2","RED"); Connect(s,"S2","BLUE"); Connect(s,"S2","GREEN");
+            Connect(s,"S1","R1"); Connect(s,"S2","RED"); Connect(s,"S2","BLUE"); Connect(s,"S2","R1"); Connect(s,"R1","GREEN");
             sim.Tick(60); Assert.That(sim.Wave,Is.EqualTo(3));
-            Connect(s,"RED","YELLOW"); Connect(s,"BLUE","YELLOW"); Connect(s,"GREEN","YELLOW");
+            Connect(s,"R1","YELLOW");
             sim.Tick(60); Assert.That(sim.Wave,Is.EqualTo(4));
-            Connect(s,"YELLOW","PURPLE"); Connect(s,"S3","RED"); Connect(s,"S3","BLUE"); Connect(s,"S3","GREEN");
+            Connect(s,"R1","PURPLE"); Connect(s,"S3","RED"); Connect(s,"S3","BLUE"); Connect(s,"S3","R1");
             sim.Tick(60); yield return null; yield return null;
             Assert.That(n.IsGameOver,Is.False); Assert.That(n.NodeDefinitions.Select(x=>x.SinkColor).Where(x=>x.HasValue).Distinct().Count(),Is.EqualTo(5));
             Assert.That(Object.FindAnyObjectByType<ValidationCityView>().VisibleNodeCount,Is.EqualTo(11));
-            Assert.That(n.Snapshot().DeliveredCount,Is.GreaterThan(100)); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(13));
-            var state=n.Snapshot(); Assert.That(state.GeneratedCount,Is.EqualTo(state.DeliveredCount+state.Nodes.Sum(x=>x.Buffer.Count)+state.Lines.Sum(x=>x.InFlight.Count)));
+            Assert.That(n.Snapshot().DeliveredCount,Is.GreaterThan(100)); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(12));
+            var state=n.Snapshot();
+            Assert.That(state.Nodes.Where(x=>x.Definition.Kind==NodeKind.Sink).All(x=>x.Buffer.Count==0 && !x.BufferCapacity.HasValue),Is.True);
+            Assert.That(state.Nodes.Where(x=>x.Definition.Kind==NodeKind.Relay).All(x=>x.Buffer.Count<=5),Is.True);
+            Assert.That(state.GeneratedCount,Is.EqualTo(state.DeliveredCount+state.Nodes.Sum(x=>x.Buffer.Count)+state.Lines.Sum(x=>x.InFlight.Count)));
         }
     }
 }

@@ -46,7 +46,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Label>("delivered-value").text, Is.EqualTo(state.DeliveredCount.ToString("0000")));
             Assert.That(root.Q<Label>("waiting-value").text, Is.EqualTo(state.Nodes.Sum(n => n.Buffer.Count).ToString("000")));
             Assert.That(root.Q<Label>("inflight-value").text, Is.EqualTo(state.Lines.Sum(l => l.InFlight.Count).ToString("000")));
-            Assert.That(root.Q<Label>("node-buffer-S1").text, Is.EqualTo(state.Nodes.Single(n => n.Definition.Id == "S1").Buffer.Count.ToString()));
+            Assert.That(root.Q<Label>("node-buffer-S1").text, Is.EqualTo($"{state.Nodes.Single(n => n.Definition.Id == "S1").Buffer.Count}/{network.Settings.SourceBufferCapacity}"));
             Assert.That(root.Q<Label>("line-load-2").text, Is.EqualTo($"{state.Lines[1].InFlight.Count}/{state.Lines[1].Capacity}"));
             Assert.That(root.Q("node-rows").childCount, Is.EqualTo(5));
             Assert.That(root.Q("line-rows").childCount, Is.EqualTo(5));

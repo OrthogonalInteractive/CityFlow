@@ -171,3 +171,10 @@ Waveの時刻・追加Node・生成間隔と猶予は `WiringStage` で調整可
 Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確認できる。上部のSourceモニターに生成累計・直近色・Buffer数／上限を常設表示し、80%から警告、満杯からGame Overまでの残り秒数を表示する。Node 360でも上部の専用領域に残る。Pauseで生成演出と敗北カウントダウンも停止する。敗北時はGAME OVER画面のRetryから配線0で再開できる。
 
 FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。表示だけでなく実際の移動速度を下げているため、Lineの回転と容量回復も遅くなる。最終的な速度・生成量・猶予の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) の比較プレイで決める。
+
+
+## FLOWの送り先とBufferの基本設定
+
+同色Sinkへの直結を優先し、そのLineが満杯なら待機する。直結がなければ空いているRelay行きLineだけから選ぶ。例としてS1の接続がREDとR1なら、RedはREDへ、BlueはR1へ送る。Relay行きも満杯ならS1で待つ。異色Sinkへは流さない。
+
+BufferはSource（S1/S2/S3）**10**、Relay **5**。SinkにはBuffer・中継・Outgoing Lineがなく、同色FLOWを到着時に消化する。Relay満杯の6個目はLine上で待ち、Relayの混雑だけでは敗北しない。Sourceは現在、**10個以上が5秒続くとGame Over**。上限到達と同時の敗北ではなく、10未満へ回復すると猶予がリセットされる。

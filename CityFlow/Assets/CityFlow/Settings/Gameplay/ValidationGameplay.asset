@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ed53ef91589c42269a31c36ad77d186, type: 3}
   m_Name: ValidationGameplay
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.GameplaySettings
-  MaxBuffer: 50
+  SourceBufferCapacity: 10
+  RelayBufferCapacity: 5
   RandomSeed: 1337
   MaxInFlight: 10
   FlowSpeed: 8

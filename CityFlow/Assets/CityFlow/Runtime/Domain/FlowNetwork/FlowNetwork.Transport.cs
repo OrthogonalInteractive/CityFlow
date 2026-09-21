@@ -19,10 +19,11 @@ namespace CityFlow.Domain.FlowNetwork
                     // Specification 7: direct matching Sinks define the candidate set even when full.
                     LineState[] open = node.Outgoing.Where(line => line.Status == LineStatus.Running).ToArray();
                     LineState[] direct = open.Where(line => line.Destination.Definition.SinkColor == flow.Color).ToArray();
-                    LineState[] candidates = (direct.Length > 0 ? direct : open)
+                    LineState[] candidates = (direct.Length > 0 ? direct : open.Where(line => line.Destination.Definition.Kind == NodeKind.Relay))
                         .Where(line => line.InFlight.Count < Settings.MaxInFlight).ToArray();
                     if (candidates.Length == 0) { index++; continue; }
-                    int choice = candidates.Length == 1 ? 0 : random.NextIndex(candidates.Length);
+                    // Matching Sinks use stable connection order; only Relay choices consume randomness.
+                    int choice = direct.Length > 0 || candidates.Length == 1 ? 0 : random.NextIndex(candidates.Length);
                     if (choice < 0 || choice >= candidates.Length)
                         throw new InvalidOperationException("Random source returned an index outside the candidate range.");
                     LineState selected = candidates[choice];
@@ -50,7 +51,8 @@ namespace CityFlow.Domain.FlowNetwork
                         Math.Min(frontLimit, flight.Distance + Settings.FlowSpeed * deltaSeconds));
                     bool atEnd = flight.Distance >= line.Route.Length;
                     bool matchingSink = line.Destination.Definition.SinkColor == flight.Flow.Color;
-                    bool canReceive = matchingSink || line.Destination.Buffer.Count < Settings.MaxBuffer;
+                    int? capacity = Settings.BufferCapacity(line.Destination.Definition.Kind);
+                    bool canReceive = matchingSink || (capacity.HasValue && line.Destination.Buffer.Count < capacity.Value);
                     if (atEnd && canReceive)
                     {
                         if (matchingSink) deliveredCount++;

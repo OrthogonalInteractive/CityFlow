@@ -30,7 +30,7 @@ namespace CityFlow.Tests.EditMode
             var stage = new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new[] {
                 new NodeDefinition("S", NodeKind.Source, Vector3.zero, 2,2),
                 new NodeDefinition("T", NodeKind.Sink, new Vector3(20,0,0),2,2,FlowColor.Red) });
-            var n = new FlowNetwork(stage, new NetworkSettings(4,2,10,0));
+            var n = new FlowNetwork(stage, new NetworkSettings(4,4,2,10,0));
             Assert.That(n.TryConnect("S","T",new[] { Vector3.zero, new Vector3(20,0,0) }).Succeeded, Is.True);
             return n;
         }

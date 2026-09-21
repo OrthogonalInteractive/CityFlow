@@ -2,14 +2,18 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CityFlow.Infrastructure.Configuration
 {
     [CreateAssetMenu(menuName = "City Flow/Gameplay Settings")]
     public sealed class GameplaySettings : ScriptableObject
     {
-        [Tooltip("Provisional common buffer threshold [FLOW].")]
-        public int MaxBuffer = 50;
+        [FormerlySerializedAs("MaxBuffer")]
+        [Tooltip("Basic Source buffer capacity [FLOW].")]
+        public int SourceBufferCapacity = 10;
+        [Tooltip("Basic Relay buffer capacity [FLOW]. Sinks have no buffer.")]
+        public int RelayBufferCapacity = 5;
         [Tooltip("Repeatable random seed for the validation scene.")]
         public int RandomSeed = 1337;
         [Tooltip("Provisional common capacity per line [FLOW].")]
@@ -23,11 +27,11 @@ namespace CityFlow.Infrastructure.Configuration
         public CityFlow.Domain.FlowNetwork.NetworkSettings LoadNetworkSettings()
         {
             Validate();
-            return new CityFlow.Domain.FlowNetwork.NetworkSettings(MaxBuffer, MaxInFlight, FlowSpeed, Clearance, OverloadGrace);
+            return new CityFlow.Domain.FlowNetwork.NetworkSettings(SourceBufferCapacity, RelayBufferCapacity, MaxInFlight, FlowSpeed, Clearance, OverloadGrace);
         }
         public void Validate()
         {
-            if (MaxBuffer <= 0 || MaxInFlight <= 0 || !Positive(FlowSpeed) || !Positive(OverloadGrace) ||
+            if (SourceBufferCapacity <= 0 || RelayBufferCapacity <= 0 || MaxInFlight <= 0 || !Positive(FlowSpeed) || !Positive(OverloadGrace) ||
                 float.IsNaN(Clearance) || float.IsInfinity(Clearance) || Clearance < 0)
                 throw new ArgumentException("Gameplay settings require positive finite capacities, speed and grace; clearance must be nonnegative.");
         }

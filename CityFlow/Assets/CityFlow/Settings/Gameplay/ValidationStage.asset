@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
   m_Name: ValidationStage
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
+  Waves: []
   Lines:
   - SourceId: S1
     DestinationId: RED
@@ -71,6 +72,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 0.25
+    GenerationDelay: 0
   - Id: R1
     Kind: 1
     SinkColor: 0
@@ -78,6 +80,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 0.25
+    GenerationDelay: 0
   - Id: R2
     Kind: 1
     SinkColor: 0
@@ -85,17 +88,20 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 0.25
+    GenerationDelay: 0
   - Id: RED
     Kind: 2
     SinkColor: 0
     Position: {x: -38, y: 0, z: 22}
     MaxIncoming: 3
-    MaxOutgoing: 3
+    MaxOutgoing: 0
     GenerationInterval: 0.25
+    GenerationDelay: 0
   - Id: BLUE
     Kind: 2
     SinkColor: 1
     Position: {x: 49, y: 0, z: 22}
     MaxIncoming: 3
-    MaxOutgoing: 3
+    MaxOutgoing: 0
     GenerationInterval: 0.25
+    GenerationDelay: 0

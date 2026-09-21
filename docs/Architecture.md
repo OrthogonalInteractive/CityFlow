@@ -4,7 +4,7 @@
 
 Unity 6000.4.7f1上で、仕様書v0.1の配線UXと輸送ルールを検証する。
 DDDを用いてルールの所有者と状態変更の境界を明確にし、EditMode中心のTDDで実装する。
-この文書は後続機能の設計候補を含む。実装済みの範囲は末尾のStep 01〜03に記録する。
+この文書は設計とStep別の実装履歴を含む。現在のRoutingとBufferは末尾の「Relay限定Routing・Node種別ごとのBuffer」を参照。過去の共通容量50・Sink中継は廃止済み。
 
 ## モジュールとユビキタス言語
 
@@ -133,8 +133,8 @@ BootstrapのComposition Rootは `GameplaySettings` と `StageConfiguration` を�
 `FlowSimulation.Tick(deltaSeconds)` が入力時間を蓄積し、暫定固定幅 **0.05 s** ごとに次を実行する。0秒では何も進めず、負値・NaN・Infinityは拒否する。描画フレーム時間を切り捨てず、遅いフレームでも必要なtickを順に処理する。
 
 1. **生成**：Sourceごとの予定時刻に従い、現在のSink色を重複排除して等確率で選ぶ。最初の生成は生成間隔経過後。Source自身の超過生成も保持する（§5.2補完案）。
-2. **移動・受け渡し**：既存In-Flightを共通速度で進め、Line作成順・各Lineの出発順に受け取りを試す。同色Sinkは即時消化し、異色はBufferへ渡す。受け取り容量不足ならLine上に保持する。容量は受け取り完了後だけ解放する。
-3. **出発**：Nodeはステージ定義順、Bufferは待機順に評価。同色Sink直結があれば空き直結から選び、全部満杯なら待機。他の色を後続から評価する。直結がない場合は空きOutgoing間から等確率で選ぶ（§7補完案）。このtickで出発したFLOWは次tickから移動する。
+2. **移動・受け渡し**：既存In-Flightを共通速度で進め、Line作成順・各Lineの出発順に受け取りを試す。同色Sinkは即時消化し、Relayへの到着はBufferへ渡す。異色Sinkへは送らない。受け取り容量不足ならLine上に保持する。容量は受け取り完了後だけ解放する。
+3. **出発**：Nodeはステージ定義順、Bufferは待機順に評価。同色Sink直結があれば空き直結から選び、全部満杯なら待機。他の色を後続から評価する。直結がない場合はRelayを終点とする空きOutgoing間だけから等確率で選ぶ。同色Sinkが複数ある場合は接続作成順で選ぶ。このtickで出発したFLOWは次tickから移動する。
 
 受け渡されたFLOWは同じtickの出発段階で中継できるが、次のLineの移動を同じtickに重ねない。複数Incomingが競合する場合はLine作成順を暫定採用し、受け取るたびにBuffer容量を再評価する。公平性制御は今回の対象外。
 
@@ -157,7 +157,7 @@ UI移行で輸送ルール、tick順序、乱数、初期配線は変更しな�
 
 ## Step 04：混雑とSource Overload（実装済み）
 
-`NodeSnapshot.IsInputStopped` は共通Buffer上限以上を示し、`InFlightSnapshot.IsStopped` は受け取り待ち・停止列へ到達したFLOWを示す。Sink同色の即時消化とFIFO、受け取り完了までの容量保持はStep 03のルールを維持する。
+`NodeSnapshot.IsInputStopped` はSource/RelayそれぞれのBuffer上限以上を示し、`InFlightSnapshot.IsStopped` は受け取り待ち・停止列へ到達したFLOWを示す。Sink同色の即時消化とFIFO、受け取り完了までの容量保持はStep 03のルールを維持する。
 
 §5.2の補完案を採用し、各Sourceの連続Overload時間を出発処理後に評価する。上限と等しい場合から計時し、下回れば0へ戻す。猶予は設定の `OverloadGrace`（暫定5 s）。Relay/Sinkは計時対象外。猶予到達時のSource IDを保持し、Applicationはそのtickで更新を終了する。Game Over後は生成・移動・経過時間を止め、FLOWを残す。結果画面・再試行はStep 11。
 
@@ -245,3 +245,13 @@ Sourceモニターは全Sourceの準備時間、生成累計・直近色、Buffe
 視認性の改善として、`GameplaySettings.FlowSpeed`と`ValidationGameplay`の速度を20から8 m/sへ下げた。距離・移動時間・Preview・輸送能力はすべて同じ実速度から計算する。42 mのLineは2.1から5.25 s、100.98 mは約5.05から12.62 sとなる。容量10、Buffer 50、生成間隔、Wave倍率、Overload猶予5 sは維持する。上記のStep 03記録と仕様中の20 m/sの計算例は当時の値／数式の例であり、現在の調整アセットは8 m/s。速度を落とすと容量回復も遅くなるため、最終採用値と生成量の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) で比較する。
 
 Wave通知と出現マーカーはNode 360中に非表示とし、追加Nodeは候補一覧で選べる。Overviewの出現マーカーはPause/ResumeとWave通知の実レイアウト下端より下へ配置し、操作を遮らない。
+
+## Relay限定Routing・Node種別ごとのBuffer
+
+ユーザー指定により、同色Sink直結がなければRelay行きLineだけをランダム候補にする。異色Sink・Sourceは候補から外す。同色Sink直結が存在し満杯なら待機し、Relayへ逃がさない。同色Sinkが複数ある場合は空きLineを作成順で選ぶ。Relayが1つなら乱数を消費せず、複数なら等確率で選ぶ。
+
+Sinkは消化専用の終点とする。`NodeDefinition.MaxOutgoing`を0にし、SinkからLineを作れなくする。受け渡しは同色Sinkへの即時消化、またはBufferを持つNodeへの移動だけ。Sinkのスナップショットは`BufferCapacity = null`でBufferなしを表し、共通のFLOW所在参照用コレクションは常に空。HUDはBuffer数・ゲージを表示せず、詳細に即時消化とIN枠を表示する。
+
+`NetworkSettings` / `GameplaySettings`の共通MaxBufferを`SourceBufferCapacity`と`RelayBufferCapacity`へ分離し、基本設定をSource 10、Relay 5とする。S1・Wave追加のS2/S3もSourceの設定を使う。`NodeSnapshot.BufferCapacity`を受け取り上限・入力停止・HUDの基準に使い、Sourceの敗北判定はSource容量だけを見る。猶予は現行5秒を維持し、10個以上が5秒続くとGame Over。10未満へ戻れば猶予をリセットする。即時敗北への変更は別判断とする。
+
+旧スナップショットを変更せず、満杯Relayへの6個目はLineに保持する。削除予約・経路切替・Pause・FLOW保存のルールは維持する。旧来のSinkから次のSinkへ中継する検証配線は使わず、Wave追加色にはRelayからOutgoingを増設する。

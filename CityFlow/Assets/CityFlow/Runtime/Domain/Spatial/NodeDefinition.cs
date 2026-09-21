@@ -20,7 +20,8 @@ namespace CityFlow.Domain.Spatial
             int maxOutgoing = 3, FlowColor? sinkColor = null, double generationInterval = 1, double generationDelay = 0)
         {
             Id = id; Kind = kind; Position = position; MaxIncoming = maxIncoming;
-            MaxOutgoing = maxOutgoing; SinkColor = sinkColor; GenerationInterval = generationInterval; GenerationDelay = generationDelay;
+            MaxOutgoing = kind == NodeKind.Sink ? 0 : maxOutgoing;
+            SinkColor = sinkColor; GenerationInterval = generationInterval; GenerationDelay = generationDelay;
         }
     }
 }

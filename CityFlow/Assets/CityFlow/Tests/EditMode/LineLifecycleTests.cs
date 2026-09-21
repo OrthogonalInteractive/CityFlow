@@ -13,7 +13,7 @@ namespace CityFlow.Tests.EditMode
         private static FlowNetwork Create() => new FlowNetwork(new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[] {
             new NodeDefinition("S",NodeKind.Source,Vector3.zero,3,3,generationInterval:1000),
             new NodeDefinition("R",NodeKind.Relay,new Vector3(10,0,0)),
-            new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red) }),new NetworkSettings(2,2,10,0));
+            new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red) }),new NetworkSettings(2,2,2,10,0));
         private static int Connect(FlowNetwork n,string from,string to)
         {
             var nodes=n.NodeDefinitions;

@@ -34,7 +34,7 @@ namespace CityFlow.Tests.EditMode
                 new NodeDefinition("T", NodeKind.Sink, new Vector3(20, 0, 0), 8, 8, FlowColor.Red),
                 new NodeDefinition("U", NodeKind.Sink, new Vector3(30, 0, 0), 8, 8, FlowColor.Red),
                 new NodeDefinition("B", NodeKind.Sink, new Vector3(20, 0, 10), 8, 8, FlowColor.Blue) }),
-                new NetworkSettings(buffer, capacity, 10, 0, overloadGrace: 1000));
+                new NetworkSettings(buffer,buffer, capacity, 10, 0, overloadGrace: 1000));
         private static int Connect(FlowNetwork network, string from, string to, params Vector3[] via)
         {
             Vector3 start = network.NodeDefinitions.Single(n => n.Id == from).Position;
@@ -82,7 +82,7 @@ namespace CityFlow.Tests.EditMode
             int first = Connect(network, "S", "T"), second = Connect(network, "S", "U");
             for (int i = 0; i < 3; i++) network.GenerateFlow("S", FlowColor.Red);
             var choices = new Choices(1); network.RouteWaitingFlows(choices);
-            Assert.That(choices.Bounds, Is.EqualTo(new[] { 2 }));
+            Assert.That(choices.Bounds, Is.Empty, "Matching Sink selection is deterministic.");
             Assert.That(Line(network, first).InFlight.Count, Is.EqualTo(1));
             Assert.That(Line(network, second).InFlight.Count, Is.EqualTo(1));
             Assert.That(Node(network, "S").Buffer.Count, Is.EqualTo(1)); AssertConserved(network);
@@ -133,16 +133,37 @@ namespace CityFlow.Tests.EditMode
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2)); AssertConserved(network);
         }
 
-        [Test] public void DifferentColorSinkBuffersThenRelaysWithoutConsumption()
+        [TestCase(0)] [TestCase(1)]
+        public void BlueFlowChoosesOnlyRelaysWhenRedSinkIsAlsoConnected(int choice)
         {
-            var network = Network(); Connect(network, "S", "B"); Connect(network, "B", "T");
-            Flow flow = network.GenerateFlow("S", FlowColor.Red);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            Assert.That(Node(network, "B").Buffer.Single().Id, Is.EqualTo(flow.Id));
-            Assert.That(network.Snapshot().DeliveredCount, Is.Zero);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            Assert.That(Node(network, "T").Buffer, Is.Empty);
-            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1)); AssertConserved(network);
+            var network = Network(); int red = Connect(network, "S", "T");
+            int first = Connect(network, "S", "R"), second = Connect(network, "S", "Q");
+            network.GenerateFlow("S", FlowColor.Blue);
+            var choices = new Choices(choice); network.RouteWaitingFlows(choices);
+            Assert.That(choices.Bounds, Is.EqualTo(new[] { 2 }));
+            Assert.That(Line(network, red).InFlight, Is.Empty);
+            Assert.That(Line(network, choice == 0 ? first : second).InFlight.Single().Flow.Color, Is.EqualTo(FlowColor.Blue));
+            AssertConserved(network);
+        }
+        [Test] public void WrongColorSinkWithoutRelayLeavesFlowAtSource()
+        {
+            var network = Network(); int red = Connect(network, "S", "T");
+            Flow blue = network.GenerateFlow("S", FlowColor.Blue); var choices = new Choices();
+            network.RouteWaitingFlows(choices); network.AdvanceInFlight(100);
+            Assert.That(Line(network, red).InFlight, Is.Empty);
+            Assert.That(Node(network, "S").Buffer.Single().Id, Is.EqualTo(blue.Id));
+            Assert.That(Node(network, "T").Buffer, Is.Empty); Assert.That(choices.Bounds, Is.Empty);
+            Assert.That(network.Snapshot().DeliveredCount, Is.Zero); AssertConserved(network);
+        }
+        [Test] public void FullRelayDoesNotRedirectFlowToWrongColorSink()
+        {
+            var network = Network(capacity: 1); int relay = Connect(network, "S", "R");
+            int red = Connect(network, "S", "T");
+            network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows(new Choices());
+            Flow waiting = network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows(new Choices());
+            Assert.That(Line(network, relay).InFlight.Count, Is.EqualTo(1));
+            Assert.That(Line(network, red).InFlight, Is.Empty);
+            Assert.That(Node(network, "S").Buffer.Single().Id, Is.EqualTo(waiting.Id)); AssertConserved(network);
         }
         [Test] public void BlockedReceiverRetainsLineOwnershipAndCapacityUntilAccepted()
         {
@@ -156,29 +177,21 @@ namespace CityFlow.Tests.EditMode
             Assert.That(Line(network, incoming).InFlight[1].Distance, Is.LessThan(Line(network, incoming).InFlight[0].Distance));
             network.AdvanceInFlight(100);
             Assert.That(Line(network, incoming).InFlight.Count, Is.EqualTo(2));
-            Connect(network, "R", "B"); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(1);
+            Connect(network, "R", "T"); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(1);
             Assert.That(Line(network, incoming).InFlight, Is.Empty);
             Assert.That(Node(network, "R").Buffer.Count, Is.EqualTo(2)); AssertConserved(network);
         }
-        [Test] public void MatchingSinkAcceptsAtHeadEvenWhenWrongColorBufferIsFull()
+        [Test] public void SinkConsumesMatchingFlowsWithoutBufferOrOutgoingConnections()
         {
-            // Specification 5.3 proposal: matching FLOW bypasses the wrong-color buffer limit.
             var network = Network(buffer: 1, capacity: 2); int line = Connect(network, "S", "B");
-            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            Assert.That(Node(network, "B").Buffer.Count, Is.EqualTo(1));
-            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1));
-            Assert.That(Line(network, line).InFlight, Is.Empty); AssertConserved(network);
-        }
-        [Test] public void MatchingSinkDoesNotConsumeAFlowBehindABlockedHead()
-        {
-            // Specification 8.1 proposal: delivery preserves FIFO even for a matching Sink color.
-            var network = Network(buffer: 1); int line = Connect(network, "S", "B");
-            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            network.GenerateFlow("S", FlowColor.Red); network.GenerateFlow("S", FlowColor.Blue);
+            network.GenerateFlow("S", FlowColor.Blue); network.GenerateFlow("S", FlowColor.Blue);
             network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
-            Assert.That(Line(network, line).InFlight.Count, Is.EqualTo(2));
-            Assert.That(network.Snapshot().DeliveredCount, Is.Zero); AssertConserved(network);
+            Assert.That(Node(network, "B").Buffer, Is.Empty);
+            Assert.That(Node(network, "B").IsInputStopped, Is.False);
+            Assert.That(Node(network, "B").Definition.MaxOutgoing, Is.Zero);
+            Assert.That(network.CheckConnection("B", "R"), Is.EqualTo(ConnectionFailure.OutgoingLimit));
+            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2));
+            Assert.That(Line(network, line).InFlight, Is.Empty); AssertConserved(network);
         }
         [Test] public void SimultaneousIncomingLinesCannotOverfillReceiver()
         {
@@ -193,7 +206,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void TickGeneratesFromDistinctExistingSinkColorsAndRetainsOverflow()
         {
-            // Specification 5.2 proposal: own Source generation can exceed MaxBuffer without loss.
+            // Specification 5.2 proposal: own Source generation can exceed SourceBufferCapacity without loss.
             var network = Network(buffer: 1, interval: 0.1);
             var random = new Choices(0, 1, 0, 1); var simulation = new FlowSimulation(network, random);
             simulation.Tick(0.4);

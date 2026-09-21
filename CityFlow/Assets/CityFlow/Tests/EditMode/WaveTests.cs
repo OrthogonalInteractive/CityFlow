@@ -16,7 +16,7 @@ namespace CityFlow.Tests.EditMode
             new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
                 new NodeDefinition("S",NodeKind.Source,Vector3.zero,3,3,generationInterval:interval),
                 new NodeDefinition("R",NodeKind.Relay,new Vector3(10,0,0)),
-                new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red)}),new NetworkSettings(capacity,2,1,0,grace));
+                new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red)}),new NetworkSettings(capacity,capacity,2,1,0,grace));
         private static WaveDefinition Wave(double at,double delay=2)=>new WaveDefinition(at,1,new[]{
             new NodeDefinition("GREEN",NodeKind.Sink,new Vector3(-10,0,0),3,3,FlowColor.Green),
             new NodeDefinition("NEW",NodeKind.Source,new Vector3(-20,0,0),3,3,generationInterval:0.25,generationDelay:delay)});
@@ -66,7 +66,7 @@ namespace CityFlow.Tests.EditMode
             var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
                 new NodeDefinition("S",NodeKind.Source,Vector3.zero,generationInterval:1,generationDelay:3),
                 new NodeDefinition("T",NodeKind.Sink,new Vector3(10,0,0),sinkColor:FlowColor.Red)});
-            var n=new FlowNetwork(stage,new NetworkSettings(20,2,10,0)); var sim=new FlowSimulation(n,new Last());
+            var n=new FlowNetwork(stage,new NetworkSettings(20,20,2,10,0)); var sim=new FlowSimulation(n,new Last());
             sim.Tick(3.95); Assert.That(n.Snapshot().GeneratedCount,Is.Zero); sim.Tick(0.05); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(1));
         }
         [Test] public void FasterWavePreservesSourcePreparationAndRemainingGenerationPhase()
@@ -74,7 +74,7 @@ namespace CityFlow.Tests.EditMode
             var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
                 new NodeDefinition("S",NodeKind.Source,Vector3.zero,generationInterval:2,generationDelay:3),
                 new NodeDefinition("T",NodeKind.Sink,new Vector3(10,0,0),sinkColor:FlowColor.Red)});
-            var n=new FlowNetwork(stage,new NetworkSettings(20,2,10,0)); var sim=new FlowSimulation(n,new Last(),new[]{
+            var n=new FlowNetwork(stage,new NetworkSettings(20,20,2,10,0)); var sim=new FlowSimulation(n,new Last(),new[]{
                 new WaveDefinition(1,0.5,Array.Empty<NodeDefinition>()),new WaveDefinition(4.5,0.25,Array.Empty<NodeDefinition>())});
             sim.Tick(3.95); Assert.That(n.Snapshot().GeneratedCount,Is.Zero); sim.Tick(0.05); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(1));
             sim.Tick(0.7); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(1)); sim.Tick(0.05); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(2));

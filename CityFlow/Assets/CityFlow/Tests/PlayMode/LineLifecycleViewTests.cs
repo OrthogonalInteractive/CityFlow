@@ -31,8 +31,8 @@ namespace CityFlow.Tests.PlayMode
         {
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             var session=scope.Container.Resolve<ConnectionSession>(); int id=Connect(session,"S1","R1");
-            for(int batch=0;batch<5;batch++)
-            { for(int i=0;i<10;i++) n.GenerateFlow("S1",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100); }
+            for(int i=0;i<n.Settings.RelayBufferCapacity;i++) n.GenerateFlow("S1",FlowColor.Red);
+            n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100);
             n.GenerateFlow("S1",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100);
             var before=n.Snapshot().Lines.Single().InFlight.Single();
             Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Line(id)); yield return null;

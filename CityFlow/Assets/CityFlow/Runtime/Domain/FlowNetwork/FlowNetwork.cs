@@ -57,7 +57,7 @@ namespace CityFlow.Domain.FlowNetwork
             foreach (NodeState node in nodes.Values)
             {
                 if (node.Definition.Kind != NodeKind.Source) continue;
-                node.OverloadSeconds = node.Buffer.Count >= Settings.MaxBuffer ? node.OverloadSeconds + deltaSeconds : 0;
+                node.OverloadSeconds = node.Buffer.Count >= Settings.SourceBufferCapacity ? node.OverloadSeconds + deltaSeconds : 0;
                 // Specification 5.2 proposal: continuous overload, including equality, consumes the grace.
                 if (node.OverloadSeconds + 1e-9 >= Settings.OverloadGrace && !IsGameOver)
                 { IsGameOver = true; GameOverSourceId = node.Definition.Id; }
@@ -128,7 +128,7 @@ namespace CityFlow.Domain.FlowNetwork
         public NetworkSnapshot Snapshot() => new NetworkSnapshot(NodeDefinitions.Select(definition =>
         {
             NodeState node = nodes[definition.Id];
-            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds,
+            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.BufferCapacity(definition.Kind), node.OverloadSeconds,
                 node.GeneratedCount, node.LastGeneratedColor);
         }), lines.Select(line => new LineSnapshot(line.Id, line.Source.Definition.Id, line.Destination.Definition.Id,
             line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)), line.Status, line.PendingRoute)),

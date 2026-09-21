@@ -75,10 +75,11 @@
 
 - Node / LineはGround上。全区間の衝突判定と描画・距離計測・移動の実経路を一致させる。
 - Lineは有向で固定容量。Lineが長くても容量を増やさない。
-- 同色Sinkへの利用可能な直結を優先し、その直結が満杯なら待機する。FLOWに大域的な経路探索をさせない。
+- 同色Sinkへの利用可能な直結を優先し、その直結が満杯なら待機する。直結がない場合のランダム候補はRelayだけ。異色SinkとSourceへはランダム転送しない。FLOWに大域的な経路探索をさせない。
+- Sinkは同色FLOWを即時消化する終点で、Buffer・中継・Outgoing Lineを持たない。Bufferの基本設定はSource 10、Relay 5。
 - FLOWの受け渡し完了前にLineの容量を解放しない。停止中もIn-Flightを保持する。
 - 削除予約・経路切替は新規流入を止め、排出完了を待つ。FLOWの消失・瞬間移動・接続枠の先行解放を起こさない。
-- Relay / Sinkの混雑だけではGame Overにしない。Sourceの継続Overloadが敗北につながる。
+- Relayの混雑だけではGame Overにしない。Sourceの継続Overloadが敗北につながる。
 - Waveは同じシーン内で進行し、既存ネットワークとFLOWを維持する。
 - v0.1初回のNode追加は制作者が設定するWaveスケジュールを使う。自動生成をMVPの必須要件にしない。
 

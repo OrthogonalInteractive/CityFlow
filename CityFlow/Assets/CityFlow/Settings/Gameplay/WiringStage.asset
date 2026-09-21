@@ -21,7 +21,7 @@ MonoBehaviour:
       SinkColor: 3
       Position: {x: -48, y: 0, z: 34}
       MaxIncoming: 3
-      MaxOutgoing: 3
+      MaxOutgoing: 0
       GenerationInterval: 1
       GenerationDelay: 0
     - Id: S2
@@ -40,7 +40,7 @@ MonoBehaviour:
       SinkColor: 2
       Position: {x: 0, y: 0, z: 36}
       MaxIncoming: 3
-      MaxOutgoing: 3
+      MaxOutgoing: 0
       GenerationInterval: 1
       GenerationDelay: 0
     - Id: R3
@@ -59,7 +59,7 @@ MonoBehaviour:
       SinkColor: 4
       Position: {x: 48, y: 0, z: -36}
       MaxIncoming: 3
-      MaxOutgoing: 3
+      MaxOutgoing: 0
       GenerationInterval: 1
       GenerationDelay: 0
     - Id: S3
@@ -121,7 +121,7 @@ MonoBehaviour:
     SinkColor: 0
     Position: {x: -38, y: 0, z: 22}
     MaxIncoming: 3
-    MaxOutgoing: 3
+    MaxOutgoing: 0
     GenerationInterval: 1
     GenerationDelay: 0
   - Id: BLUE
@@ -129,6 +129,6 @@ MonoBehaviour:
     SinkColor: 1
     Position: {x: 49, y: 0, z: 22}
     MaxIncoming: 3
-    MaxOutgoing: 3
+    MaxOutgoing: 0
     GenerationInterval: 1
     GenerationDelay: 0
