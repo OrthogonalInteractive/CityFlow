@@ -89,8 +89,8 @@ namespace CityFlow.Presentation.UI
             {
                 var row = new VisualElement(); row.AddToClassList("table-row"); lines.Add(row);
                 Cell(row, $"{line.SourceId}>{line.DestinationId}", "line-name");
-                Cell(row, $"{line.Route.Length:0}m", "length");
-                Cell(row, $"{line.Route.Length / network.Settings.FlowSpeed:0.0}s", "duration");
+                Cell(row, $"{line.Route.Length:0}m", "length", $"line-length-{line.Id}");
+                Cell(row, $"{line.Route.Length / network.Settings.FlowSpeed:0.0}s", "duration", $"line-time-{line.Id}");
                 lineLoads.Add(line.Id, Cell(row, "", "load", $"line-load-{line.Id}"));
             }
             // This read-only HUD must not block future world selection or wiring gestures.
@@ -109,7 +109,7 @@ namespace CityFlow.Presentation.UI
             // UIDocument recreates its visual tree when disabled and enabled again.
             NetworkSnapshot snapshot = network.Snapshot();
             if (elements == null || elements.Root != document.rootVisualElement ||
-                snapshot.Lines.Count != lineLoads.Count || snapshot.Nodes.Count != nodeRows.Count) Bind();
+                snapshot.Lines.Count != lineLoads.Count || snapshot.Lines.Any(l=>!lineLoads.ContainsKey(l.Id)) || snapshot.Nodes.Count != nodeRows.Count) Bind();
             Refresh(snapshot);
             PositionNodeLabels();
         }
@@ -146,6 +146,8 @@ namespace CityFlow.Presentation.UI
             {
                 Label load = lineLoads[line.Id];
                 load.text = $"{line.InFlight.Count}/{line.Capacity}";
+                elements.Root.Q<Label>($"line-length-{line.Id}").text=$"{line.Route.Length:0}m";
+                elements.Root.Q<Label>($"line-time-{line.Id}").text=$"{line.Route.Length/network.Settings.FlowSpeed:0.0}s";
                 load.EnableInClassList("full", line.InFlight.Count >= line.Capacity);
             }
         }

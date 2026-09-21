@@ -36,6 +36,15 @@ namespace CityFlow.Application.Connections
             preview.Cancel(); SourceId = sourceId; Filter = DistanceBand.All; LastCreatedLineId = null;
             changed.OnNext(Unit.Default); return true;
         }
+        public bool BeginLineEdit(int lineId)
+        {
+            if (IsActive) return false;
+            var line=network.Snapshot().Lines.FirstOrDefault(l=>l.Id==lineId);
+            if (line == null || line.Status != LineStatus.Running) return false;
+            SourceId=line.SourceId; LastCreatedLineId=null;
+            if (!preview.BeginLineEdit(lineId)) { SourceId=null; return false; }
+            changed.OnNext(Unit.Default); return true;
+        }
         public void SetFilter(DistanceBand band)
         { Filter = band; changed.OnNext(Unit.Default); }
         public IReadOnlyList<ConnectionCandidate> Candidates()
@@ -53,7 +62,7 @@ namespace CityFlow.Application.Connections
         }
         public void SelectTarget(string destinationId)
         {
-            if (SourceId == null || !network.NodeDefinitions.Any(n => n.Id == destinationId)) return;
+            if (preview.EditingLineId.HasValue || SourceId == null || !network.NodeDefinitions.Any(n => n.Id == destinationId)) return;
             preview.Generate(SourceId,destinationId);
         }
         public ConnectionFailure Confirm()

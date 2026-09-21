@@ -15,6 +15,7 @@ namespace CityFlow.Presentation.UI
             ConnectionFailure.OutgoingLimit => "Source OUT slots are full",
             ConnectionFailure.IncomingLimit => "Destination IN slots are full",
             ConnectionFailure.SelfConnection => "Choose two different Nodes",
+            ConnectionFailure.LineUnavailable => "Line removed or another change is pending",
             ConnectionFailure.InvalidRoute => "A valid Ground route is required",
             _ => "Node is unavailable"
         };

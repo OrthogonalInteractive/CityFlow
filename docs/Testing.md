@@ -142,3 +142,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - UIの編集開始→真上カメラ→無効経路→再生成→追加→適用と、取消時のOverview復帰をPlayModeで検証。
 - uloopの実Input System操作でSpace→E→Shiftクリック→Enterを通過。S1→BLUEの5点・101.934 mのLineを確定し、編集終了を確認。Errorログ0件。
 - 画面: `docs/screenshots/issue-8-manual-route.png`。
+
+## Step 09 検証記録
+
+- 予約・排出・取消・経路切替の6ケースが未実装により失敗するRedを確認。競合予約の再検証を加え、EditMode **101/101**、PlayMode **24/24**成功。
+- 削除完了前の枠保持、終点満杯での無期限待機、取消でのID/距離/経路保存、排出後の枠解放、新経路への切替、削除後IDの非再利用を検証。各シナリオでFLOW総数と所属一意性を確認。
+- UIから予約・取消・編集適用し、状態とBuffer空き待ち表示、削除/切替後の描画・距離表示更新を検証。コンパイルエラー/警告0、Console Error0。
+- 画面: `docs/screenshots/issue-9-delete-pending.png`。

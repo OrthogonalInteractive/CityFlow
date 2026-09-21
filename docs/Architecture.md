@@ -199,3 +199,11 @@ UI ToolkitのPreviewパネルからNodeペアを選び、Generate route/Cancel�
 `LinePreviewService` に制御点の挿入・移動・削除と自動再生成を追加。始終点は変更不可、入力座標のYは始点のGround高さに投影し、毎回同じ全区間検証へ渡す。無効な点もPreviewには残して理由を表示し、確定を禁止する。適用時も全区間・接続枠を再検証する。
 
 `NodeConnectionController` は接続セッションと開始前のOverviewを維持したまま真上の正射影へ切り替える。編集時はOverviewのNode選択・Orbitを止め、Pan/Zoomを維持。UI Toolkitの番号付き制御点をドラッグし、Shift+クリックで最寄り区間へ点を挿入、Deleteで選択点を削除する。入力座標はCameraのGround平面との交点へ変換する。適用・取消で元のカメラ内部状態と選択を復元する。
+
+## Step 09：Line削除予約と経路切替
+
+FlowNetwork集約が `Running / DeletePending / RouteChangePending` を所有する。削除・切替予約は同時適用を拒否し、新規出発の候補と同色Sinkへの直結判定から対象Lineを除外する。既存FLOWは旧経路で排出し、受け取り完了後にIn-Flightが0となったLineだけ削除または切替する。終点満杯による強制終了やタイムアウトは設けない。空のLineはコマンド内で直ちに完了する。
+
+取消は予約と保留経路だけを解除し、Line ID、旧経路、FLOWのID・距離、接続枠を保持する。削除時にだけ両端から接続を取り除く。Line IDは単調増加し、削除後も再利用しない。
+
+既存Lineの編集も `ConnectionSession` と `LinePreviewService` を使い、端点変更は禁止、仮適用後I/Oは現在値を維持する。Previewの適用時に経路と予約状態を再検証し、削除済み・別予約中のLineを変更しない。描画は確定LineRouteの変更・削除を検出して更新する。選択Lineのパネルに残りFLOW、排出/Buffer空き待ち、取消操作を表示し、削除待ちは橙、切替待ちは紫で区別する。仕様§11の運行中Line編集・予約排他に関する補完案を採用した。

@@ -119,3 +119,6 @@ Label { margin: 0; padding: 0; }
     -unity-text-align: middle-center; font-size: 13px; }
 .route-handle.chosen { background-color: rgb(126,87,26); border-color: rgb(255,207,107); }
 .route-handle.endpoint { background-color: rgb(32,41,54); color: rgb(186,201,213); }
+
+.connection-active #line-actions { display: none; }
+#line-action-detail { margin-top: 10px; }

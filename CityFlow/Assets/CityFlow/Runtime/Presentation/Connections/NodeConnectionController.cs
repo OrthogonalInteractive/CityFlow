@@ -105,6 +105,10 @@ namespace CityFlow.Presentation.Connections
                 if (cityView != null) cityView.SetHiddenNode(null);
             }
         }
+        public void EditSelectedLine()
+        {
+            if (overview?.Selected.LineId is int id && session?.BeginLineEdit(id) == true) BeginEditing();
+        }
         public void BeginEditing()
         {
             if (session?.IsActive != true || overview == null) return;

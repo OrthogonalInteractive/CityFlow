@@ -17,8 +17,9 @@ namespace CityFlow.Domain.FlowNetwork
                 {
                     Flow flow = node.Buffer[index];
                     // Specification 7: direct matching Sinks define the candidate set even when full.
-                    LineState[] direct = node.Outgoing.Where(line => line.Destination.Definition.SinkColor == flow.Color).ToArray();
-                    LineState[] candidates = (direct.Length > 0 ? direct : node.Outgoing.ToArray())
+                    LineState[] open = node.Outgoing.Where(line => line.Status == LineStatus.Running).ToArray();
+                    LineState[] direct = open.Where(line => line.Destination.Definition.SinkColor == flow.Color).ToArray();
+                    LineState[] candidates = (direct.Length > 0 ? direct : open)
                         .Where(line => line.InFlight.Count < Settings.MaxInFlight).ToArray();
                     if (candidates.Length == 0) { index++; continue; }
                     int choice = candidates.Length == 1 ? 0 : random.NextIndex(candidates.Length);
@@ -64,6 +65,7 @@ namespace CityFlow.Domain.FlowNetwork
                     index++;
                 }
             }
+            CompleteDrainedLines();
         }
     }
 }

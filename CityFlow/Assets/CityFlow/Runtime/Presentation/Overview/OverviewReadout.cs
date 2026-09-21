@@ -24,7 +24,7 @@ namespace CityFlow.Presentation.Overview
             if (line == null) return "Hover a Node or Line for details.\nClick to select · F to focus · Home for city view.";
             int stopped = line.InFlight.Count(f=>f.IsStopped);
             double travel = line.Route.Length / settings.FlowSpeed;
-            return $"{line.SourceId} → {line.DestinationId}\nLENGTH {line.Route.Length:0.0} m · TRAVEL {travel:0.00} s\nIN-FLIGHT {line.InFlight.Count}/{line.Capacity} ({100d*line.InFlight.Count/line.Capacity:0}%)\nMOVING {line.InFlight.Count-stopped} · STOPPED {stopped}\nTHROUGHPUT {line.Capacity/travel:0.00} FLOW/s (unblocked)\n{(stopped>0 ? $"WAITING · {line.DestinationId} Buffer space" : line.InFlight.Count==line.Capacity ? "FULL · waiting for capacity release" : "RUNNING")}";
+            return $"{line.SourceId} → {line.DestinationId}\n{line.Status.ToString().ToUpperInvariant()}\nLENGTH {line.Route.Length:0.0} m · TRAVEL {travel:0.00} s\nIN-FLIGHT {line.InFlight.Count}/{line.Capacity} ({100d*line.InFlight.Count/line.Capacity:0}%)\nMOVING {line.InFlight.Count-stopped} · STOPPED {stopped}\nTHROUGHPUT {line.Capacity/travel:0.00} FLOW/s (unblocked)\n{(stopped>0 ? $"WAITING · {line.DestinationId} Buffer space" : line.InFlight.Count==line.Capacity ? "FULL · waiting for capacity release" : "RUNNING")}";
         }
     }
 }

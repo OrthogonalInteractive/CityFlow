@@ -19,6 +19,7 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
+        private readonly Dictionary<int, LineRoute> drawnRoutes = new();
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
         private OverviewTarget selected;
         public void SetSelection(OverviewTarget target) => selected = target;
@@ -74,11 +75,19 @@ namespace CityFlow.Presentation.Rendering
         private void CreateLines(NetworkSnapshot snapshot)
         {
             if (stage == null) return;
+            foreach(int id in lineViews.Keys.ToArray())
+            {
+                LineSnapshot? current=snapshot.Lines.FirstOrDefault(l=>l.Id==id);
+                if (current != null && ReferenceEquals(current.Route,drawnRoutes[id])) continue;
+                Material material=lineViews[id][0].sharedMaterial;
+                foreach(var renderer in lineViews[id]) Destroy(renderer.gameObject);
+                materials.Remove(material); Destroy(material); lineViews.Remove(id); drawnRoutes.Remove(id);
+            }
             foreach (LineSnapshot line in snapshot.Lines)
             {
                 if (lineViews.ContainsKey(line.Id)) continue;
                 var renderers = new List<LineRenderer>();
-                lineViews.Add(line.Id, renderers);
+                lineViews.Add(line.Id, renderers); drawnRoutes.Add(line.Id,line.Route);
                 NodeDefinition destination = stage.Nodes.Single(node => node.Id == line.DestinationId);
                 Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f, 0.65f, 0.55f);
                 var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
@@ -102,6 +111,11 @@ namespace CityFlow.Presentation.Rendering
             CreateLines(snapshot);
             foreach (LineSnapshot line in snapshot.Lines)
             {
+                var destination=network.NodeDefinitions.Single(n=>n.Id==line.DestinationId);
+                Color tint=line.Status==LineStatus.DeletePending ? new Color(1,0.62f,0.18f) :
+                    line.Status==LineStatus.RouteChangePending ? new Color(0.8f,0.5f,1) :
+                    destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f,0.65f,0.55f);
+                lineViews[line.Id][0].sharedMaterial.SetColor("_BaseColor",tint);
                 bool highlight = selected.LineId == line.Id || (selected.NodeId != null &&
                     (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
                 foreach (LineRenderer renderer in lineViews[line.Id])

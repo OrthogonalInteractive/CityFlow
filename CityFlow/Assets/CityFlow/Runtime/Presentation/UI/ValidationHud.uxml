@@ -3,7 +3,7 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 08" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 09" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
@@ -79,6 +79,12 @@
             <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
             <ui:Label name="connect-selection" class="detail-text" />
             <ui:Button name="connect-start" text="Connect [C]" />
+            <ui:VisualElement name="line-actions">
+                <ui:Label name="line-action-detail" class="detail-text" />
+                <ui:Button name="line-edit" text="Edit selected Line" />
+                <ui:Button name="line-delete" text="Reserve deletion" />
+                <ui:Button name="line-cancel" text="Cancel pending change" />
+            </ui:VisualElement>
             <ui:VisualElement class="connection-only">
                 <ui:Label name="connection-bands" class="band-hint" />
                 <ui:VisualElement class="band-buttons">

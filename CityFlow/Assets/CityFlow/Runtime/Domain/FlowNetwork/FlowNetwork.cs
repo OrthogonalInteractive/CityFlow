@@ -31,7 +31,9 @@ namespace CityFlow.Domain.FlowNetwork
             public int Id { get; }
             public NodeState Source { get; }
             public NodeState Destination { get; }
-            public LineRoute Route { get; }
+            public LineRoute Route { get; set; }
+            public LineStatus Status { get; set; }
+            public LineRoute? PendingRoute { get; set; }
             public List<InFlightState> InFlight { get; } = new List<InFlightState>();
             public LineState(int id, NodeState source, NodeState destination, LineRoute route)
             { Id = id; Source = source; Destination = destination; Route = route; }
@@ -40,6 +42,7 @@ namespace CityFlow.Domain.FlowNetwork
         private readonly StageDefinition stage;
         private readonly Dictionary<string, NodeState> nodes;
         private readonly List<LineState> lines = new List<LineState>();
+        private int nextLineId = 1;
         private long nextFlowId = 1;
         private long deliveredCount = 0;
         public bool IsGameOver { get; private set; }
@@ -94,7 +97,7 @@ namespace CityFlow.Domain.FlowNetwork
                 route.Points[route.Points.Count - 1] != destination.Definition.Position ||
                 !stage.IsRouteWalkable(route, Settings.Clearance))
                 return new ConnectionResult(ConnectionFailure.InvalidRoute);
-            var created = new LineState(lines.Count + 1, source, destination, route);
+            var created = new LineState(nextLineId++, source, destination, route);
             lines.Add(created); source.Outgoing.Add(created); destination.Incoming.Add(created);
             return new ConnectionResult(ConnectionFailure.None, created.Id);
         }
@@ -114,7 +117,7 @@ namespace CityFlow.Domain.FlowNetwork
             NodeState node = nodes[definition.Id];
             return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds);
         }), lines.Select(line => new LineSnapshot(line.Id, line.Source.Definition.Id, line.Destination.Definition.Id,
-            line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)))),
+            line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)), line.Status, line.PendingRoute)),
             nextFlowId - 1, deliveredCount);
     }
 }

@@ -14,10 +14,12 @@ namespace CityFlow.Domain.FlowNetwork
         public string DestinationId { get; }
         public LineRoute Route { get; }
         public int Capacity { get; }
+        public LineStatus Status { get; }
+        public LineRoute? PendingRoute { get; }
         public IReadOnlyList<InFlightSnapshot> InFlight { get; }
         internal LineSnapshot(int id, string sourceId, string destinationId, LineRoute route, int capacity,
-            IEnumerable<InFlightSnapshot> inFlight)
+            IEnumerable<InFlightSnapshot> inFlight, LineStatus status = LineStatus.Running, LineRoute? pendingRoute = null)
         { Id = id; SourceId = sourceId; DestinationId = destinationId; Route = route;
-            Capacity = capacity; InFlight = Array.AsReadOnly(inFlight.ToArray()); }
+            Status = status; PendingRoute = pendingRoute; Capacity = capacity; InFlight = Array.AsReadOnly(inFlight.ToArray()); }
     }
 }

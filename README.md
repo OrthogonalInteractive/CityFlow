@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#8の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定、Ground経路の手動編集まで実装。Unity EditorのBootstrapシーンで確認できる。削除予約、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#9の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定、Ground経路の手動編集、Lineの削除予約・取消・経路切替まで実装。Unity EditorのBootstrapシーンで確認できる。Pause、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
@@ -149,3 +149,7 @@ Escは後続のPause機能用に予約しており、接続取消には使用し
 Node 360で接続先を選び、**Edit Ground route / E** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Delete** で削除する。A/Bの端点とGround高さは固定。
 
 **Regenerate automatic route** で自動経路へ戻し、**Apply Line / Enter** で確定、**Cancel / Backspace** で配線全体を取り消す。建物を横切る区間は赤色と理由を表示し、適用不可になる。WASD/中ボタンドラッグとホイールで編集中もPan/Zoomできる。
+
+## 運行中Lineの変更
+
+OverviewでLineをクリックすると、**Edit selected Line / Reserve deletion / Cancel pending change** が表示される。編集適用または削除予約で新規流入を止め、既存FLOWが終点へ届くまで待つ。終点満杯時は **Buffer space** 待ちを表示する。完了前は取消できる。空のLineは即時完了する。接続枠は削除完了まで占有し、経路変更では維持する。
