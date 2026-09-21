@@ -3,10 +3,12 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 03" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 04" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
+            <ui:Label name="congestion-status" class="summary" />
+            <ui:Label name="source-status" class="summary" />
             <ui:VisualElement class="metrics">
                 <ui:VisualElement class="metric">
                     <ui:Label text="DELIVERED" class="metric-caption" />

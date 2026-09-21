@@ -93,3 +93,12 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 表示専用要素が入力を遮らないこと、Nodeラベルのカメラ追従・投影座標・背後での非表示、UIDocument再有効化時の値の復元と行の重複防止をPlayModeで確認。
 - 既存の都市起動・生成・移動・消化・設定不変性のテストも成功。元のEditor設定へ戻してGame Viewを確認。
 - `docs/screenshots/ui-toolkit-hud.png` は移行後の20秒時点。生成80、消化50、待機15、In-Flight15で、移行前と一致。
+
+## Step 04 検証結果
+
+- Red: 新規8件がOverload判定・停止状態未実装により失敗。
+- Green: EditMode **60/60**、PlayMode **9/9**成功。コンパイルError/Warning **0**。
+- Sourceの満杯境界、5秒の連続猶予、回復時リセット、超過生成保持、Relayだけでは敗北しないこと、停止列のID・位置・容量保持と排出再開、不正時間入力、敗北後の状態保持を検証。
+- PlayModeでSource警告→Game Over表示と停止を確認。輸送速度・Routingだけを検証する既存テストは猶予を1000秒へ設定し、敗北の検証とは分離。
+- Play画面でRelay 50、Line停止10、Source 56（猶予残3.5秒）を再現。排出先追加で停止10件が受け渡され、FLOW総数の保存を確認。動的Line追加時のHUD例外も再現テスト（Red 1件）で修正。
+- スクリーンショット: `docs/screenshots/issue-4-congestion.png`。

@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#3の検証都市、FlowNetwork集約、基本輸送まで実装。Unity EditorのBootstrapシーンで確認できる。配線操作、Overload敗北、Waveは後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#4の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overloadまで実装。Unity EditorのBootstrapシーンで確認できる。カメラ・配線操作、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 

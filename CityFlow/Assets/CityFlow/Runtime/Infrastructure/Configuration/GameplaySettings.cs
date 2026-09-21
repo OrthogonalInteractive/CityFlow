@@ -16,14 +16,14 @@ namespace CityFlow.Infrastructure.Configuration
         public int MaxInFlight = 10;
         [Tooltip("Provisional movement speed [m/s].")]
         public float FlowSpeed = 20;
-        [Tooltip("Provisional Source overload grace [s]; used by a later step.")]
+        [Tooltip("Provisional Source overload grace [s].")]
         public float OverloadGrace = 5;
         [Tooltip("Provisional footprint clearance [m].")]
         public float Clearance = 0.5f;
         public CityFlow.Domain.FlowNetwork.NetworkSettings LoadNetworkSettings()
         {
             Validate();
-            return new CityFlow.Domain.FlowNetwork.NetworkSettings(MaxBuffer, MaxInFlight, FlowSpeed, Clearance);
+            return new CityFlow.Domain.FlowNetwork.NetworkSettings(MaxBuffer, MaxInFlight, FlowSpeed, Clearance, OverloadGrace);
         }
         public void Validate()
         {

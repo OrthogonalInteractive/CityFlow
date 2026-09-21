@@ -99,8 +99,10 @@ namespace CityFlow.Presentation.UI
         {
             if (document == null || network == null) return;
             // UIDocument recreates its visual tree when disabled and enabled again.
-            if (elements == null || elements.Root != document.rootVisualElement) Bind();
-            Refresh(network.Snapshot());
+            NetworkSnapshot snapshot = network.Snapshot();
+            if (elements == null || elements.Root != document.rootVisualElement ||
+                snapshot.Lines.Count != lineLoads.Count || snapshot.Nodes.Count != nodeRows.Count) Bind();
+            Refresh(snapshot);
             PositionNodeLabels();
         }
         private void Refresh(NetworkSnapshot snapshot)
@@ -109,6 +111,13 @@ namespace CityFlow.Presentation.UI
             int colors = stage.Nodes.Where(node => node.SinkColor.HasValue).Select(node => node.SinkColor).Distinct().Count();
             elements.Summary.text = $"{snapshot.Nodes.Count} NODES   /   {colors} SINK COLORS   /   10 m GRID";
             elements.Capacity.text = $"{snapshot.Lines.Count} DIRECTED LINES   /   CAPACITY {network.Settings.MaxInFlight}";
+            Required<Label>(elements.Root, "congestion-status").text = $"INPUT STOPPED {snapshot.Nodes.Count(n => n.IsInputStopped)}   /   STOPPED FLOW {snapshot.Lines.Sum(l => l.InFlight.Count(f => f.IsStopped))}";
+            Label sourceStatus = Required<Label>(elements.Root, "source-status");
+            NodeSnapshot? warning = snapshot.Nodes.Where(n => n.Definition.Kind == NodeKind.Source && n.IsInputStopped)
+                .OrderByDescending(n => n.OverloadSeconds).FirstOrDefault();
+            sourceStatus.text = network.IsGameOver ? $"GAME OVER · SOURCE {network.GameOverSourceId}" :
+                warning != null ? $"OVERLOAD {warning.Definition.Id} · {Math.Max(0, network.Settings.OverloadGrace - warning.OverloadSeconds):0.0}s LEFT" : "SOURCE STATUS · NORMAL";
+            sourceStatus.EnableInClassList("full", warning != null || network.IsGameOver);
             elements.Delivered.text = snapshot.DeliveredCount.ToString("0000");
             elements.Elapsed.text = $"{simulation.ElapsedSeconds:0.0} s";
             elements.Waiting.text = snapshot.Nodes.Sum(node => node.Buffer.Count).ToString("000");

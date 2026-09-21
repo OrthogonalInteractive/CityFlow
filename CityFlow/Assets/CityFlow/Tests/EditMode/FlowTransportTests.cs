@@ -34,7 +34,7 @@ namespace CityFlow.Tests.EditMode
                 new NodeDefinition("T", NodeKind.Sink, new Vector3(20, 0, 0), 8, 8, FlowColor.Red),
                 new NodeDefinition("U", NodeKind.Sink, new Vector3(30, 0, 0), 8, 8, FlowColor.Red),
                 new NodeDefinition("B", NodeKind.Sink, new Vector3(20, 0, 10), 8, 8, FlowColor.Blue) }),
-                new NetworkSettings(buffer, capacity, 10, 0));
+                new NetworkSettings(buffer, capacity, 10, 0, overloadGrace: 1000));
         private static int Connect(FlowNetwork network, string from, string to, params Vector3[] via)
         {
             Vector3 start = network.NodeDefinitions.Single(n => n.Id == from).Position;

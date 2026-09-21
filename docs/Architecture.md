@@ -154,3 +154,9 @@ UXMLは構造、USSは見た目、ThemeStyleSheetはUnity標準のランタイ�
 HUDはスナップショットから統計値・Node接続数・Buffer・Line容量を更新する。Nodeラベルはカメラ投影をUIパネルの座標へ変換し、背後・画面外では非表示にする。表示専用要素のPickingModeをIgnoreにし、ワールドの選択・配線用入力を遮らない。UIDocumentの再有効化でVisual Treeが再生成された場合は参照を結び直し、行を重複作成しない。
 
 UI移行で輸送ルール、tick順序、乱数、初期配線は変更しない。UI技術選定はAGENTS.mdにも明記した。
+
+## Step 04：混雑とSource Overload（実装済み）
+
+`NodeSnapshot.IsInputStopped` は共通Buffer上限以上を示し、`InFlightSnapshot.IsStopped` は受け取り待ち・停止列へ到達したFLOWを示す。Sink同色の即時消化とFIFO、受け取り完了までの容量保持はStep 03のルールを維持する。
+
+§5.2の補完案を採用し、各Sourceの連続Overload時間を出発処理後に評価する。上限と等しい場合から計時し、下回れば0へ戻す。猶予は設定の `OverloadGrace`（暫定5 s）。Relay/Sinkは計時対象外。猶予到達時のSource IDを保持し、Applicationはそのtickで更新を終了する。Game Over後は生成・移動・経過時間を止め、FLOWを残す。結果画面・再試行はStep 11。

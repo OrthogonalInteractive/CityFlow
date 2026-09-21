@@ -55,6 +55,17 @@ namespace CityFlow.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator NewOutgoingLineForRecoveryAppearsWithoutBreakingHud()
+        {
+            var network = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>();
+            Assert.That(network.TryConnect("R1", "RED", new[] { new Vector3(-12,0,-20),
+                new Vector3(-38,0,-20), new Vector3(-38,0,22) }).Succeeded, Is.True);
+            yield return null;
+            yield return null;
+            Assert.That(Document().rootVisualElement.Q("line-rows").childCount, Is.EqualTo(6));
+        }
+
+        [UnityTest]
         public IEnumerator NodeLabelsFollowTheCameraAndHideBehindIt()
         {
             UIDocument document = Document();

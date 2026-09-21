@@ -12,6 +12,7 @@ namespace CityFlow.Domain.FlowNetwork
     {
         private sealed class NodeState
         {
+            public double OverloadSeconds { get; set; }
             public NodeDefinition Definition { get; }
             public List<Flow> Buffer { get; } = new List<Flow>();
             public List<LineState> Incoming { get; } = new List<LineState>();
@@ -20,6 +21,7 @@ namespace CityFlow.Domain.FlowNetwork
         }
         private sealed class InFlightState
         {
+            public bool IsStopped { get; set; }
             public Flow Flow { get; }
             public double Distance { get; set; }
             public InFlightState(Flow flow) => Flow = flow;
@@ -40,6 +42,22 @@ namespace CityFlow.Domain.FlowNetwork
         private readonly List<LineState> lines = new List<LineState>();
         private long nextFlowId = 1;
         private long deliveredCount = 0;
+        public bool IsGameOver { get; private set; }
+        public string? GameOverSourceId { get; private set; }
+        public void EvaluateOverload(double deltaSeconds)
+        {
+            if (double.IsNaN(deltaSeconds) || double.IsInfinity(deltaSeconds) || deltaSeconds < 0)
+                throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
+            if (IsGameOver || deltaSeconds == 0) return;
+            foreach (NodeState node in nodes.Values)
+            {
+                if (node.Definition.Kind != NodeKind.Source) continue;
+                node.OverloadSeconds = node.Buffer.Count >= Settings.MaxBuffer ? node.OverloadSeconds + deltaSeconds : 0;
+                // Specification 5.2 proposal: continuous overload, including equality, consumes the grace.
+                if (node.OverloadSeconds + 1e-9 >= Settings.OverloadGrace && !IsGameOver)
+                { IsGameOver = true; GameOverSourceId = node.Definition.Id; }
+            }
+        }
         public NetworkSettings Settings { get; }
         public IReadOnlyList<NodeDefinition> NodeDefinitions => stage.Nodes;
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
@@ -87,9 +105,9 @@ namespace CityFlow.Domain.FlowNetwork
         public NetworkSnapshot Snapshot() => new NetworkSnapshot(stage.Nodes.Select(definition =>
         {
             NodeState node = nodes[definition.Id];
-            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer);
+            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds);
         }), lines.Select(line => new LineSnapshot(line.Id, line.Source.Definition.Id, line.Destination.Definition.Id,
-            line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance)))),
+            line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)))),
             nextFlowId - 1, deliveredCount);
     }
 }

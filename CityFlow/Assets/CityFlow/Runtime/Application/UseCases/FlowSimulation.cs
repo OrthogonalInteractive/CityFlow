@@ -32,16 +32,17 @@ namespace CityFlow.Application.UseCases
         {
             if (double.IsNaN(deltaSeconds) || double.IsInfinity(deltaSeconds) || deltaSeconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
-            if (deltaSeconds == 0) return;
+            if (deltaSeconds == 0 || network.IsGameOver) return;
             if (double.IsInfinity(remainder + deltaSeconds)) throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
             remainder += deltaSeconds;
-            while (remainder + 1e-9 >= StepSeconds)
+            while (!network.IsGameOver && remainder + 1e-9 >= StepSeconds)
             {
                 remainder = Math.Max(0, remainder - StepSeconds);
                 ticks++;
                 GenerateDueFlows();
                 network.AdvanceInFlight(StepSeconds);
                 network.RouteWaitingFlows(random);
+                network.EvaluateOverload(StepSeconds);
             }
         }
         private void GenerateDueFlows()

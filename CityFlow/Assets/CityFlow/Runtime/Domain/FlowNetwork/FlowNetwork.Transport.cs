@@ -58,6 +58,7 @@ namespace CityFlow.Domain.FlowNetwork
                         line.InFlight.RemoveAt(index);
                         continue;
                     }
+                    flight.IsStopped = (atEnd && !canReceive) || (blockedAhead && flight.Distance + 1e-8 >= frontLimit);
                     blockedAhead |= atEnd && !canReceive;
                     frontLimit = blockedAhead ? Math.Max(0, flight.Distance - spacing) : line.Route.Length;
                     index++;
