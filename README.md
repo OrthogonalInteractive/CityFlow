@@ -16,6 +16,7 @@
 | R3 / R3.Unity | 1.3.1 |
 | VContainer | 1.19.0 |
 | Unity Test Framework | 1.6.0 |
+| Visual Studio Editor（VS Code連携・C#プロジェクト生成） | 2.0.27 |
 | NuGetForUnity / CLI | 4.5.0 |
 | uloop CLI / Unity CLI Loop | 3.5.1 / 3.6.3 |
 
@@ -39,6 +40,17 @@ R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従�
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
 Editor内では `NuGet > Restore Packages` でも復元可能。
 `CityFlow/Assets/packages.config` の変更時は復元を再実行する。復元された `CityFlow/Assets/Packages` はGit管理対象外。
+
+### C#プロジェクトファイル
+
+VS Codeで編集する場合は、リポジトリ直下ではなくUnityプロジェクトの `CityFlow/` フォルダーを開く。IDE連携には `com.unity.ide.visualstudio` を使用する。
+Unity Editor起動後、次のコマンドでソリューションと各アセンブリの `.csproj` を再生成できる。
+
+```sh
+uloop --project-path CityFlow execute-dynamic-code --code 'Unity.CodeEditor.CodeEditor.CurrentEditor.SyncAll();'
+```
+
+VS Code選択時は `CityFlow/CityFlow.slnx`（新しいソリューション形式）と `CityFlow/CityFlow.*.csproj` が生成される。生成物と `CityFlow/.vscode/` はローカル環境用のためGit管理せず、手編集しない。
 
 ## 構成
 
