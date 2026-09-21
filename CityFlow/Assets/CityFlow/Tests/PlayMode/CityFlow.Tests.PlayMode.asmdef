@@ -1,0 +1,28 @@
+{
+  "name": "CityFlow.Tests.PlayMode",
+  "rootNamespace": "CityFlow.Tests.PlayMode",
+  "references": [
+    "CityFlow.Application",
+    "CityFlow.Presentation",
+    "CityFlow.Composition",
+    "VContainer",
+    "UniTask",
+    "R3.Unity"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "R3.dll",
+    "Microsoft.Bcl.TimeProvider.dll",
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

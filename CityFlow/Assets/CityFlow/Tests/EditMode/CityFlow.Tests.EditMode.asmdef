@@ -1,0 +1,29 @@
+{
+  "name": "CityFlow.Tests.EditMode",
+  "rootNamespace": "CityFlow.Tests.EditMode",
+  "references": [
+    "CityFlow.Domain",
+    "CityFlow.Application",
+    "CityFlow.Infrastructure",
+    "CityFlow.Composition",
+    "Unity.InputSystem",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "VContainer"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
