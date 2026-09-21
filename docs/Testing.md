@@ -202,3 +202,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 速度20→8 m/sを設定クラスとUnityの調整アセットへ反映し、uloopでコンパイル成功（エラー/警告0）。EditMode **113/113成功**、PlayMode **33/33成功**。
 - 8 m/sでも0 Lineから13 Lineへ拡張し、4 Wave・11 Node・5色・240 sまで生存、100件超の配送とFLOW総数保存を確認。生成間隔・Wave倍率・容量・敗北猶予は変更していない。
 - 6/8/10 m/sの比較や最終採用値は未確定。議論用 [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) を作成し、統合プレイテストの #12 に接続する。
+
+## v0.1最終画面確認
+
+- 実画面でWave通知が360に残る問題と、Overviewの出現マーカーがResumeを覆う問題を発見。既存Waveテストへ再現条件を追加し、2件のRedを確認。表示条件・実レイアウトに基づく配置を修正後、全PlayMode **33/33成功**。最終コンパイルエラー/警告0、Console Error0。
+- 58 sのSource S1は43/50、生成43・残り7枠の予告警告。生成色のリングとBufferの43粒子を表示: `docs/screenshots/v01-source-buffer.png`。
+- 65 sのNode 360では50/50・Game Overまで残り4.5 s、S2準備15 sを上部に保持。GREENの注目だけで54.9 m / 6.86 sのPreviewを生成し、半透明建物・右側情報欄・Node本体から離れた注目ラベルを確認: `docs/screenshots/v01-node-360.png`。
+- 再開して69.45 sでSource S1の継続OverloadからGame Over（UIは69.5 s）。Wave 2・配送0・原因S1とRetryを確認。超過生成も55/50として保持: `docs/screenshots/v01-game-over.png`。

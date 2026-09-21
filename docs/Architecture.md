@@ -232,7 +232,7 @@ Overviewの実クリックをR3で通知し、NodeクリックはNode 360へ、S
 
 Node本体・マーカー・候補一覧への注目でPreviewを生成し、クリックで接続確定する。無効な接続はPreviewと理由を保持する。Enterでの確定、Eでの確定前編集、VでのOverview確認、Backspace取消も維持する。画面上のConnectボタンは削除した。
 
-Node 360では3D描画を左72%・下端6%を除く領域へ限定し、操作・候補一覧・Previewを右側へまとめる。Node位置への投影と画面外判定もCamera.rectを使う。注目ラベルはNodeの上（上端では下）へずらす。建物と屋根はアルファ0.18の専用マテリアルへ切り替え、元の不透明マテリアルを保持する。Overview復帰・手動編集・Controller無効化で元のマテリアル、影、カメラ領域を復元する。空間判定と確定経路は変更しない。
+Node 360では3D描画を左72%・上端12%と下端6%を除く領域へ限定し、操作・候補一覧・Previewを右側へまとめる。Node位置への投影と画面外判定もCamera.rectを使う。注目ラベルはNodeの上（上端では下）へずらす。建物と屋根はアルファ0.18の専用マテリアルへ切り替え、元の不透明マテリアルを保持する。Overview復帰・手動編集・Controller無効化で元のマテリアル、影、カメラ領域を復元する。空間判定と確定経路は変更しない。
 
 ## v0.1 Sourceの視認性
 
@@ -243,3 +243,5 @@ Sourceモニターは全Sourceの準備時間、生成累計・直近色、Buffe
 ## v0.1 FLOW速度の暫定調整
 
 視認性の改善として、`GameplaySettings.FlowSpeed`と`ValidationGameplay`の速度を20から8 m/sへ下げた。距離・移動時間・Preview・輸送能力はすべて同じ実速度から計算する。42 mのLineは2.1から5.25 s、100.98 mは約5.05から12.62 sとなる。容量10、Buffer 50、生成間隔、Wave倍率、Overload猶予5 sは維持する。上記のStep 03記録と仕様中の20 m/sの計算例は当時の値／数式の例であり、現在の調整アセットは8 m/s。速度を落とすと容量回復も遅くなるため、最終採用値と生成量の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) で比較する。
+
+Wave通知と出現マーカーはNode 360中に非表示とし、追加Nodeは候補一覧で選べる。Overviewの出現マーカーはPause/ResumeとWave通知の実レイアウト下端より下へ配置し、操作を遮らない。

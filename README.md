@@ -124,7 +124,7 @@ BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する
 
 ## Overview操作
 
-WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Node/Lineを左クリックで選択し、Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
+WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Nodeの左クリックで360モードへ入り、Lineの左クリックで選択する。Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
 
 ## Ground経路Preview
 

@@ -76,13 +76,15 @@ namespace CityFlow.Presentation.UI
             bool recent=simulation.Wave>1 && simulation.ElapsedSeconds-simulation.LastWaveSeconds<12 && result==null;
             Label notice=root.Q<Label>("wave-notice");
             bool intro=initialLineCount==0 && simulation.Wave==1 && simulation.ElapsedSeconds<15 && result==null;
-            notice.style.display=recent||intro ? DisplayStyle.Flex : DisplayStyle.None;
+            notice.style.display=(recent||intro) && !connectionCamera.IsNode360 ? DisplayStyle.Flex : DisplayStyle.None;
             notice.text=recent ? $"WAVE {simulation.Wave} / NEW NODES\n"+string.Join(" · ",simulation.LatestAdditions.Select(n=>n.Id)) :
                 "Start with 0 Lines\nClick S1 / Hover a target / Click to connect\nEsc pauses while you plan.";
             foreach(var marker in markers.Values) marker.style.display=DisplayStyle.None;
-            if(!recent || connectionCamera.IsEditing) return;
+            if(!recent || connectionCamera.IsEditing || connectionCamera.IsNode360) return;
             float width=root.layout.width,height=root.layout.height; if(width<=0||height<=0) return;
-            var safe=new Rect(Mathf.Min(width*0.32f,480),200,Mathf.Max(180,width-860),Mathf.Max(120,height-500));
+            float markerTop=Mathf.Max(200,root.Q(className:"session-controls").worldBound.yMax+36);
+            markerTop=Mathf.Max(markerTop,notice.worldBound.yMax+36);
+            var safe=new Rect(Mathf.Min(width*0.32f,480),markerTop,Mathf.Max(180,width-860),Mathf.Max(120,height-markerTop-240));
             int index=0;
             foreach(var node in simulation.LatestAdditions)
             {
