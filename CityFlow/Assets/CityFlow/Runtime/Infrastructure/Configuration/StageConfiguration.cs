@@ -26,6 +26,27 @@ namespace CityFlow.Infrastructure.Configuration
                 MaxOutgoing, Kind == NodeKind.Sink ? SinkColor : (FlowColor?)null, GenerationInterval);
         }
 
+        [Serializable]
+        public struct LinePlacement
+        {
+            public string SourceId;
+            public string DestinationId;
+            public Vector3[] Points;
+        }
+        public LinePlacement[] Lines = Array.Empty<LinePlacement>();
+
+        public FlowNetwork LoadNetwork(StageDefinition stage, NetworkSettings settings)
+        {
+            var network = new FlowNetwork(stage, settings);
+            if (Lines == null) throw new ArgumentException("Initial Lines must be present.");
+            foreach (LinePlacement line in Lines)
+            {
+                ConnectionResult result = network.TryConnect(line.SourceId, line.DestinationId, line.Points);
+                if (!result.Succeeded) throw new ArgumentException($"Invalid initial Line {line.SourceId} -> {line.DestinationId}: {result.Failure}");
+            }
+            return network;
+        }
+
         [Tooltip("Shared Ground Y coordinate [m]. One Unity unit equals one meter.")]
         public float GroundHeight;
         public Rect WalkableArea = new Rect(-60, -45, 120, 90);

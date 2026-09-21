@@ -18,6 +18,11 @@ namespace CityFlow.Infrastructure.Configuration
         public float OverloadGrace = 5;
         [Tooltip("Provisional footprint clearance [m].")]
         public float Clearance = 0.5f;
+        public CityFlow.Domain.FlowNetwork.NetworkSettings LoadNetworkSettings()
+        {
+            Validate();
+            return new CityFlow.Domain.FlowNetwork.NetworkSettings(MaxBuffer, MaxInFlight, FlowSpeed, Clearance);
+        }
         public void Validate()
         {
             if (MaxBuffer <= 0 || MaxInFlight <= 0 || !Positive(FlowSpeed) || !Positive(OverloadGrace) ||

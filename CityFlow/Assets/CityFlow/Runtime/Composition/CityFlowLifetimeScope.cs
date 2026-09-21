@@ -26,6 +26,7 @@ namespace CityFlow.Composition
             gameplaySettings.Validate();
             StageDefinition stage = stageConfiguration.Load(gameplaySettings.Clearance);
             builder.RegisterInstance(stage);
+            builder.RegisterInstance(stageConfiguration.LoadNetwork(stage, gameplaySettings.LoadNetworkSettings()));
             builder.RegisterEntryPoint<CitySceneEntryPoint>();
         }
     }

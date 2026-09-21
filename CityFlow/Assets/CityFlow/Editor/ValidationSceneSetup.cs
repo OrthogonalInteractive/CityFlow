@@ -45,6 +45,23 @@ namespace CityFlow.Editor
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
         }
+        [MenuItem("City Flow/Set Up Fixed Validation Network")]
+        public static void CreateNetwork()
+        {
+            Create();
+            var stage = AssetDatabase.LoadAssetAtPath<StageConfiguration>("Assets/CityFlow/Settings/Gameplay/ValidationStage.asset");
+            if (stage.Lines.Length != 0) return;
+            stage.Lines = new[] {
+                Line("S1", "RED", new Vector3(-38, 0, -20), new Vector3(-38, 0, 22)),
+                Line("S1", "BLUE", new Vector3(-38, 0, -20), new Vector3(-38, 0, -40), new Vector3(49, 0, -40), new Vector3(49, 0, 22)),
+                Line("S1", "R1", new Vector3(-38, 0, -20), new Vector3(-12, 0, -20)),
+                Line("R1", "R2", new Vector3(-12, 0, -20), new Vector3(28, 0, -20), new Vector3(28, 0, 18)),
+                Line("R2", "BLUE", new Vector3(28, 0, 18), new Vector3(28, 0, 35), new Vector3(49, 0, 35), new Vector3(49, 0, 22)) };
+            EditorUtility.SetDirty(stage); AssetDatabase.SaveAssets();
+        }
+        private static StageConfiguration.LinePlacement Line(string source, string destination, params Vector3[] points) =>
+            new StageConfiguration.LinePlacement { SourceId = source, DestinationId = destination, Points = points };
+
         private static StageConfiguration.NodePlacement Node(string id, NodeKind kind, float x, float z,
             FlowColor color = FlowColor.Red) => new StageConfiguration.NodePlacement {
                 Id = id, Kind = kind, SinkColor = color, Position = new Vector3(x, 0, z),

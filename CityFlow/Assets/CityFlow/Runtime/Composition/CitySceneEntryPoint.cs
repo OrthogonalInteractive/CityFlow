@@ -2,6 +2,7 @@
 
 using System;
 using CityFlow.Domain.Spatial;
+using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Rendering;
 using UnityEngine;
 using VContainer.Unity;
@@ -12,11 +13,12 @@ namespace CityFlow.Composition
     {
         private readonly StageDefinition stage;
         private GameObject? city;
-        public CitySceneEntryPoint(StageDefinition stage) => this.stage = stage;
+        private readonly FlowNetwork network;
+        public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network) { this.stage = stage; this.network = network; }
         public void Start()
         {
             city = new GameObject("Validation City");
-            city.AddComponent<ValidationCityView>().Initialize(stage);
+            city.AddComponent<ValidationCityView>().Initialize(stage, network);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }
     }

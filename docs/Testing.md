@@ -63,3 +63,11 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - Ground外、建物内・クリアランス内、異なる高さ、非有限値、不正容量、Sink色不足、Sourceの生成先不足を検証。
 - アセットから読み込んだ定義の独立性、BootstrapのVContainer、初期Node 5個・2色Sink・URP描画を確認。
 - EditorのGame Viewスクリーンショット: `docs/screenshots/issue-1-city.png`。
+
+## Step 02 検証結果
+
+- 接続・集約のRed: 11件中10件失敗、1件成功。個別失敗理由と接続成功・生成未実装を確認。
+- Green: EditMode 30/30、PlayMode 3/3成功。コンパイルError/Warningとも0、Console Error 0。
+- 両端枠の同時確保、自己接続・重複・OUT/IN不足、逆方向、全区間障害物判定、読み取り専用スナップショット、FLOW IDとBuffer所属を検証。
+- PlayModeで5本の固定配線、IN/OUT合計、生成されない初期状態を確認。
+- EditorのGame Viewスクリーンショット: `docs/screenshots/issue-2-network.png`。

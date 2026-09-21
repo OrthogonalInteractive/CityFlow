@@ -61,6 +61,30 @@ namespace CityFlow.Domain.Spatial
                 point.z >= b.min.z - clearance && point.z <= b.max.z + clearance);
         }
 
+        public bool IsRouteWalkable(LineRoute route, float clearance)
+        {
+            if (route.Points.Any(point => !IsWalkable(point, clearance))) return false;
+            for (int i = 1; i < route.Points.Count; i++)
+                foreach (Bounds building in Buildings)
+                {
+                    Vector3 start = route.Points[i - 1];
+                    Vector3 delta = route.Points[i] - start;
+                    double enter = 0, exit = 1;
+                    if (ClipAxis(start.x, delta.x, building.min.x - clearance, building.max.x + clearance, ref enter, ref exit) &&
+                        ClipAxis(start.z, delta.z, building.min.z - clearance, building.max.z + clearance, ref enter, ref exit))
+                        return false;
+                }
+            return true;
+        }
+        private static bool ClipAxis(double start, double delta, double min, double max, ref double enter, ref double exit)
+        {
+            if (delta == 0) return start >= min && start <= max;
+            double a = (min - start) / delta, b = (max - start) / delta;
+            enter = Math.Max(enter, Math.Min(a, b));
+            exit = Math.Min(exit, Math.Max(a, b));
+            return enter <= exit;
+        }
+
         private static bool Finite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
         private static bool Finite(Vector3 value) => Finite(value.x) && Finite(value.y) && Finite(value.z);
     }

@@ -27,6 +27,13 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(stage.Nodes.All(node => node.Position.y == stage.GroundHeight), Is.True);
             Assert.That(stage.Nodes.Where(node => node.Kind == NodeKind.Sink).Select(node => node.SinkColor),
                 Is.EquivalentTo(new[] { (FlowColor?)FlowColor.Red, FlowColor.Blue }));
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var snapshot = network.Snapshot();
+            Assert.That(snapshot.Lines.Count, Is.EqualTo(5));
+            Assert.That(snapshot.Nodes.Single(node => node.Definition.Id == "S1").OutgoingUsed, Is.EqualTo(3));
+            Assert.That(snapshot.Nodes.Sum(node => node.IncomingUsed), Is.EqualTo(5));
+            Assert.That(snapshot.Nodes.Sum(node => node.OutgoingUsed), Is.EqualTo(5));
+            Assert.That(snapshot.GeneratedCount, Is.Zero);
             var view = Object.FindAnyObjectByType<ValidationCityView>();
             Assert.That(view.VisibleNodeCount, Is.EqualTo(stage.Nodes.Count));
             Assert.That(Object.FindObjectsByType<Renderer>().Length, Is.GreaterThan(20));

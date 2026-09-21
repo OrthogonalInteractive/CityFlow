@@ -12,6 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
   m_Name: ValidationStage
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
+  Lines:
+  - SourceId: S1
+    DestinationId: RED
+    Points:
+    - {x: -38, y: 0, z: -20}
+    - {x: -38, y: 0, z: 22}
+  - SourceId: S1
+    DestinationId: BLUE
+    Points:
+    - {x: -38, y: 0, z: -20}
+    - {x: -38, y: 0, z: -40}
+    - {x: 49, y: 0, z: -40}
+    - {x: 49, y: 0, z: 22}
+  - SourceId: S1
+    DestinationId: R1
+    Points:
+    - {x: -38, y: 0, z: -20}
+    - {x: -12, y: 0, z: -20}
+  - SourceId: R1
+    DestinationId: R2
+    Points:
+    - {x: -12, y: 0, z: -20}
+    - {x: 28, y: 0, z: -20}
+    - {x: 28, y: 0, z: 18}
+  - SourceId: R2
+    DestinationId: BLUE
+    Points:
+    - {x: 28, y: 0, z: 18}
+    - {x: 28, y: 0, z: 35}
+    - {x: 49, y: 0, z: 35}
+    - {x: 49, y: 0, z: 22}
   GroundHeight: 0
   WalkableArea:
     serializedVersion: 2
