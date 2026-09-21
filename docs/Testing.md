@@ -55,3 +55,11 @@ Source自身の超過生成、異色Buffer満杯のSinkへの同色到着、同�
 
 実行したモード・件数・結果と、実行できなかった検証を明記する。
 nullable警告や自作コードのコンパイルエラーを残さない。外部パッケージの警告は自作コードと区別し、全体の警告抑制で隠さない。
+
+## Step 01 検証結果
+
+- 設定・配置のRed: 14件中13件失敗（無検証のため不正値を受理）、1件成功。
+- Green: EditMode 19/19、PlayMode 3/3成功。コンパイルError/Warningとも0。
+- Ground外、建物内・クリアランス内、異なる高さ、非有限値、不正容量、Sink色不足、Sourceの生成先不足を検証。
+- アセットから読み込んだ定義の独立性、BootstrapのVContainer、初期Node 5個・2色Sink・URP描画を確認。
+- EditorのGame Viewスクリーンショット: `docs/screenshots/issue-1-city.png`。

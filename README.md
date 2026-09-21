@@ -32,7 +32,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。現段階ではカメラ・ライト・VContainerの起動基盤のみで、ゲーム本体は未実装。
+5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市とSource・Relay・赤／青Sinkを表示する。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。

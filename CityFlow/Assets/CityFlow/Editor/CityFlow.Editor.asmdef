@@ -5,7 +5,9 @@
     "CityFlow.Composition",
     "Unity.InputSystem",
     "Unity.RenderPipelines.Universal.Runtime",
-    "VContainer"
+    "VContainer",
+    "CityFlow.Domain",
+    "CityFlow.Infrastructure"
   ],
   "includePlatforms": [
     "Editor"

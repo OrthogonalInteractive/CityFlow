@@ -7,7 +7,9 @@
     "CityFlow.Composition",
     "VContainer",
     "UniTask",
-    "R3.Unity"
+    "R3.Unity",
+    "CityFlow.Domain",
+    "CityFlow.Infrastructure"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

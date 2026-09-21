@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
+  m_Name: ValidationStage
+  m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
+  GroundHeight: 0
+  WalkableArea:
+    serializedVersion: 2
+    x: -60
+    y: -45
+    width: 120
+    height: 90
+  Buildings:
+  - m_Center: {x: 0, y: 6, z: 0}
+    m_Extent: {x: 9, y: 6, z: 8}
+  - m_Center: {x: 20, y: 4, z: 19}
+    m_Extent: {x: 5, y: 4, z: 11}
+  - m_Center: {x: 36, y: 7, z: 19}
+    m_Extent: {x: 5, y: 7, z: 11}
+  - m_Center: {x: -19, y: 5, z: 17}
+    m_Extent: {x: 6, y: 5, z: 8.5}
+  - m_Center: {x: -17, y: 3, z: -31}
+    m_Extent: {x: 6, y: 3, z: 4}
+  - m_Center: {x: 13, y: 4, z: -31}
+    m_Extent: {x: 8, y: 4, z: 4}
+  Nodes:
+  - Id: S1
+    Kind: 0
+    SinkColor: 0
+    Position: {x: -38, y: 0, z: -20}
+    MaxIncoming: 3
+    MaxOutgoing: 3
+    GenerationInterval: 0.25
+  - Id: R1
+    Kind: 1
+    SinkColor: 0
+    Position: {x: -12, y: 0, z: -20}
+    MaxIncoming: 3
+    MaxOutgoing: 3
+    GenerationInterval: 0.25
+  - Id: R2
+    Kind: 1
+    SinkColor: 0
+    Position: {x: 28, y: 0, z: 18}
+    MaxIncoming: 3
+    MaxOutgoing: 3
+    GenerationInterval: 0.25
+  - Id: RED
+    Kind: 2
+    SinkColor: 0
+    Position: {x: -38, y: 0, z: 22}
+    MaxIncoming: 3
+    MaxOutgoing: 3
+    GenerationInterval: 0.25
+  - Id: BLUE
+    Kind: 2
+    SinkColor: 1
+    Position: {x: 49, y: 0, z: 22}
+    MaxIncoming: 3
+    MaxOutgoing: 3
+    GenerationInterval: 0.25

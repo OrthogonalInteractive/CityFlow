@@ -416,6 +416,8 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
+  gameplaySettings: {fileID: 11400000, guid: 9140afbb7db184feea49176fe3231e6e, type: 2}
+  stageConfiguration: {fileID: 11400000, guid: cc2efee4d28be4ea6ab573ae7ad3d8c1, type: 2}
 --- !u!4 &815804356
 Transform:
   m_ObjectHideFlags: 0
