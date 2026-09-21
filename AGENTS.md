@@ -11,6 +11,8 @@
 ## 技術スタック
 
 - Unity **6.4 / 6000.4.7f1**、URP、Input System、Cinemachine 3、VFX Graph、Shader Graph。
+- ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
+- UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。
 - Unity Editorの起動・コンパイル・テスト・Play Mode制御・ログ取得・シーン／アセット操作は、すべて **uloop CLI** を通して行う。Unity実行ファイルの直接起動、`-batchmode`、Editorの手動操作を自動化手段として使わない。
 - リポジトリルートから `uloop --project-path CityFlow <command>` を基本形とする。利用可能なコマンドは `uloop --project-path CityFlow list` で確認し、ツール構成変更後は `uloop --project-path CityFlow sync` を実行する。

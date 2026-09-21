@@ -1,0 +1,51 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="ValidationHud.uss" />
+    <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
+        <ui:VisualElement class="panel summary-panel">
+            <ui:Label text="CITY FLOW  /  LAB 03" class="title" />
+            <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
+            <ui:Label name="network-summary" class="summary" />
+            <ui:Label name="capacity-summary" class="summary" />
+            <ui:VisualElement class="metrics">
+                <ui:VisualElement class="metric">
+                    <ui:Label text="DELIVERED" class="metric-caption" />
+                    <ui:Label name="delivered-value" text="0000" class="metric-value" />
+                </ui:VisualElement>
+                <ui:VisualElement class="metric">
+                    <ui:Label text="TIME" class="metric-caption" />
+                    <ui:Label name="elapsed-value" text="0.0 s" class="metric-value" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="metrics secondary-metrics">
+                <ui:Label text="WAITING" class="metric-caption" />
+                <ui:Label name="waiting-value" text="000" class="small-value" />
+                <ui:Label text="IN FLIGHT" class="metric-caption" />
+                <ui:Label name="inflight-value" text="000" class="small-value" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="readouts">
+            <ui:VisualElement class="panel node-panel">
+                <ui:Label text="NODE CONNECTIONS" class="section-title" />
+                <ui:VisualElement class="table-row table-header">
+                    <ui:Label text="NODE" class="node-name" />
+                    <ui:Label text="IN" class="connection" />
+                    <ui:Label text="OUT" class="connection" />
+                    <ui:Label text="BUFFER" class="buffer" />
+                </ui:VisualElement>
+                <ui:VisualElement name="node-rows" />
+            </ui:VisualElement>
+            <ui:VisualElement class="panel line-panel">
+                <ui:Label text="DIRECTED LINES" class="section-title" />
+                <ui:VisualElement class="table-row table-header">
+                    <ui:Label text="LINE" class="line-name" />
+                    <ui:Label text="LENGTH" class="length" />
+                    <ui:Label text="TIME" class="duration" />
+                    <ui:Label text="LOAD" class="load" />
+                </ui:VisualElement>
+                <ui:VisualElement name="line-rows" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="footer" />
+    </ui:VisualElement>
+</ui:UXML>

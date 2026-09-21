@@ -50,7 +50,7 @@ flowchart TD
 | CityFlow.Domain | 集約・値オブジェクト・ルール | UnityEngineの型を利用可。外部の事前コンパイルDLLは自動参照しない |
 | CityFlow.Application | コマンド・問い合わせ・進行調整・ポート | UniTask。必要な通知にR3コア |
 | CityFlow.Infrastructure | ポートの具象実装・設定変換 | Unity API、UniTask。将来SDKアダプター |
-| CityFlow.Presentation | 入力・カメラ・表示・購読 | Input System、Cinemachine、URP、VFX Graph、UniTask、R3.Unity |
+| CityFlow.Presentation | 入力・カメラ・表示・購読 | UI Toolkit、Input System、Cinemachine、URP、VFX Graph、UniTask、R3.Unity |
 | CityFlow.Composition | VContainer登録・スコープ構築 | VContainer（`VContainer.Unity` 名前空間を含む） |
 | CityFlow.Editor | 開発ツール | UnityEditor。Editor限定 |
 | CityFlow.Tests.EditMode | ロジック・設定の検証 | Unity Test Framework。Editor限定 |
@@ -143,3 +143,14 @@ BootstrapのComposition Rootは `GameplaySettings` と `StageConfiguration` を�
 乱数境界 `IRandomSource` をテストで差し替え、実シーンは設定の固定seed（暫定1337）で `System.Random.Next` を使う。Presentationの `SimulationDriver` はUnityのフレーム時間をApplicationへ渡すだけで、輸送ルールを持たない。表示粒子はIn-Flightのスナップショットから作成・更新・削除し、ゲーム状態の正本にはしない。
 
 初期ネットワークは短い赤直結42 m（2.1 s）と長い青直結169 m（8.45 s）に同じ容量10を持つ。Sourceは0.25 s間隔で生成するため、青側が先に満杯になりSourceのBufferが増える。HUDに処理成功数・Buffer・In-Flight・Line実長・所要時間・容量使用数を表示する。Overload敗北、Wave、プレイヤー配線、削除・経路切替は後続Issueの対象。
+
+
+## Step 03後：UI Toolkit移行
+
+ゲーム内UIは開発用表示も含めUI Toolkitを採用する。`ValidationCityView` は3D都市・Line・FLOWの描画、`ValidationHud` はHUD・Nodeラベルの表示を担当する。従来の `OnGUI` によるIMGUI描画は削除した。
+
+UXMLは構造、USSは見た目、ThemeStyleSheetはUnity標準のランタイムテーマ、PanelSettingsは基準解像度1600×900と画面への拡大縮小を定義する。Composition RootがUXMLとPanelSettingsを検証・注入し、都市と同じ寿命のUIDocumentを作る。UI Builderで編集可能なアセットとして管理し、実行中に見た目やゲーム状態をアセットへ書き戻さない。
+
+HUDはスナップショットから統計値・Node接続数・Buffer・Line容量を更新する。Nodeラベルはカメラ投影をUIパネルの座標へ変換し、背後・画面外では非表示にする。表示専用要素のPickingModeをIgnoreにし、ワールドの選択・配線用入力を遮らない。UIDocumentの再有効化でVisual Treeが再生成された場合は参照を結び直し、行を重複作成しない。
+
+UI移行で輸送ルール、tick順序、乱数、初期配線は変更しない。UI技術選定はAGENTS.mdにも明記した。

@@ -84,3 +84,12 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - PlayModeでは明示的tickによる生成・移動・消化、表示粒子の位置と消滅、設定アセット不変性を検証。元のEditor高速Play設定（Domain/Scene Reload無効）へ戻した後にも再起動を確認。
 - スクリーンショット `docs/screenshots/issue-3-transport.png` はseed=1337、20秒時点で表示を固定して撮影。生成80、消化50、待機15、In-Flight15。長距離青Lineは10/10、短距離赤Lineは5/10。
 - 対象はUnity Editor内。Playerビルドは今回の検証対象外。
+
+## Step 03後：UI Toolkit移行の検証結果
+
+- Red: UIDocument未導入の状態でPlayModeのHUDテスト3件が失敗。
+- Green: EditMode **52/52**、PlayMode **7/7**成功。コンパイルError/Warning **0**、実画面確認後のConsoleログ **0**。
+- HUDの処理成功数・Buffer・In-Flight・Node/Line一覧が実際のスナップショットへ追従することを確認。
+- 表示専用要素が入力を遮らないこと、Nodeラベルのカメラ追従・投影座標・背後での非表示、UIDocument再有効化時の値の復元と行の重複防止をPlayModeで確認。
+- 既存の都市起動・生成・移動・消化・設定不変性のテストも成功。元のEditor設定へ戻してGame Viewを確認。
+- `docs/screenshots/ui-toolkit-hud.png` は移行後の20秒時点。生成80、消化50、待機15、In-Flight15で、移行前と一致。

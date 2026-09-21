@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CityFlow.Application.UseCases;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
 using UnityEngine;
@@ -16,17 +15,15 @@ namespace CityFlow.Presentation.Rendering
         private StageDefinition? stage;
         private Camera? sceneCamera;
         private FlowNetwork? network;
-        private FlowSimulation? simulation;
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => stage?.Nodes.Count ?? 0;
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork)
         {
             stage = definition;
             network = flowNetwork;
-            simulation = flowSimulation;
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
             sceneCamera.transform.position = new Vector3(25, 190, -120);
@@ -148,59 +145,6 @@ namespace CityFlow.Presentation.Rendering
             line.sharedMaterial = material; line.positionCount = points.Length;
             line.SetPositions(points); line.startWidth = width; line.endWidth = width;
             line.numCornerVertices = 2; line.numCapVertices = 2;
-        }
-        private void OnGUI()
-        {
-            if (stage == null || sceneCamera == null) return;
-            float scale = Mathf.Max(0.65f, Screen.height / 900f);
-            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1));
-            var title = new GUIStyle(GUI.skin.label) { fontSize = 30, fontStyle = FontStyle.Bold };
-            var text = new GUIStyle(GUI.skin.label) { fontSize = 16 };
-            GUI.Box(new Rect(24, 24, 440, 250), GUIContent.none);
-            GUI.Label(new Rect(42, 36, 420, 44), "CITY FLOW  /  LAB 03", title);
-            GUI.Label(new Rect(44, 83, 410, 28), "LIVE TRANSPORT  ·  v0.1", text);
-            GUI.Label(new Rect(44, 112, 410, 26), $"{stage.Nodes.Count} NODES   /   2 SINK COLORS   /   10 m GRID", text);
-            NetworkSnapshot? snapshot = network?.Snapshot();
-            GUI.Label(new Rect(44, 140, 410, 26), $"{snapshot?.Lines.Count ?? 0} DIRECTED LINES   /   CAPACITY {network?.Settings.MaxInFlight}", text);
-            if (snapshot != null)
-            {
-                GUI.Label(new Rect(44, 180, 400, 26), $"DELIVERED   {snapshot.DeliveredCount:0000}     TIME   {simulation?.ElapsedSeconds:0.0} s", text);
-                GUI.Label(new Rect(44, 214, 400, 26), $"WAITING   {snapshot.Nodes.Sum(n => n.Buffer.Count):000}     IN FLIGHT   {snapshot.Lines.Sum(l => l.InFlight.Count):000}", text);
-            }
-            GUI.Label(new Rect(32, Screen.height / scale - 50, 900, 32),
-                "FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE", text);
-            if (snapshot != null)
-            {
-                float right = Screen.width / scale - 340;
-                GUI.Box(new Rect(right, 24, 310, 260), GUIContent.none);
-                GUI.Label(new Rect(right + 18, 38, 280, 30), "NODE      IN : OUT    BUFFER", text);
-                for (int i = 0; i < snapshot.Nodes.Count; i++)
-                {
-                    NodeSnapshot node = snapshot.Nodes[i];
-                    GUI.Label(new Rect(right + 18, 82 + i * 34, 280, 30),
-                        $"{node.Definition.Id,-5}  {node.IncomingUsed}/{node.Definition.MaxIncoming} : {node.OutgoingUsed}/{node.Definition.MaxOutgoing}    {node.Buffer.Count}", text);
-                }
-            }
-            if (snapshot != null)
-            {
-                float right = Screen.width / scale - 340;
-                GUI.Box(new Rect(right, 302, 310, 265), GUIContent.none);
-                GUI.Label(new Rect(right + 18, 316, 275, 28), "LINE     LENGTH / TIME / LOAD", text);
-                for (int i = 0; i < snapshot.Lines.Count; i++)
-                {
-                    LineSnapshot line = snapshot.Lines[i];
-                    GUI.Label(new Rect(right + 18, 354 + i * 38, 290, 30),
-                        $"{line.SourceId}>{line.DestinationId}  {line.Route.Length:0}m  {line.Route.Length / (network?.Settings.FlowSpeed ?? 1):0.0}s  {line.InFlight.Count}/{line.Capacity}", text);
-                }
-            }
-            GUI.matrix = Matrix4x4.identity;
-            var label = new GUIStyle(GUI.skin.box) { fontSize = Mathf.RoundToInt(13 * scale), alignment = TextAnchor.MiddleCenter };
-            foreach (NodeDefinition node in stage.Nodes)
-            {
-                Vector3 point = sceneCamera.WorldToScreenPoint(node.Position + Vector3.up * 5);
-                GUI.Box(new Rect(point.x - 64 * scale, Screen.height - point.y - 24 * scale, 128 * scale, 26 * scale),
-                    node.Id.ToUpperInvariant() + " · " + node.Kind.ToString().ToUpperInvariant(), label);
-            }
         }
         private void OnDestroy()
         {

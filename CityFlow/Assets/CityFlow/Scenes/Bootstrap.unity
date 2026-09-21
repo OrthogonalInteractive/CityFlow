@@ -418,6 +418,8 @@ MonoBehaviour:
   autoInjectGameObjects: []
   gameplaySettings: {fileID: 11400000, guid: 9140afbb7db184feea49176fe3231e6e, type: 2}
   stageConfiguration: {fileID: 11400000, guid: cc2efee4d28be4ea6ab573ae7ad3d8c1, type: 2}
+  hudLayout: {fileID: 9197481963319205126, guid: 96cf534f4d6b244d78814fa43e3b42dc, type: 3}
+  hudPanelSettings: {fileID: 11400000, guid: 13a224993c8d94f958d6c3954c9d5e1c, type: 2}
 --- !u!4 &815804356
 Transform:
   m_ObjectHideFlags: 0

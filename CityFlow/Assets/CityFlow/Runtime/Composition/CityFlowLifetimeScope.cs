@@ -5,6 +5,7 @@ using CityFlow.Domain.Spatial;
 using CityFlow.Application.UseCases;
 using CityFlow.Infrastructure.Configuration;
 using UnityEngine;
+using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
 
@@ -16,6 +17,12 @@ namespace CityFlow.Composition
         [SerializeField] private GameplaySettings? gameplaySettings;
         [SerializeField] private StageConfiguration? stageConfiguration;
 
+        [SerializeField] private VisualTreeAsset? hudLayout;
+        [SerializeField] private PanelSettings? hudPanelSettings;
+
+        public void SetHudConfiguration(VisualTreeAsset layout, PanelSettings panelSettings)
+        { hudLayout = layout; hudPanelSettings = panelSettings; }
+
         public void SetConfiguration(GameplaySettings settings, StageConfiguration stage)
         {
             gameplaySettings = settings; stageConfiguration = stage;
@@ -24,6 +31,10 @@ namespace CityFlow.Composition
         {
             if (gameplaySettings == null || stageConfiguration == null)
                 throw new InvalidOperationException("Bootstrap requires gameplay and stage configuration assets.");
+            if (hudLayout == null || hudPanelSettings == null)
+                throw new InvalidOperationException("Bootstrap requires UI Toolkit layout and panel settings assets.");
+            builder.RegisterInstance(hudLayout);
+            builder.RegisterInstance(hudPanelSettings);
             gameplaySettings.Validate();
             StageDefinition stage = stageConfiguration.Load(gameplaySettings.Clearance);
             builder.RegisterInstance(stage);

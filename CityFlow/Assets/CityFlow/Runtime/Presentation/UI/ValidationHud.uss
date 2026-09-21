@@ -1,0 +1,50 @@
+.hud {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    color: rgb(235, 241, 249);
+    font-size: 16px;
+}
+Label { margin: 0; padding: 0; }
+.panel {
+    background-color: rgba(5, 9, 15, 0.94);
+    border-width: 1px;
+    border-color: rgb(35, 49, 63);
+    border-radius: 4px;
+    padding: 18px;
+}
+.summary-panel { position: absolute; left: 24px; top: 24px; width: 440px; }
+.title { font-size: 30px; -unity-font-style: bold; margin-bottom: 16px; }
+.subtitle { margin-bottom: 12px; }
+.summary { color: rgb(173, 192, 207); font-size: 15px; margin-bottom: 8px; }
+.metrics { flex-direction: row; align-items: center; margin-top: 14px; }
+.metric { flex-direction: row; align-items: baseline; margin-right: 26px; }
+.metric-caption { color: rgb(180, 198, 213); font-size: 14px; margin-right: 10px; }
+.metric-value { font-size: 23px; -unity-font-style: bold; }
+.secondary-metrics { margin-top: 14px; }
+.small-value { margin-right: 26px; -unity-font-style: bold; }
+.readouts { position: absolute; right: 24px; top: 24px; width: 332px; }
+.line-panel { margin-top: 16px; }
+.section-title { -unity-font-style: bold; margin-bottom: 18px; }
+.table-row { flex-direction: row; align-items: center; height: 34px; }
+.table-header { height: 24px; font-size: 12px; color: rgb(143, 165, 184); }
+.node-name { width: 72px; }
+.connection { width: 64px; }
+.buffer { flex-grow: 1; -unity-text-align: middle-right; }
+.line-name { width: 95px; }
+.length { width: 62px; }
+.duration { width: 59px; }
+.load { flex-grow: 1; -unity-text-align: middle-right; }
+.full { color: rgb(255, 197, 91); }
+.node-labels { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.node-label {
+    position: absolute;
+    width: 128px; height: 26px;
+    translate: -50% -100%;
+    background-color: rgba(10, 17, 25, 0.75);
+    border-width: 1px;
+    border-color: rgb(62, 79, 94);
+    border-radius: 3px;
+    -unity-text-align: middle-center;
+    font-size: 13px;
+}
+.footer { position: absolute; left: 32px; bottom: 28px; font-size: 15px; color: rgb(182, 200, 214); }

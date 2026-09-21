@@ -41,6 +41,7 @@ namespace CityFlow.Editor
             var scene = EditorSceneManager.OpenScene("Assets/CityFlow/Scenes/Bootstrap.unity", OpenSceneMode.Single);
             var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
             scope.SetConfiguration(settings, stage);
+            ValidationHudSetup.Configure(scope);
             EditorUtility.SetDirty(scope);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();

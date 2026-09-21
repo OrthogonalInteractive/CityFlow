@@ -9,6 +9,7 @@
 | --- | --- |
 | Unity | 6.4 / **6000.4.7f1** |
 | URP / Shader Graph / VFX Graph | 17.4.0 |
+| UI Toolkit | Unity 6.4同梱 |
 | Input System | 1.19.0 |
 | Cinemachine | 3.1.7 |
 | UniTask | 2.5.11 |
@@ -32,7 +33,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市・5 Node・5 Lineを読み込み、Sourceから赤／青FLOWが生成・移動し、同色Sinkで消化される。HUDでBuffer・In-Flight・成功数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
+5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市・5 Node・5 Lineを読み込み、Sourceから赤／青FLOWが生成・移動し、同色Sinkで消化される。UI ToolkitのHUDでBuffer・In-Flight・成功数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -92,3 +93,9 @@ Unity Editorに対する操作はすべてuloop経由で行う。Unity実行フ�
 - **v0.3**：PLATEAU SDKによる実在都市の取り込み。簡易都市も比較用に残す。
 
 PLATEAU SDKはまだ導入していない。対象都市・詳細度・性能目標、Node追加のレベルデザイン方式は未決定。
+
+## UIの編集
+
+ゲーム内UIはUI Toolkitを使用する。`Assets/CityFlow/Runtime/Presentation/UI/ValidationHud.uxml` をUI Builderで開き、構造を編集する。見た目は同じフォルダーの `ValidationHud.uss`、画面スケーリングは `Assets/CityFlow/Settings/UI/ValidationPanelSettings.asset` に分けている。HUDとNodeラベルは `ValidationHud` が読み取り専用スナップショットから更新する。
+
+BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する場合は、uloopから `CityFlow.Editor.ValidationSceneSetup.Create()` を実行する。通常のPlayでは再構成不要。
