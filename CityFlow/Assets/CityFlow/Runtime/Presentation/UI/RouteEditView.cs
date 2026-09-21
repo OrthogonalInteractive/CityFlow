@@ -34,7 +34,7 @@ namespace CityFlow.Presentation.UI
             actions.AddAction("Remove",InputActionType.Button,"<Keyboard>/delete").performed += _ => Remove();
             actions.AddAction("Insert",InputActionType.Button,"<Mouse>/leftButton").performed += _ =>
             {
-                if (controller.IsEditing && Mouse.current != null && Keyboard.current?.shiftKey.isPressed == true)
+                if (controller.IsEditing && Time.frameCount > controller.EditingStartedFrame && Mouse.current != null && Keyboard.current?.shiftKey.isPressed == true)
                     InsertAtScreen(Mouse.current.position.ReadValue());
             };
             if (isActiveAndEnabled) Bind();

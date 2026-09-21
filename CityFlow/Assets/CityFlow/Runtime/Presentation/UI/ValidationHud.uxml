@@ -83,7 +83,6 @@
         <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
             <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
             <ui:Label name="connect-selection" class="detail-text" />
-            <ui:Button name="connect-start" text="Connect [C]" />
             <ui:VisualElement name="line-actions">
                 <ui:Label name="line-action-detail" class="detail-text" />
                 <ui:Button name="line-edit" text="Edit selected Line" />
@@ -100,7 +99,7 @@
                 </ui:VisualElement>
                 <ui:Label name="connection-count" class="band-hint" />
                 <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
-                <ui:Label text="Click a marker or a Node in the target list.&#10;Tab focuses candidates / Space selects.&#10;The list includes hidden and blocked Nodes." class="band-hint" />
+                <ui:Label text="Hover / Tab: preview a route.&#10;Click a Node or candidate: connect.&#10;E: edit route before connecting." class="band-hint" />
                 <ui:Button name="connect-review" text="Review in Overview [V]" />
                 <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
             </ui:VisualElement>
@@ -110,8 +109,8 @@
             <ui:Label name="candidate-list-count" class="band-hint" />
             <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
         </ui:VisualElement>
-        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
-        <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    SPACE · SELECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
+        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK NODE · CONNECT    SHIFT + LINE · EDIT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
+        <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    CLICK · CONNECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
         <ui:Label name="wave-notice" class="wave-notice" picking-mode="Ignore" />
         <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="result-overlay" class="result-overlay interactive">

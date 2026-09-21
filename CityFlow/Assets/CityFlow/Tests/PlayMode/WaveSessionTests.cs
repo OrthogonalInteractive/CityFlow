@@ -54,12 +54,12 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
             session.SetFilter(DistanceBand.Mid); controller.Look(new Vector2(180,0)); yield return null; yield return null;
             Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
-            green.Focus(); using(var e=NavigationSubmitEvent.GetPooled()) green.SendEvent(e);
+            controller.FocusTarget("GREEN");
             yield return null;
             Assert.That(controller.AttentionId,Is.EqualTo("GREEN"));
             Assert.That(preview.Current?.DestinationId,Is.EqualTo("GREEN")); Assert.That(preview.Current!.CanConfirm,Is.True);
             Assert.That(network.Snapshot().Lines.Count,Is.EqualTo(1),"Selecting a candidate must only create a Preview.");
-            Assert.That(session.Confirm(),Is.EqualTo(ConnectionFailure.None)); yield return null;
+            green.Focus(); using(var e=NavigationSubmitEvent.GetPooled()) green.SendEvent(e); yield return null;
             Assert.That(network.Snapshot().Lines.Any(l=>l.SourceId=="S1" && l.DestinationId=="GREEN"),Is.True);
             Assert.That(root.Q("candidate-list-panel").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
         }

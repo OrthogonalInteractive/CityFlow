@@ -21,6 +21,7 @@ namespace CityFlow.Application.Connections
         public IReadOnlyList<NodeDefinition> Nodes => network.NodeDefinitions;
         public string? SourceId { get; private set; }
         public bool IsActive => SourceId != null;
+        public string? TargetId => preview.Current?.DestinationId;
         public DistanceBand Filter { get; private set; }
         public float NearLimit { get; }
         public float MidLimit { get; }

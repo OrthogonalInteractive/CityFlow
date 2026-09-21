@@ -38,7 +38,6 @@ namespace CityFlow.Presentation.UI
             Unbind();
             if (document == null || session == null || controller == null) return;
             root = document.rootVisualElement;
-            ButtonAction("connect-start",controller.BeginSelected);
             ButtonAction("connect-cancel",session.Cancel);
             ButtonAction("connect-confirm",() => session.Confirm());
             ButtonAction("connect-review",controller.ToggleOverview);
@@ -71,9 +70,8 @@ namespace CityFlow.Presentation.UI
             hud.EnableInClassList("node-360",controller.IsNode360);
             hud.EnableInClassList("route-editing",controller.IsEditing);
             root.Q<Button>("route-edit").SetEnabled(preview.Current != null);
-            Button start = root.Q<Button>("connect-start"); start.SetEnabled(overview.Selected.NodeId != null);
             root.Q<Label>("connect-selection").text = session.IsActive ? $"FROM {session.SourceId} / SELECT A TARGET" :
-                overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Select a Node to start wiring";
+                overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Click a Node to start wiring";
             root.Q<Label>("connect-mode").text = controller.IsNode360 ? "NODE 360 / CONNECTION" : "OVERVIEW / CONNECTION";
             root.Q<Button>("connect-review").text = controller.IsNode360 ? "Review in Overview [V]" : "Return to Node 360 [V]";
             var state = preview.Current;
@@ -87,7 +85,7 @@ namespace CityFlow.Presentation.UI
             var candidates = session.Candidates();
             ConnectionCandidate? attention = candidates.FirstOrDefault(c => c.Node.Definition.Id == controller.AttentionId);
             root.Q<Label>("candidate-detail").text = attention != null ? ConnectionReadout.Candidate(attention,state) :
-                "Hover a marker or press Tab to inspect a candidate.\nSpace selects the focused candidate.";
+                "Hover a marker or press Tab to inspect a candidate.\nHover previews / Click connects.";
             root.Q<Label>("connection-count").text = $"{candidates.Count} CANDIDATES / {session.Filter.ToString().ToUpperInvariant()}";
             if (!controller.IsNode360) return;
             RenderCandidateList(candidates,state);
@@ -102,7 +100,7 @@ namespace CityFlow.Presentation.UI
                 string id = candidate.Node.Definition.Id;
                 if (!markers.TryGetValue(id,out Button marker))
                 {
-                    marker = new Button(() => { controller.SetAttention(id); session.SelectTarget(id); }) { name = "candidate-"+id };
+                    marker = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-"+id };
                     marker.AddToClassList("candidate-marker"); marker.AddToClassList("interactive");
                     marker.RegisterCallback<PointerEnterEvent>(_ => controller.SetAttention(id));
                     root.Q("connection-markers").Add(marker); markers.Add(id,marker);
@@ -147,14 +145,14 @@ namespace CityFlow.Presentation.UI
             {
                 string id = node.Id;
                 if (candidateOptions.ContainsKey(id)) continue;
-                var option = new Button(() => { controller.FocusTarget(id); session.SelectTarget(id); })
+                var option = new Button(() => controller.ConfirmTarget(id))
                     { name = "candidate-option-"+id };
                 option.AddToClassList("candidate-option");
-                option.RegisterCallback<PointerEnterEvent>(_ => controller.SetAttention(id));
+                option.RegisterCallback<PointerEnterEvent>(_ => controller.FocusTarget(id));
                 option.style.display = DisplayStyle.None;
                 list.Add(option); candidateOptions.Add(id,option);
             }
-            root.Q<Label>("candidate-list-count").text = $"{candidates.Count} NODES / {session.Filter.ToString().ToUpperInvariant()} · CLICK TO PREVIEW";
+            root.Q<Label>("candidate-list-count").text = $"{candidates.Count} NODES / {session.Filter.ToString().ToUpperInvariant()} · CLICK TO CONNECT";
             foreach (var candidate in candidates)
             {
                 var node = candidate.Node;

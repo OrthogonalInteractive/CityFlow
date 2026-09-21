@@ -20,6 +20,8 @@ namespace CityFlow.Presentation.Overview
         private Vector3 pivot;
         private float yaw = -10, pitch = 60;
         private Vector2 lastPointer;
+        private readonly Subject<(OverviewTarget Target, bool Edit)> clicked = new();
+        public Observable<(OverviewTarget Target, bool Edit)> Clicked => clicked;
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
         public OverviewTarget Selected { get; private set; }
         public OverviewTarget Hovered { get; private set; }
@@ -38,10 +40,14 @@ namespace CityFlow.Presentation.Overview
             zoomInput = actions.AddAction("Zoom", InputActionType.Value, "<Mouse>/scroll/y");
             orbitInput = actions.AddAction("Orbit", InputActionType.Button, "<Mouse>/rightButton");
             dragInput = actions.AddAction("Drag", InputActionType.Button, "<Mouse>/middleButton");
-            actions.AddAction("Select", InputActionType.Button, "<Mouse>/leftButton").performed += _ =>
+            actions.AddAction("Select", InputActionType.Button, "<Mouse>/leftButton").performed += context =>
             {
-                Vector2 point = pointerInput.ReadValue<Vector2>();
-                if (!EditingRoute && IsPointerBlocked?.Invoke(point) != true) Select(Pick(point));
+                Vector2 point = context.control.device is Mouse mouse ? mouse.position.ReadValue() : pointerInput.ReadValue<Vector2>();
+                if (!EditingRoute && IsPointerBlocked?.Invoke(point) != true)
+                {
+                    OverviewTarget target=Pick(point); Select(target);
+                    clicked.OnNext((target,Keyboard.current?.shiftKey.isPressed == true));
+                }
             };
             actions.AddAction("Focus", InputActionType.Button, "<Keyboard>/f").performed += _ => FocusSelection();
             actions.AddAction("Home", InputActionType.Button, "<Keyboard>/home").performed += _ => ResetView();
@@ -161,6 +167,6 @@ namespace CityFlow.Presentation.Overview
             Hovered = default;
         }
         private void OnDestroy()
-        { actions?.Dispose(); selectionChanged.OnCompleted(); selectionChanged.Dispose(); }
+        { actions?.Dispose(); selectionChanged.OnCompleted(); selectionChanged.Dispose(); clicked.OnCompleted(); clicked.Dispose(); }
     }
 }

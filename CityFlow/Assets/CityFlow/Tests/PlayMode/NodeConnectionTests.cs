@@ -35,6 +35,41 @@ namespace CityFlow.Tests.PlayMode
         }
         private static void Submit(Button button)
         { button.Focus(); using var ev=NavigationSubmitEvent.GetPooled(); button.SendEvent(ev); }
+        [UnityTest] public IEnumerator MouseOpensNodeAndShiftClickOpensLineWithoutAddingPoint()
+        {
+            var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();
+            var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var session=scope.Container.Resolve<ConnectionSession>();
+            var preview=scope.Container.Resolve<LinePreviewService>(); var network=scope.Container.Resolve<FlowNetwork>();
+            var old=InputSystem.settings.editorInputBehaviorInPlayMode; var background=InputSystem.settings.backgroundBehavior;
+            InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
+            var mouse=InputSystem.AddDevice<Mouse>(); var keyboard=InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                Vector2 point=Camera.main.WorldToScreenPoint(network.NodeDefinitions.Single(n=>n.Id=="R1").Position+Vector3.up*1.4f);
+                Assert.That(overview.Pick(point).NodeId,Is.EqualTo("R1"));
+                Assert.That(overview.IsPointerBlocked?.Invoke(point),Is.False,"R1 must be outside HUD panels for the click test.");
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }); yield return null;
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }.WithButton(UnityEngine.InputSystem.LowLevel.MouseButton.Left)); yield return null;
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }); yield return null;
+                Assert.That(c.IsNode360,Is.True,"A Node click must enter Node 360 without Connect. Selected="+overview.Selected.NodeId+" source="+session.SourceId);
+                session.Cancel(); yield return null;
+                var line=network.Snapshot().Lines.First(l=>l.SourceId=="S1" && l.DestinationId=="R1");
+                point=Camera.main.WorldToScreenPoint(line.Route.PositionAt(line.Route.Length*0.5f)+Vector3.up*0.2f);
+                InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.LeftShift));
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }); yield return null;
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }.WithButton(UnityEngine.InputSystem.LowLevel.MouseButton.Left)); yield return null;
+                InputSystem.QueueStateEvent(mouse,new MouseState { position=point }); yield return null;
+                Assert.That(c.IsEditing,Is.True,"Shift-clicking a Line must enter its editor.");
+                Assert.That(preview.EditingLineId,Is.EqualTo(line.Id));
+                Assert.That(preview.Current!.Points,Is.EqualTo(line.Route.Points),"The opening click must not insert a control point.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(mouse); InputSystem.RemoveDevice(keyboard);
+                InputSystem.settings.editorInputBehaviorInPlayMode=old; InputSystem.settings.backgroundBehavior=background;
+            }
+        }
         [UnityTest] public IEnumerator ConnectCandidateConfirmCreatesLineThenRestoresOverview()
         {
             var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();
@@ -43,13 +78,12 @@ namespace CityFlow.Tests.PlayMode
             overview.Pan(new Vector2(5,2)); overview.Zoom(1); overview.Select(OverviewTarget.Node("R1")); yield return null;
             var camera=Camera.main; Vector3 before=camera.transform.position; Quaternion rotation=camera.transform.rotation; float size=camera.orthographicSize;
             int count=n.Snapshot().Lines.Count;
-            Submit(root.Q<Button>("connect-start")); yield return null;
+            c.BeginSelected(); yield return null;
             Assert.That(c.IsNode360,Is.True); Assert.That(camera.orthographic,Is.False); Assert.That(overview.enabled,Is.False);
             c.FocusTarget("BLUE"); yield return null;
-            Submit(root.Q<Button>("candidate-BLUE")); yield return null;
             Assert.That(scope.Container.Resolve<LinePreviewService>().Current?.DestinationId,Is.EqualTo("BLUE"));
             Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(count));
-            Submit(root.Q<Button>("connect-confirm")); yield return null;
+            Submit(root.Q<Button>("candidate-BLUE")); yield return null;
             Assert.That(s.IsActive,Is.False); Assert.That(camera.orthographic,Is.True); Assert.That(overview.enabled,Is.True);
             Assert.That(camera.transform.position,Is.EqualTo(before)); Assert.That(camera.transform.rotation,Is.EqualTo(rotation));
             Assert.That(camera.orthographicSize,Is.EqualTo(size)); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(count+1));
@@ -84,10 +118,9 @@ namespace CityFlow.Tests.PlayMode
             c.BeginSelected(); c.FocusTarget("BLUE"); yield return null;
             Assert.That(GameObject.Find("S1 / Source"),Is.Null,"The source's own mesh must not cover the Node 360 view.");
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Submit(root.Q<Button>("candidate-BLUE")); yield return null;
             var p=scope.Container.Resolve<LinePreviewService>().Current ?? throw new AssertionException("Missing Source Preview");
             Assert.That(p.CanConfirm,Is.True); Assert.That(p.Length,Is.GreaterThan(0));
-            Submit(root.Q<Button>("connect-confirm")); yield return null;
+            Submit(root.Q<Button>("candidate-BLUE")); yield return null;
             Assert.That(GameObject.Find("S1 / Source"),Is.Not.Null);
             Assert.That(n.Snapshot().Lines.Single().Route.Points,Is.EqualTo(p.Points));
             n.GenerateFlow("S1",FlowColor.Blue);
@@ -115,7 +148,7 @@ namespace CityFlow.Tests.PlayMode
             var blue=root.Q<Button>("candidate-BLUE"); Assert.That(blue.text,Does.Contain("OCCLUDED")); Assert.That(blue.enabledSelf,Is.True);
             c.Look(new Vector2(180,0)); yield return null;
             Assert.That(blue.text,Does.Contain("OFFSCREEN"));
-            Submit(blue); yield return null;
+            yield return null;
             Assert.That(root.Q<Label>("preview-detail").text,Does.Contain("R1 → BLUE"));
             Assert.That(root.Q<Label>("candidate-detail").text,Does.Contain("Route preview ready"));
             Assert.That(blue.text,Does.Contain("PREVIEW READY"));

@@ -172,3 +172,9 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 修正後はPlayMode **29/29**成功。Wave進行中の候補追加、GREENの表示領域とポインター到達、Near/Midフィルター、カメラ回転後の選択、確定前の非破壊性、S1→GREEN確定を検証。
 - Game View上の一覧をInput Systemのマウス入力でクリックし、S1→GREENの54.9 mの有効Preview生成を確認。コンパイルエラー/警告0、Consoleログ0。Domain/Applicationの変更はなく、今回EditModeは再実行していない。
 - 画面: `docs/screenshots/node-360-candidate-list.png`。確認用のWave 2を再作成し、ゲームPause・GREENの確定前Previewで停止。
+
+## v0.1操作改善
+
+- Nodeクリック開始・注目時Previewの新仕様でPlayMode 4件のRedを確認。
+- PlayMode全体で29件成功、マウス入力テスト1件の失敗を切り分け。複数Mouseがあると別デバイスのPointer座標を読む問題を修正し、実クリック→360、Shift＋Lineクリック→編集の1件も個別再実行で成功。
+- クリック発生元デバイスの位置を使用する。編集開始クリックで制御点が増えないこと、注目時にLineを作らず、候補クリックで確定して元のOverviewへ戻ることを確認。

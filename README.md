@@ -136,13 +136,13 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は1 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
 
-1. OverviewでNodeを選び、**Connect** または **C** を押す。WiringLabでは `S1 → BLUE`、Bootstrapでは `R1 → BLUE` が接続可能な例。Bootstrapの `S1` は初期配線でOUTが3/3のため、接続先を選ぶと枠不足や重複の理由を表示する。
-2. 始点付近から、右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで候補を絞る。暫定閾値はステージ対角長の25%・50%で、検証都市では37.5 m・75 m。距離はGround面上の直線距離。
-3. 候補マーカー、または右上の **CONNECTION TARGETS** 一覧をクリックすると自動Previewを生成する。一覧は距離フィルターに該当する全候補を表示し、ラベルが重なるNode・画面外・遮蔽中・Waveで追加されたNodeも選べる。候補が多い場合は一覧をスクロールする。**Tab** で候補に注目し、**Space** で選択も可能。注目中の詳細に種類、Sink色、IN/OUTと失敗理由を表示する。
-4. **Review in Overview / V** で経路全体を確認できる。再度VでNode 360へ戻り、始点・終点・Previewを保持する。
-5. **Confirm Line / Enter** で経路と両端枠を再検証し、成立時にだけLineを追加する。**Cancel connection / Backspace** で枠を消費せず取消。どちらも開始前のOverview位置・角度・ズームへ戻る。
+1. OverviewでNodeをクリックすると、そのNodeの360モードへ入る。**C**でも選択Nodeから開始できる。Connectボタンは不要。
+2. 右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
+3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバー、または **Tab** で候補に注目すると、自動Previewが表示される。無効な候補も理由を確認できる。
+4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **E** で手動編集、**V** でOverviewの経路確認も可能。
+5. **Enter**でも確定、**Backspace**で取消できる。取消は接続枠を消費しない。
 
-Escは後続のPause機能用に予約しており、接続取消には使用しない。Node 360でも輸送は進行する。
+EscはPause／再開に使い、接続取消には使用しない。Node 360でも輸送は進行する。
 
 ## Ground経路を手動編集する
 
@@ -152,7 +152,7 @@ Node 360で接続先を選び、**Edit Ground route / E** を押す。真上の�
 
 ## 運行中Lineの変更
 
-OverviewでLineをクリックすると、**Edit selected Line / Reserve deletion / Cancel pending change** が表示される。編集適用または削除予約で新規流入を止め、既存FLOWが終点へ届くまで待つ。終点満杯時は **Buffer space** 待ちを表示する。完了前は取消できる。空のLineは即時完了する。接続枠は削除完了まで占有し、経路変更では維持する。
+Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常のLineクリックでは、**Edit selected Line / Reserve deletion / Cancel pending change** が表示される。編集適用または削除予約で新規流入を止め、既存FLOWが終点へ届くまで待つ。終点満杯時は **Buffer space** 待ちを表示する。完了前は取消できる。空のLineは即時完了する。接続枠は削除完了まで占有し、経路変更では維持する。
 
 ## Pause中に配線する
 

@@ -78,7 +78,7 @@ namespace CityFlow.Presentation.UI
             bool intro=initialLineCount==0 && simulation.Wave==1 && simulation.ElapsedSeconds<15 && result==null;
             notice.style.display=recent||intro ? DisplayStyle.Flex : DisplayStyle.None;
             notice.text=recent ? $"WAVE {simulation.Wave} / NEW NODES\n"+string.Join(" · ",simulation.LatestAdditions.Select(n=>n.Id)) :
-                "Start with 0 Lines\nSelect S1 / Connect to RED and BLUE\nEsc pauses while you plan.";
+                "Start with 0 Lines\nClick S1 / Hover a target / Click to connect\nEsc pauses while you plan.";
             foreach(var marker in markers.Values) marker.style.display=DisplayStyle.None;
             if(!recent || connectionCamera.IsEditing) return;
             float width=root.layout.width,height=root.layout.height; if(width<=0||height<=0) return;
