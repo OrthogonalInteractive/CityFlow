@@ -77,3 +77,35 @@ Label { margin: 0; padding: 0; }
     border-width: 1px; border-color: rgb(76, 125, 128);
 }
 .preview-panel Button:hover { background-color: rgb(44, 90, 100); }
+.connection-panel { position: absolute; left: 50%; bottom: 80px; translate: -50% 0; width: 340px; }
+.connection-panel .section-title { font-size: 15px; margin-bottom: 10px; }
+.interactive Button {
+    background-color: rgb(29,64,73); color: rgb(235,249,247);
+    border-width: 1px; border-color: rgb(76,125,128); min-height: 30px;
+    margin-top: 8px;
+}
+.interactive Button:hover { background-color: rgb(44,90,100); }
+.interactive Button:disabled { background-color: rgb(22,30,38); color: rgb(113,132,144); }
+.connection-only { display: none; }
+.connection-active .connection-only { display: flex; }
+.connection-active #connect-start, .connection-active .preview-endpoints,
+.connection-active .preview-lab, .connection-active .overview-footer { display: none; }
+.connection-active .connection-panel { left: 24px; top: 24px; bottom: auto; translate: 0 0; width: 355px; }
+.connection-active .summary-panel { display: none; }
+.node-360 .readouts, .node-360 .detail-panel, .node-360 .node-labels { display: none; }
+.band-hint { font-size: 12px; color: rgb(155,180,198); white-space: normal; margin-top: 12px; }
+.band-buttons { flex-direction: row; }
+.band-buttons Button { flex-grow: 1; margin-right: 4px; }
+.interactive Button.chosen { border-color: rgb(98,246,221); background-color: rgb(34,88,90); }
+.candidate-detail { margin-top: 18px; min-height: 105px; white-space: normal; }
+.connection-markers { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.candidate-marker {
+    position: absolute; width: 200px; height: 68px; font-size: 12px;
+    background-color: rgba(6,24,33,0.95); color: rgb(214,236,248);
+    border-width: 1px; border-color: rgb(93,160,169); border-radius: 4px;
+    -unity-text-align: middle-center; white-space: normal;
+}
+.candidate-marker.chosen { border-width: 2px; border-color: rgb(97,250,220); background-color: rgba(22,61,69,0.98); }
+.candidate-marker.blocked { color: rgb(248,196,114); }
+.candidate-marker.occluded { border-top-width: 3px; }
+.candidate-marker:hover { background-color: rgb(36,78,89); }

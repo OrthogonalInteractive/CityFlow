@@ -46,6 +46,18 @@ namespace CityFlow.Application.Routing
             changed.OnNext(Current);
         }
         public void Cancel() { Current = null; changed.OnNext(null); }
+        public ConnectionFailure TryConfirm(out int? lineId)
+        {
+            lineId = null;
+            if (Current == null) return ConnectionFailure.InvalidRoute;
+            // Recheck the same points and both endpoints immediately before the atomic domain operation.
+            UpdatePoints(Current.Points);
+            if (Current.ConnectionFailure != ConnectionFailure.None) return Current.ConnectionFailure;
+            if (!Current.Geometry.IsValid) return ConnectionFailure.InvalidRoute;
+            ConnectionResult result = network.TryConnect(Current.SourceId,Current.DestinationId,Current.Points);
+            if (result.Succeeded) { lineId = result.LineId; Cancel(); }
+            return result.Failure;
+        }
         public void Dispose() { changed.OnCompleted(); changed.Dispose(); }
     }
 }

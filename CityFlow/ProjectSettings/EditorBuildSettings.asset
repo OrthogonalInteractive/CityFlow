@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/CityFlow/Scenes/Bootstrap.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/CityFlow/Scenes/WiringLab.unity
+    guid: 1613e04eb93bf469a899f0fcd987640b
   m_configObjects: {}

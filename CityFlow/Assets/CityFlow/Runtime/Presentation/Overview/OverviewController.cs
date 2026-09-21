@@ -138,6 +138,20 @@ namespace CityFlow.Presentation.Overview
             Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
             sceneCamera.transform.SetPositionAndRotation(pivot + rotation * Vector3.back * 220, rotation);
         }
+        public OverviewViewState CaptureView()
+        {
+            if (sceneCamera == null) throw new InvalidOperationException("Overview is not initialized.");
+            return new OverviewViewState(pivot,yaw,pitch,sceneCamera);
+        }
+        public void RestoreView(OverviewViewState state)
+        {
+            if (sceneCamera == null) return;
+            pivot = state.Pivot; yaw = state.Yaw; pitch = state.Pitch;
+            sceneCamera.transform.SetPositionAndRotation(state.Position,state.Rotation);
+            sceneCamera.orthographic = state.Orthographic; sceneCamera.orthographicSize = state.Size;
+            sceneCamera.fieldOfView = state.FieldOfView; sceneCamera.nearClipPlane = state.NearClip;
+            Hovered = default;
+        }
         private void OnDestroy()
         { actions?.Dispose(); selectionChanged.OnCompleted(); selectionChanged.Dispose(); }
     }

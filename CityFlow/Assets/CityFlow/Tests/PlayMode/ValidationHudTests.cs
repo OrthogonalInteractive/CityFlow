@@ -50,7 +50,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Label>("line-load-2").text, Is.EqualTo($"{state.Lines[1].InFlight.Count}/{state.Lines[1].Capacity}"));
             Assert.That(root.Q("node-rows").childCount, Is.EqualTo(5));
             Assert.That(root.Q("line-rows").childCount, Is.EqualTo(5));
-            Assert.That(root.Query().ToList().Where(element=>element != root.Q("preview-panel") && !root.Q("preview-panel").Contains(element)).All(element => element.pickingMode == PickingMode.Ignore), Is.True,
+            Assert.That(root.Query().ToList().Where(element=>!root.Query(className:"interactive").ToList().Any(panel=>element==panel || panel.Contains(element))).All(element => element.pickingMode == PickingMode.Ignore), Is.True,
                 "Read-only overlays must leave world interaction available.");
         }
 

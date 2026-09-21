@@ -19,6 +19,7 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
+        private readonly Dictionary<string, GameObject[]> nodeViews = new();
         private OverviewTarget selected;
         public void SetSelection(OverviewTarget target) => selected = target;
         public int VisibleFlowCount => particles.Count;
@@ -65,7 +66,8 @@ namespace CityFlow.Presentation.Rendering
                 marker.transform.position = node.Position + Vector3.up * 1.4f;
                 marker.transform.localScale = new Vector3(3.3f, node.Kind == NodeKind.Sink ? 1.4f : 2.8f, 3.3f);
                 marker.GetComponent<Renderer>().sharedMaterial = Material(color);
-                Cube("Node pad", node.Position + Vector3.up * 0.15f, new Vector3(6, 0.3f, 6), Material(color * 0.45f));
+                GameObject pad = Cube("Node pad", node.Position + Vector3.up * 0.15f, new Vector3(6, 0.3f, 6), Material(color * 0.45f));
+                nodeViews.Add(node.Id,new[] { marker,pad });
             }
         }
 
@@ -155,12 +157,19 @@ namespace CityFlow.Presentation.Rendering
             materials.Add(material);
             return material;
         }
-        private void Cube(string label, Vector3 position, Vector3 scale, Material material)
+        public void SetHiddenNode(string? id)
+        {
+            foreach (var node in nodeViews)
+                foreach (GameObject view in node.Value)
+                    if (view != null) view.SetActive(node.Key != id);
+        }
+        private GameObject Cube(string label, Vector3 position, Vector3 scale, Material material)
         {
             var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.name = label; cube.transform.SetParent(transform);
             cube.transform.position = position; cube.transform.localScale = scale;
             cube.GetComponent<Renderer>().sharedMaterial = material;
+            return cube;
         }
         private LineRenderer Stroke(string label, Vector3[] points, Material material, float width)
         {

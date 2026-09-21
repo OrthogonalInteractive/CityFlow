@@ -4,6 +4,7 @@ using System;
 using CityFlow.Domain.Spatial;
 using CityFlow.Application.UseCases;
 using CityFlow.Application.Routing;
+using CityFlow.Application.Connections;
 using CityFlow.Infrastructure.Routing;
 using CityFlow.Infrastructure.Configuration;
 using UnityEngine;
@@ -44,6 +45,10 @@ namespace CityFlow.Composition
             builder.RegisterInstance(network);
             builder.RegisterInstance<IGroundRoutePlanner>(new GroundRoutePlanner(stage, gameplaySettings.Clearance));
             builder.Register<LinePreviewService>(Lifetime.Singleton);
+            // Provisional distance bands scale with the playable area's diagonal [m].
+            builder.Register<ConnectionSession>(Lifetime.Singleton)
+                .WithParameter("nearLimit",stage.WalkableArea.size.magnitude * 0.25f)
+                .WithParameter("midLimit",stage.WalkableArea.size.magnitude * 0.5f);
             builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed)));
             builder.RegisterEntryPoint<CitySceneEntryPoint>();
         }

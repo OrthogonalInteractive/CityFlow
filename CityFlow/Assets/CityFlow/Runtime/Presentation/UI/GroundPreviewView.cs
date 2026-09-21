@@ -64,7 +64,7 @@ namespace CityFlow.Presentation.UI
             VisualElement hit = boundRoot.panel.Pick(point);
             if (panel.worldBound.Contains(point)) return true;
             for (VisualElement? element = hit; element != null; element = element.parent)
-                if (element.GetClasses().Any(name=>name.Contains("dropdown"))) return true;
+                if (element.ClassListContains("interactive") || element.GetClasses().Any(name=>name.Contains("dropdown"))) return true;
             return false;
         }
         private void EndpointsChanged(ChangeEvent<string> change) => service?.Cancel();
@@ -135,14 +135,7 @@ namespace CityFlow.Presentation.UI
             RouteFailure.SearchFailed => "Could not generate an automatic route.\nEndpoints retained for manual editing.",
             _ => "INVALID · Route points are not valid"
         };
-        private static string ConnectionReason(ConnectionFailure failure) => failure switch
-        {
-            ConnectionFailure.DuplicateDirection => "BLOCKED · This direction already exists",
-            ConnectionFailure.OutgoingLimit => "BLOCKED · Source OUT slots are full",
-            ConnectionFailure.IncomingLimit => "BLOCKED · Destination IN slots are full",
-            ConnectionFailure.SelfConnection => "BLOCKED · Choose two different Nodes",
-            _ => "BLOCKED · Node is unavailable"
-        };
+        private static string ConnectionReason(ConnectionFailure failure) => "BLOCKED · "+ConnectionReadout.Reason(failure);
         private void ClearDrawing() { if (drawing != null) Destroy(drawing); drawing = null; }
         private void OnDestroy()
         { if (validMaterial != null) Destroy(validMaterial); if (invalidMaterial != null) Destroy(invalidMaterial); }

@@ -4,6 +4,8 @@ using System;
 using CityFlow.Domain.Spatial;
 using CityFlow.Application.UseCases;
 using CityFlow.Application.Routing;
+using CityFlow.Application.Connections;
+using CityFlow.Presentation.Connections;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Rendering;
 using CityFlow.Presentation.UI;
@@ -17,6 +19,7 @@ namespace CityFlow.Composition
     public sealed class CitySceneEntryPoint : IStartable, IDisposable
     {
         private readonly LinePreviewService preview;
+        private readonly ConnectionSession connection;
         private readonly StageDefinition stage;
         private GameObject? city;
         private readonly FlowNetwork network;
@@ -24,9 +27,9 @@ namespace CityFlow.Composition
         private readonly VisualTreeAsset hudLayout;
         private readonly PanelSettings panelSettings;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
-            VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview)
+            VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection)
         {
-            this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
+            this.connection = connection; this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
             this.hudLayout = hudLayout; this.panelSettings = panelSettings;
         }
         public void Start()
@@ -45,9 +48,12 @@ namespace CityFlow.Composition
             if (camera == null) throw new InvalidOperationException("The HUD requires an overview camera.");
             var overview = city.AddComponent<OverviewController>();
             overview.Initialize(stage, network, camera);
+            var connectionController = city.AddComponent<NodeConnectionController>();
+            connectionController.Initialize(connection, overview, stage, camera, view);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view);
             hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera);
             hud.AddComponent<GroundPreviewView>().Initialize(preview, network, overview);
+            hud.AddComponent<NodeConnectionView>().Initialize(connection, preview, overview, connectionController, camera);
             hud.SetActive(true);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }

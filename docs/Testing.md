@@ -121,3 +121,16 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - PlayModeでUI Toolkitの生成/取消操作、破線描画、メトリクス、重複・衝突理由表示と既存HUD/Overviewを検証。
 - 最終スタイル調整後のUI関連PlayMode **6/6**成功。uloopのマウス入力でもGenerateを確認。R1→BLUEの迂回経路は76.48 m、移動時間3.82 s、推定2.62 FLOW/s。生成後も確定Lineは5本で接続枠を消費しない。
 - Game Viewで有効な半透明破線・矢印と、建物を横切る無効区間の赤表示・理由を確認。スクリーンショット: `docs/screenshots/issue-6-ground-preview.png`、`docs/screenshots/issue-6-invalid-route.png`。最終Consoleログ **0**。Unity Editorで検証し、Playerビルドは対象外。
+
+## Step 07 検証結果
+
+- Red: 接続セッション12件中11件失敗、1件成功。Node 360未構成のPlayMode 4件失敗を確認してから実装。
+- カメラ確認中に変更した選択の復元、始点メッシュによる視界遮蔽、生成済み候補の状態表示も各1件の回帰テストで再現して修正。
+- Green: 全EditMode **91/91**、全PlayMode **20/20**成功。候補の最終表示修正後にも全PlayMode **20/20**成功。コンパイルError/Warning **0**、実画面確認後のConsoleログ **0**。
+- 未選択→始点→終点→Preview→確定/取消、未登録Node、不正距離閾値、Near/Mid/Far境界、Ground距離、Sink色・I/O、自己接続・重複・枠不足を検証。
+- Preview後に別接続でOUT/INを埋めた場合と、空間判定が変わった場合の確定直前再検証を確認。失敗時はPreviewを保持し、成功時だけ1本のLineと両端枠を確保。
+- PlayModeで候補ボタン、遮蔽・画面外表示、距離フィルター、注目情報、Input SystemのC/矢印/Enter/Backspace、カメラ確認切替、位置・回転・ズーム・内部pivot・選択の復元、Controller無効化時の取消と再有効化を確認。
+- `WiringLab` でSource→Sinkの接続からFLOW出発・到着・描画追従まで検証。固定5本のBootstrapでは同色直結満杯時にRelayへ迂回しないため、初期Lineなしのシーンで輸送開始を確認した。
+- 実入力でもS1をクリック→C（Connectボタンのクリックも確認）→TabでBLUEへ注目→SpaceでPreview→VでOverview確認→Enterで確定。長さ100.98 m、移動時間5.05 s、推定1.98 FLOW/s。明示的tickを8秒進め、Line 1本、In-Flight 5、同色到着1、Overview復帰を確認。
+- UI Toolkitの実ポインター検証ではUnity Editor本体に加えGame Viewへフォーカスする。撮影時はSimulationDriverの自動更新を止めて状態を固定し、手動tick以外の時間進行を除いた。
+- スクリーンショット: `docs/screenshots/issue-7-node360.png`、`docs/screenshots/issue-7-review.png`、`docs/screenshots/issue-7-connected.png`。対象はUnity Editor内で、Playerビルドは検証対象外。

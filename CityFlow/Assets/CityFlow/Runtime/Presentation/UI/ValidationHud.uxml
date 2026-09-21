@@ -3,7 +3,7 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 06" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 07" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
@@ -48,13 +48,14 @@
                 <ui:VisualElement name="line-rows" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="preview-panel" class="panel preview-panel">
+        <ui:VisualElement name="preview-panel" class="panel preview-panel interactive">
             <ui:Label text="GROUND ROUTE PREVIEW" class="section-title" />
-            <ui:DropdownField name="preview-source" label="FROM" />
-            <ui:DropdownField name="preview-target" label="TO" />
+            <ui:DropdownField name="preview-source" label="FROM" class="preview-endpoints" />
+            <ui:DropdownField name="preview-target" label="TO" class="preview-endpoints" />
             <ui:VisualElement class="preview-actions">
-                <ui:Button name="preview-generate" text="Generate route" />
-                <ui:Button name="preview-cancel" text="Cancel" />
+                <ui:Button name="preview-generate" text="Generate route" class="preview-lab" />
+                <ui:Button name="preview-cancel" text="Cancel" class="preview-lab" />
+                <ui:Button name="connect-confirm" text="Confirm Line [Enter]" class="connection-only" />
             </ui:VisualElement>
             <ui:Label name="preview-detail" class="detail-text" />
         </ui:VisualElement>
@@ -62,7 +63,28 @@
             <ui:Label text="NETWORK INSPECTOR" class="section-title" />
             <ui:Label name="overview-detail" class="detail-text" />
         </ui:VisualElement>
-        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer" />
+        <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
+        <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
+            <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
+            <ui:Label name="connect-selection" class="detail-text" />
+            <ui:Button name="connect-start" text="Connect [C]" />
+            <ui:VisualElement class="connection-only">
+                <ui:Label name="connection-bands" class="band-hint" />
+                <ui:VisualElement class="band-buttons">
+                    <ui:Button name="band-all" text="All" />
+                    <ui:Button name="band-near" text="Near" />
+                    <ui:Button name="band-mid" text="Mid" />
+                    <ui:Button name="band-far" text="Far" />
+                </ui:VisualElement>
+                <ui:Label name="connection-count" class="band-hint" />
+                <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
+                <ui:Label text="Click a marker to preview a route.&#10;Tab focuses candidates / Space selects.&#10;Blocked and hidden Nodes are selectable." class="band-hint" />
+                <ui:Button name="connect-review" text="Review in Overview [V]" />
+                <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
+        <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    SPACE · SELECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
         <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="city-caption" />
     </ui:VisualElement>
 </ui:UXML>

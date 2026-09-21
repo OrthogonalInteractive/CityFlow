@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#6の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreviewまで実装。Unity EditorのBootstrapシーンで確認できる。配線操作、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#7の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定まで実装。Unity EditorのBootstrapシーンで確認できる。手動経路編集、削除予約、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
@@ -130,4 +130,16 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 右下の **GROUND ROUTE PREVIEW** でFROM/TOを選び、**Generate route** を押す。建物を迂回する可視グラフ＋A*の候補を破線表示し、長さ・移動時間・推定Throughput・仮確定後の接続枠を確認できる。**Cancel** でPreviewを消す。初期ペアは `R1 → BLUE`。`S1 → BLUE` など既存の同方向接続は理由付きで確定不可と表示する。
 
-この段階ではPreviewを作るだけで、既存ネットワークへLineを追加しない。Node 360を含む接続確定はIssue #7、制御点の手動編集はIssue #8で実装する。
+この検証用パネル単独ではLineを追加しない。実際の接続は以下のNode 360フローを使う。制御点の手動編集はIssue #8で実装する。
+
+## Node 360で接続する
+
+Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定生成間隔は1 s。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
+
+1. OverviewでNodeを選び、**Connect** または **C** を押す。WiringLabでは `S1 → BLUE`、Bootstrapでは `R1 → BLUE` が接続可能な例。Bootstrapの `S1` は初期配線でOUTが3/3のため、接続先を選ぶと枠不足や重複の理由を表示する。
+2. 始点付近から、右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで候補を絞る。暫定閾値はステージ対角長の25%・50%で、検証都市では37.5 m・75 m。距離はGround面上の直線距離。
+3. 候補マーカーをクリックすると自動Previewを生成する。**Tab** で候補に注目し、**Space** で選択も可能。画面外の方向表示・遮蔽中マーカー・接続不可候補も選べる。注目中の詳細に種類、Sink色、IN/OUTと失敗理由を表示する。
+4. **Review in Overview / V** で経路全体を確認できる。再度VでNode 360へ戻り、始点・終点・Previewを保持する。
+5. **Confirm Line / Enter** で経路と両端枠を再検証し、成立時にだけLineを追加する。**Cancel connection / Backspace** で枠を消費せず取消。どちらも開始前のOverview位置・角度・ズームへ戻る。
+
+Escは後続のPause機能用に予約しており、接続取消には使用しない。Node 360でも輸送は進行する。
