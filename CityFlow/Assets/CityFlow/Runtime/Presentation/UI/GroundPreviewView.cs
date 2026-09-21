@@ -34,7 +34,7 @@ namespace CityFlow.Presentation.UI
         private void OnEnable() => Bind();
         private void OnDisable() { Unbind(); ClearDrawing(); }
         private void LateUpdate()
-        { if (document != null && boundRoot != document.rootVisualElement) Bind(); }
+        { if (document != null && (boundRoot != document.rootVisualElement || (network != null && source != null && source.choices.Count != network.NodeDefinitions.Count))) Bind(); }
         private void Bind()
         {
             Unbind();

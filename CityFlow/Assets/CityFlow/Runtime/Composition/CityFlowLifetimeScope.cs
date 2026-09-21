@@ -49,7 +49,7 @@ namespace CityFlow.Composition
             builder.Register<ConnectionSession>(Lifetime.Singleton)
                 .WithParameter("nearLimit",stage.WalkableArea.size.magnitude * 0.25f)
                 .WithParameter("midLimit",stage.WalkableArea.size.magnitude * 0.5f);
-            builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed)));
+            builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed),stageConfiguration.LoadWaves(stage,gameplaySettings.Clearance)));
             builder.RegisterEntryPoint<CitySceneEntryPoint>();
         }
     }

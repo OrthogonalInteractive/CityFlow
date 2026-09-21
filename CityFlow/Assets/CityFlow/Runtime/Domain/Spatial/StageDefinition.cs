@@ -37,7 +37,7 @@ namespace CityFlow.Domain.Spatial
                     !Enum.IsDefined(typeof(FlowNetwork.NodeKind), node.Kind) ||
                     node.MaxIncoming < 0 || node.MaxOutgoing < 0 ||
                     double.IsNaN(node.GenerationInterval) || double.IsInfinity(node.GenerationInterval) ||
-                    node.GenerationInterval <= 0)
+                    node.GenerationInterval <= 0 || double.IsNaN(node.GenerationDelay) || double.IsInfinity(node.GenerationDelay) || node.GenerationDelay < 0)
                     throw new ArgumentException("Nodes require unique IDs and valid connection/generation settings.");
                 bool sink = node.Kind == FlowNetwork.NodeKind.Sink;
                 if (sink != node.SinkColor.HasValue || (node.SinkColor.HasValue &&

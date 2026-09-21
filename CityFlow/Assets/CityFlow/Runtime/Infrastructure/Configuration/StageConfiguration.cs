@@ -4,6 +4,9 @@ using System;
 using System.Linq;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Domain.Progression;
+using CityFlow.Infrastructure.Routing;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CityFlow.Infrastructure.Configuration
@@ -22,8 +25,10 @@ namespace CityFlow.Infrastructure.Configuration
             public int MaxOutgoing;
             [Tooltip("Provisional generation interval per Source [s].")]
             public float GenerationInterval;
+            [Tooltip("Provisional source preparation time before its first generation interval [s].")]
+            public float GenerationDelay;
             public NodeDefinition ToDefinition() => new NodeDefinition(Id, Kind, Position, MaxIncoming,
-                MaxOutgoing, Kind == NodeKind.Sink ? SinkColor : (FlowColor?)null, GenerationInterval);
+                MaxOutgoing, Kind == NodeKind.Sink ? SinkColor : (FlowColor?)null, GenerationInterval, GenerationDelay);
         }
 
         [Serializable]
@@ -32,6 +37,35 @@ namespace CityFlow.Infrastructure.Configuration
             public string SourceId;
             public string DestinationId;
             public Vector3[] Points;
+        }
+        [Serializable]
+        public struct WavePlacement
+        {
+            [Tooltip("Provisional elapsed game time at which the next Wave starts [s].")]
+            public float StartSeconds;
+            [Tooltip("Provisional multiplier of all Source generation intervals; lower means more FLOW.")]
+            public float IntervalScale;
+            public NodePlacement[] Additions;
+        }
+        public WavePlacement[] Waves = Array.Empty<WavePlacement>();
+        public IReadOnlyList<WaveDefinition> LoadWaves(StageDefinition initial, float clearance)
+        {
+            if(Waves==null) throw new ArgumentException("Wave schedule must be present.");
+            var waves=Waves.Select(w=>new WaveDefinition(w.StartSeconds,w.IntervalScale,
+                (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n=>n.ToDefinition()))).ToArray();
+            var known=initial.Nodes.ToList(); var planner=new GroundRoutePlanner(initial,clearance); double previous=0;
+            foreach(var wave in waves)
+            {
+                if(wave.StartSeconds<=previous) throw new ArgumentException("Wave times must increase."); previous=wave.StartSeconds;
+                new StageDefinition(initial.GroundHeight,initial.WalkableArea,initial.Buildings,known.Concat(wave.Additions)).Validate(clearance);
+                foreach(var node in wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1))
+                {
+                    if(!known.Any(n=>planner.Generate(n.Position,node.Position).IsValid))
+                        throw new ArgumentException($"Node {node.Id} requires a Ground route to an existing Node.");
+                    known.Add(node);
+                }
+            }
+            return Array.AsReadOnly(waves);
         }
         public LinePlacement[] Lines = Array.Empty<LinePlacement>();
 

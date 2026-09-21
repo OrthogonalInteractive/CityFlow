@@ -116,7 +116,7 @@ namespace CityFlow.Presentation.UI
         private void Refresh(NetworkSnapshot snapshot)
         {
             if (elements == null || stage == null || network == null || simulation == null) return;
-            int colors = stage.Nodes.Where(node => node.SinkColor.HasValue).Select(node => node.SinkColor).Distinct().Count();
+            int colors = network.NodeDefinitions.Where(node => node.SinkColor.HasValue).Select(node => node.SinkColor).Distinct().Count();
             elements.Summary.text = $"{snapshot.Nodes.Count} NODES   /   {colors} SINK COLORS   /   10 m GRID";
             elements.Capacity.text = $"{snapshot.Lines.Count} DIRECTED LINES   /   CAPACITY {network.Settings.MaxInFlight}";
             Required<Label>(elements.Root, "congestion-status").text = $"INPUT STOPPED {snapshot.Nodes.Count(n => n.IsInputStopped)}   /   STOPPED FLOW {snapshot.Lines.Sum(l => l.InFlight.Count(f => f.IsStopped))}";
@@ -153,9 +153,9 @@ namespace CityFlow.Presentation.UI
         }
         private void PositionNodeLabels()
         {
-            if (elements == null || stage == null || sceneCamera == null || elements.Root.panel == null) return;
+            if (elements == null || network == null || sceneCamera == null || elements.Root.panel == null) return;
             VisualElement overlay = Required<VisualElement>(elements.Root, "node-labels");
-            foreach (NodeDefinition node in stage.Nodes)
+            foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 Label label = nodeLabels[node.Id];
                 Vector3 screen = sceneCamera.WorldToScreenPoint(node.Position + Vector3.up * 5);

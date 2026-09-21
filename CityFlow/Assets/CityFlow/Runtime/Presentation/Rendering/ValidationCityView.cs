@@ -24,7 +24,7 @@ namespace CityFlow.Presentation.Rendering
         private OverviewTarget selected;
         public void SetSelection(OverviewTarget target) => selected = target;
         public int VisibleFlowCount => particles.Count;
-        public int VisibleNodeCount => stage?.Nodes.Count ?? 0;
+        public int VisibleNodeCount => nodeViews.Count;
 
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork)
         {
@@ -56,8 +56,14 @@ namespace CityFlow.Presentation.Rendering
                 Cube("Roof", new Vector3(b.center.x, b.max.y + 0.08f, b.center.z), new Vector3(b.size.x + 0.15f, 0.16f, b.size.z + 0.15f), roof);
             }
             CreateLines(flowNetwork.Snapshot());
-            foreach (NodeDefinition node in definition.Nodes)
+            CreateNodes();
+        }
+        private void CreateNodes()
+        {
+            if(network==null) return;
+            foreach (NodeDefinition node in network.NodeDefinitions)
             {
+                if(nodeViews.ContainsKey(node.Id)) continue;
                 Color color = node.Kind == NodeKind.Source ? new Color(1, 0.76f, 0.32f) :
                     node.SinkColor.HasValue ? ColorFor(node.SinkColor.Value) : new Color(0.40f, 0.90f, 0.73f);
                 var marker = GameObject.CreatePrimitive(node.Kind == NodeKind.Sink ? PrimitiveType.Cylinder :
@@ -88,7 +94,7 @@ namespace CityFlow.Presentation.Rendering
                 if (lineViews.ContainsKey(line.Id)) continue;
                 var renderers = new List<LineRenderer>();
                 lineViews.Add(line.Id, renderers); drawnRoutes.Add(line.Id,line.Route);
-                NodeDefinition destination = stage.Nodes.Single(node => node.Id == line.DestinationId);
+                NodeDefinition destination = snapshot.Nodes.Single(node => node.Definition.Id == line.DestinationId).Definition;
                 Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f, 0.65f, 0.55f);
                 var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
                 material.SetColor("_BaseColor", color); materials.Add(material);
@@ -108,6 +114,7 @@ namespace CityFlow.Presentation.Rendering
         {
             if (network == null) return;
             NetworkSnapshot snapshot = network.Snapshot();
+            CreateNodes();
             CreateLines(snapshot);
             foreach (LineSnapshot line in snapshot.Lines)
             {

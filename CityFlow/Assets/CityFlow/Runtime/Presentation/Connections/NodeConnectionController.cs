@@ -64,7 +64,7 @@ namespace CityFlow.Presentation.Connections
             {
                 bookmark = overview.CaptureView(); overviewWasEnabled = overview.enabled;
                 previousSelection = overview.Selected;
-                AttentionId = stage.Nodes.FirstOrDefault(n => n.Id != session.SourceId)?.Id;
+                AttentionId = session.Nodes.FirstOrDefault(n => n.Id != session.SourceId)?.Id;
                 yaw = 0; pitch = 5; IsNode360 = true;
                 overview.enabled = false; ApplyNodePose();
                 Vector3 center = new Vector3(stage.WalkableArea.center.x,stage.GroundHeight,stage.WalkableArea.center.y);
@@ -118,7 +118,7 @@ namespace CityFlow.Presentation.Connections
         private void ApplyNodePose()
         {
             if (sceneCamera == null || stage == null || session?.SourceId == null) return;
-            Vector3 position = stage.Nodes.Single(n => n.Id == session.SourceId).Position + Vector3.up * 3.2f;
+            Vector3 position = session.Nodes.Single(n => n.Id == session.SourceId).Position + Vector3.up * 3.2f;
             sceneCamera.orthographic = false; sceneCamera.fieldOfView = 70; sceneCamera.nearClipPlane = 0.1f;
             sceneCamera.transform.SetPositionAndRotation(position,Quaternion.Euler(pitch,yaw,0));
             if (cityView != null) cityView.SetHiddenNode(session.SourceId);
@@ -126,8 +126,8 @@ namespace CityFlow.Presentation.Connections
         public void SetAttention(string id) => AttentionId = id;
         public void FocusTarget(string id)
         {
-            if (!IsNode360 || stage == null) return;
-            NodeDefinition? node = stage.Nodes.FirstOrDefault(n => n.Id == id);
+            if (!IsNode360 || stage == null || session == null) return;
+            NodeDefinition? node = session.Nodes.FirstOrDefault(n => n.Id == id);
             if (node == null) return;
             AttentionId = id;
             if (id != session?.SourceId) Face(node.Position + Vector3.up * 1.4f);
@@ -148,8 +148,8 @@ namespace CityFlow.Presentation.Connections
         }
         public bool IsOccluded(string id)
         {
-            if (sceneCamera == null || stage == null) return false;
-            NodeDefinition? node = stage.Nodes.FirstOrDefault(n => n.Id == id);
+            if (sceneCamera == null || stage == null || session == null) return false;
+            NodeDefinition? node = session.Nodes.FirstOrDefault(n => n.Id == id);
             if (node == null) return false;
             Vector3 delta = node.Position + Vector3.up * 1.4f - sceneCamera.transform.position;
             var ray = new Ray(sceneCamera.transform.position,delta.normalized);

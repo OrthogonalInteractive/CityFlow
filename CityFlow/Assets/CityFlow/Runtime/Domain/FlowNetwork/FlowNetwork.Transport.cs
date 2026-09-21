@@ -10,7 +10,7 @@ namespace CityFlow.Domain.FlowNetwork
         public void RouteWaitingFlows(IRandomSource random)
         {
             if (random == null) throw new ArgumentNullException(nameof(random));
-            foreach (var definition in stage.Nodes)
+            foreach (var definition in NodeDefinitions)
             {
                 NodeState node = nodes[definition.Id];
                 for (int index = 0; index < node.Buffer.Count;)

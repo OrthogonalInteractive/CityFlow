@@ -31,6 +31,7 @@ namespace CityFlow.Presentation.UI
             if(document==null||simulation==null) return; if(root!=document.rootVisualElement) Bind(); if(root==null||button==null) return;
             root.Q<Label>("pause-status").text=simulation.IsPaused ? "PAUSED / EDITING AVAILABLE" : "SIMULATION RUNNING";
             button.text=simulation.IsPaused ? "Resume [Esc]" : "Pause [Esc]";
+            if(simulation.Result != null) { root.Q<Label>("pause-status").text="SESSION ENDED"; button.SetEnabled(false); }
             button.parent.EnableInClassList("paused",simulation.IsPaused);
         }
         private void Unbind() { pause?.Disable(); if(button!=null) button.clicked-=Toggle; button=null; root=null; }

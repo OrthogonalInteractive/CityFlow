@@ -79,7 +79,7 @@ namespace CityFlow.Presentation.Overview
             if (stage == null || network == null || sceneCamera == null || !sceneCamera.pixelRect.Contains(screen)) return default;
             float closest = 22f;
             OverviewTarget result = default;
-            foreach (NodeDefinition node in stage.Nodes)
+            foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 Vector3 point = sceneCamera.WorldToScreenPoint(node.Position + Vector3.up * 1.4f);
                 float distance = Vector2.Distance(point, screen);

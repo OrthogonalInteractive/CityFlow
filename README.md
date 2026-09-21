@@ -34,7 +34,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市・5 Node・5 Lineを読み込み、Sourceから赤／青FLOWが生成・移動し、同色Sinkで消化される。UI ToolkitのHUDでBuffer・In-Flight・成功数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
+5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。UI ToolkitのHUDでWave・Buffer・In-Flight・処理数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#10の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定、Ground経路の手動編集、Lineの削除予約・取消・経路切替、Pause中の編集まで実装。Unity EditorのBootstrapシーンで確認できる。Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#11の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定、Ground経路の手動編集、Lineの削除予約・取消・経路切替、Pause中の編集、Wave・Node追加・結果と再試行まで実装。ゲーム性はUnity EditorのWiringLabシーンで配線0から確認できる。Bootstrapは固定配線の輸送検証用。比較プレイテストと難度の最終調整はIssue #12で行う。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
@@ -114,7 +114,7 @@ Unity Editorに対する操作はすべてuloop経由で行う。Unity実行フ�
 - **v0.2**：高さ方向、Port Unit、Width、複数経路候補、方向反転。
 - **v0.3**：PLATEAU SDKによる実在都市の取り込み。簡易都市も比較用に残す。
 
-PLATEAU SDKはまだ導入していない。対象都市・詳細度・性能目標、Node追加のレベルデザイン方式は未決定。
+PLATEAU SDKはまだ導入していない。対象都市・詳細度・性能目標は未決定。v0.1初回のNode追加は制作者のWaveスケジュールを採用する。
 
 ## UIの編集
 
@@ -134,7 +134,7 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 ## Node 360で接続する
 
-Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定生成間隔は1 s。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
+Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は1 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
 
 1. OverviewでNodeを選び、**Connect** または **C** を押す。WiringLabでは `S1 → BLUE`、Bootstrapでは `R1 → BLUE` が接続可能な例。Bootstrapの `S1` は初期配線でOUTが3/3のため、接続先を選ぶと枠不足や重複の理由を表示する。
 2. 始点付近から、右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで候補を絞る。暫定閾値はステージ対角長の25%・50%で、検証都市では37.5 m・75 m。距離はGround面上の直線距離。
@@ -157,3 +157,13 @@ OverviewでLineをクリックすると、**Edit selected Line / Reserve deletio
 ## Pause中に配線する
 
 **Esc / Pause** で生成・輸送・Overload猶予・ゲーム経過時間をまとめて停止し、再度 **Esc / Resume** で再開する。停止中もカメラ、ホバー、配線、手動編集、削除予約・取消を操作できる。Escは編集を取り消さない。FLOWが残る予約処理は再開後に進む。
+
+## 配線0からゲーム性を確認する
+
+1. `Assets/CityFlow/Scenes/WiringLab.unity` を開いてPlayする。今までと同じ簡易都市で、初期Lineは0本。
+2. S1からRED・BLUEへ接続する。最初はSourceに15秒の準備があり、**Esc**で時間を止めて配線してもよい。
+3. 60 / 120 / 180秒にWaveが進み、緑 / 黄 / 紫のSinkやSource・Relayが加わる。追加通知をクリックすると出現Nodeへ寄れる。追加Sourceは20秒準備し、既存ネットワークとFLOWは維持される。
+4. 接続枠・距離・固定容量・局所Routingを見ながら、配線追加・経路編集・削除予約で混雑を解消する。Wave進行に伴い生成間隔は基本値の0.9 / 0.75 / 0.6倍になる。
+5. SourceのOverloadが猶予を超えると結果を表示する。**Retry / 0 initial Lines** で同じ都市を配線0から再試行する。
+
+Waveの時刻・追加Node・生成間隔と猶予は `WiringStage` で調整可能。現時点の値はプレイ確認用の暫定値であり、構成比較・難度調整・v0.1完了判定はIssue #12に残る。

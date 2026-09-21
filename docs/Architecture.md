@@ -213,3 +213,15 @@ FlowNetwork集約が `Running / DeletePending / RouteChangePending` を所有す
 `FlowSimulation.IsPaused` をApplicationの状態とし、Pause中はtick入口で経過時間・端数・生成予定・FLOW移動/受け渡し/出発・Overloadをすべて維持する。停止中に受け取った実時間差分を蓄積せず、再開後は元の端数・残り距離・猶予から継続する。Time.timeScaleは変更しない。
 
 `PauseView` がInput SystemのEscとUIボタンを結び、停止状態をHUDへ表示する。Escは編集取消に使用しない。カメラはunscaled時間で操作し、接続・Preview編集・予約・取消は通常の同期コマンドとして利用できる。空Lineの削除/切替は即時完了し、FLOWを含むLineは再開後の排出を待つ。仕様§14.1の再開と時間不要コマンドに関する補完案を採用した。
+
+## Step 11：同一都市のWave、出現と結果
+
+v0.1の最初の追加方式は**制作者が用意するスケジュール**を採用する。再現性と調整容易性を優先し、配置アルゴリズムは導入しない。`StageConfiguration.Waves` が時刻・生成間隔倍率・追加Nodeを読み込み、Domainの `WaveDefinition` へ変換する。配置・ID・色・数値を起動時に検証し、各追加Nodeは少なくとも既存NodeへのGround経路が必要。将来の追加方式はこの定義の供給元を差し替え、Domain/ApplicationにSDK固有型を持ち込まない。
+
+FlowNetworkは初期Stageとは別に現存Nodeを所有する。追加は既存集約の中で行い、Node/Line/Buffer/FLOW/予約を再構築しない。描画・選択・Node 360・HUD・生成候補は現存Nodeを参照する。追加した同色Sinkは生成色の候補を重複させない。
+
+tick順序は **Wave追加（Sinkを先に登録）→生成→移動/受け渡し→予約完了→出発→Overload判定→結果確定**。Sourceは `GenerationDelay` 秒の準備後、最初の生成間隔を経て生成する。Waveの生成間隔倍率は既存Sourceの残り生成位相へ反映するが、準備猶予を短縮しない。PauseはWave・追加・準備時間も同じtick入口で止める。Waveは1から始まり、最終スケジュール以後も同じ都市で生存を続ける。
+
+WiringLabの暫定値（1 unit = 1 m）：初期5 Node / 2色 / 0 Line、S1準備15 s・基本生成間隔1 s。Wave 2は60 sでGREEN(-48,34)とS2(48,-20)、間隔倍率0.9。Wave 3は120 sでYELLOW(0,36)とR3(-45,0)、倍率0.75。Wave 4は180 sでPURPLE(48,-36)とS3(-48,-36)、倍率0.6。座標はXZ、Y=0。S2の基本間隔1.3 s、S3は1 s、追加Sourceの準備は20 s。初期の建物・Node位置、容量・接続上限は維持する。難度の最終調整はStep 12で行う。
+
+追加通知・画面外方向マーカーはゲーム時間で12 s表示し、クリックで新Nodeへフォーカスする。HUDにはWave、次回までの時間、生成倍率/Source準備、既存の経過時間・処理数・混雑を表示。Game Overで `SessionResult` にWave・生存秒・処理数・原因Sourceを固定する。再試行はUniTaskで同じシーンを再読み込みし、新しいVContainerスコープ・固定シード・設定値から開始する。結果表示中は新規配線開始を拒否し、編集中だったPreviewを破棄してOverviewに戻す。

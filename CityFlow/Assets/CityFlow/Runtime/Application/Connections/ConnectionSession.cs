@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
+using CityFlow.Domain.Spatial;
 using R3;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace CityFlow.Application.Connections
         private readonly Subject<Unit> changed = new();
         private readonly IDisposable previewSubscription;
         public Observable<Unit> Changed => changed;
+        public IReadOnlyList<NodeDefinition> Nodes => network.NodeDefinitions;
         public string? SourceId { get; private set; }
         public bool IsActive => SourceId != null;
         public DistanceBand Filter { get; private set; }
@@ -32,13 +34,13 @@ namespace CityFlow.Application.Connections
         }
         public bool Begin(string sourceId)
         {
-            if (IsActive || !network.NodeDefinitions.Any(n => n.Id == sourceId)) return false;
+            if (network.IsGameOver || IsActive || !network.NodeDefinitions.Any(n => n.Id == sourceId)) return false;
             preview.Cancel(); SourceId = sourceId; Filter = DistanceBand.All; LastCreatedLineId = null;
             changed.OnNext(Unit.Default); return true;
         }
         public bool BeginLineEdit(int lineId)
         {
-            if (IsActive) return false;
+            if (network.IsGameOver || IsActive) return false;
             var line=network.Snapshot().Lines.FirstOrDefault(l=>l.Id==lineId);
             if (line == null || line.Status != LineStatus.Running) return false;
             SourceId=line.SourceId; LastCreatedLineId=null;
@@ -67,7 +69,7 @@ namespace CityFlow.Application.Connections
         }
         public ConnectionFailure Confirm()
         {
-            if (SourceId == null || preview.Current == null || preview.Current.SourceId != SourceId)
+            if (network.IsGameOver || SourceId == null || preview.Current == null || preview.Current.SourceId != SourceId)
                 return ConnectionFailure.InvalidRoute;
             ConnectionFailure failure = preview.TryConfirm(out int? lineId);
             if (failure == ConnectionFailure.None)

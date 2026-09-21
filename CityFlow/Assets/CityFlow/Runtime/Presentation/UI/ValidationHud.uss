@@ -128,3 +128,22 @@ Label { margin: 0; padding: 0; }
 .session-controls .section-title { margin-bottom: 0; font-size: 14px; -unity-text-align: middle-center; }
 .session-controls.paused { border-color: rgb(255,207,107); }
 .session-controls.paused Label { color: rgb(255,207,107); }
+
+.readouts { max-height: 45%; }
+.wave-notice { position: absolute; left: 50%; top: 125px; translate: -50% 0; width: 340px;
+    font-size: 14px; -unity-text-align: middle-center; white-space: normal; padding: 12px;
+    color: rgb(255,219,132); background-color: rgba(5,9,15,0.95); }
+.arrival-marker { position: absolute; width: 160px; height: 48px; white-space: normal;
+    background-color: rgba(28,36,35,0.96); color: rgb(255,219,132); border-width: 2px; border-color: rgb(255,203,83);
+    font-size: 12px; -unity-text-align: middle-center; }
+.result-overlay { display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(2,5,10,0.78); }
+.result-panel { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 500px; padding: 32px;
+    border-color: rgb(236,175,93); }
+.result-panel .title { font-size: 28px; }
+.result-detail { white-space: normal; font-size: 24px; margin-top: 20px; margin-bottom: 28px; color: rgb(255,219,154); }
+.result-panel Button { height: 46px; margin-top: 24px; }
+
+.readouts .unity-scroller--vertical { width: 12px; background-color: rgb(15,25,34); }
+.readouts .unity-scroller__low-button, .readouts .unity-scroller__high-button { display: none; }
+.readouts .unity-base-slider__tracker { background-color: rgb(22,35,46); }
+.readouts .unity-base-slider__dragger { background-color: rgb(78,115,131); border-radius: 4px; }

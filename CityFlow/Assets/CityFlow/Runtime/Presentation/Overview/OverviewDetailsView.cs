@@ -2,6 +2,7 @@
 
 using System;
 using CityFlow.Domain.FlowNetwork;
+using CityFlow.Application.UseCases;
 using CityFlow.Presentation.Rendering;
 using R3;
 using UnityEngine;
@@ -14,12 +15,13 @@ namespace CityFlow.Presentation.Overview
     {
         private OverviewController? controller;
         private FlowNetwork? network;
+        private FlowSimulation? simulation;
         private ValidationCityView? city;
         private UIDocument? document;
         private IDisposable? selectionSubscription;
         public bool HasActiveSubscription => selectionSubscription != null;
-        public void Initialize(OverviewController input, FlowNetwork flowNetwork, ValidationCityView view)
-        { controller = input; network = flowNetwork; city = view; document = GetComponent<UIDocument>(); if (isActiveAndEnabled) Subscribe(); }
+        public void Initialize(OverviewController input, FlowNetwork flowNetwork, ValidationCityView view, FlowSimulation? clock = null)
+        { simulation=clock; controller = input; network = flowNetwork; city = view; document = GetComponent<UIDocument>(); if (isActiveAndEnabled) Subscribe(); }
         private void OnEnable() => Subscribe();
         private void Subscribe()
         {
@@ -35,7 +37,9 @@ namespace CityFlow.Presentation.Overview
             Label label = document.rootVisualElement.Q<Label>("overview-detail");
             if (label == null) return;
             OverviewTarget target = controller.Hovered.IsEmpty ? controller.Selected : controller.Hovered;
-            label.text = OverviewReadout.Describe(target, network.Snapshot(), network.Settings);
+            label.text = OverviewReadout.Describe(target, network.Snapshot(), network.Settings, simulation?.GenerationIntervalScale ?? 1);
+            if(target.NodeId != null && simulation?.SourceStartRemaining(target.NodeId) > 0)
+                label.text += $"\nPREPARING · {simulation.SourceStartRemaining(target.NodeId):0.0}s";
         }
     }
 }

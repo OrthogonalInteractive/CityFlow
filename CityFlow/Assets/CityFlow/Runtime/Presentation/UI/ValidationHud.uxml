@@ -7,8 +7,9 @@
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 10" class="title" />
-            <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
+            <ui:Label text="CITY FLOW  /  v0.1" class="title" />
+            <ui:Label name="wave-status" text="WAVE 1" class="subtitle" />
+            <ui:Label name="source-warmup" class="summary" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
             <ui:Label name="congestion-status" class="summary" />
@@ -30,7 +31,7 @@
                 <ui:Label name="inflight-value" text="000" class="small-value" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement class="readouts">
+        <ui:ScrollView class="readouts interactive" mode="Vertical">
             <ui:VisualElement class="panel node-panel">
                 <ui:Label text="NODE CONNECTIONS" class="section-title" />
                 <ui:VisualElement class="table-row table-header">
@@ -51,7 +52,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="line-rows" />
             </ui:VisualElement>
-        </ui:VisualElement>
+        </ui:ScrollView>
         <ui:VisualElement name="preview-panel" class="panel preview-panel interactive">
             <ui:Label text="GROUND ROUTE PREVIEW" class="section-title" />
             <ui:DropdownField name="preview-source" label="FROM" class="preview-endpoints" />
@@ -106,6 +107,16 @@
         </ui:VisualElement>
         <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
         <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    SPACE · SELECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
+        <ui:Label name="wave-notice" class="wave-notice" picking-mode="Ignore" />
+        <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
+        <ui:VisualElement name="result-overlay" class="result-overlay interactive">
+            <ui:VisualElement class="panel result-panel">
+                <ui:Label text="NETWORK OVERLOADED" class="title" />
+                <ui:Label name="result-detail" class="result-detail" />
+                <ui:Label text="Keep the Source moving.&#10;Use Pause to plan and reconnect your network." class="detail-text" />
+                <ui:Button name="retry-session" text="Retry / start with 0 Lines" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="city-caption" />
     </ui:VisualElement>
 </ui:UXML>

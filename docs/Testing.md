@@ -156,3 +156,12 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - Pause中の生成数・経過時間・Overload・FLOW位置・旧経路・tick端数の保存、再開後の残り距離からの継続、空Lineの即時削除と占有Lineの待機を確認。
 - Input SystemのEscを手動編集中に送り、Previewを保持したまま停止、Wによるカメラ移動、停止中の配線適用、Esc再開をPlayModeで検証。シーン読込後の実行時間は初期値を仮定せず差分で評価。
 - 実Esc入力の画面: `docs/screenshots/issue-10-paused-edit.png`。コンパイルエラー/警告0、Console Error0。
+
+## Step 11 検証記録
+
+- Wave/追加/新色/準備時間/結果の5テストが未実装により失敗するRedを確認。最終EditMode **112/112**、PlayMode **28/28**成功。コンパイルエラー/警告0、Consoleログ0。
+- 初期Sourceの準備15 s、追加Sourceの準備20 s、Sink追加後の色候補更新、Waveをまたぐ予約・Buffer・FLOW ID・位置の維持、Pause中のWave/準備時間停止、倍率変更時の生成位相維持を確認。
+- 0 LineからS1→RED/BLUE、Wave 2でS1/S2→GREEN等、Wave 3で各Sink→YELLOW、Wave 4でYELLOW→PURPLEとS3接続へ拡張。4 Wave・11 Node・5色・13 Lineで240 sまで生存し、100件超の配送とFLOW総数保存を確認。難度比較・採用値の最終判定はStep 12の対象。
+- 未接続の追加Sourceを放置した画面確認ではWave 3・140.4 s・処理107・原因S2でGame Over。HUDと結果が一致。Retryボタンで新スコープ・Wave 1・0 Line・結果なしに戻ることを自動/画面操作の両方で確認。
+- 追加Nodeの選択・Node 360・配線、出現通知・画面外方向を検証。画面内Nodeをパネル回避位置によって画面外と誤表示する不整合を再現テストでRedにし、画面外判定とラベル配置の分離後にGreenを確認。
+- 画面: `docs/screenshots/issue-11-zero-lines.png`、`issue-11-wave.png`、`issue-11-result.png`。

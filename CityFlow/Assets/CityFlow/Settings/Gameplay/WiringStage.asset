@@ -12,6 +12,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
   m_Name: WiringStage
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
+  Waves:
+  - StartSeconds: 60
+    IntervalScale: 0.9
+    Additions:
+    - Id: GREEN
+      Kind: 2
+      SinkColor: 3
+      Position: {x: -48, y: 0, z: 34}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1
+      GenerationDelay: 0
+    - Id: S2
+      Kind: 0
+      SinkColor: 0
+      Position: {x: 48, y: 0, z: -20}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1.3
+      GenerationDelay: 20
+  - StartSeconds: 120
+    IntervalScale: 0.75
+    Additions:
+    - Id: YELLOW
+      Kind: 2
+      SinkColor: 2
+      Position: {x: 0, y: 0, z: 36}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1
+      GenerationDelay: 0
+    - Id: R3
+      Kind: 1
+      SinkColor: 0
+      Position: {x: -45, y: 0, z: 0}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1
+      GenerationDelay: 0
+  - StartSeconds: 180
+    IntervalScale: 0.6
+    Additions:
+    - Id: PURPLE
+      Kind: 2
+      SinkColor: 4
+      Position: {x: 48, y: 0, z: -36}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1
+      GenerationDelay: 0
+    - Id: S3
+      Kind: 0
+      SinkColor: 0
+      Position: {x: -48, y: 0, z: -36}
+      MaxIncoming: 3
+      MaxOutgoing: 3
+      GenerationInterval: 1
+      GenerationDelay: 20
   Lines: []
   GroundHeight: 0
   WalkableArea:
@@ -41,6 +99,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 1
+    GenerationDelay: 15
   - Id: R1
     Kind: 1
     SinkColor: 0
@@ -48,6 +107,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 1
+    GenerationDelay: 0
   - Id: R2
     Kind: 1
     SinkColor: 0
@@ -55,6 +115,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 1
+    GenerationDelay: 0
   - Id: RED
     Kind: 2
     SinkColor: 0
@@ -62,6 +123,7 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 1
+    GenerationDelay: 0
   - Id: BLUE
     Kind: 2
     SinkColor: 1
@@ -69,3 +131,4 @@ MonoBehaviour:
     MaxIncoming: 3
     MaxOutgoing: 3
     GenerationInterval: 1
+    GenerationDelay: 0

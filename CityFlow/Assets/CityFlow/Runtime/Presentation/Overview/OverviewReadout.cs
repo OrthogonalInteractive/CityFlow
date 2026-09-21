@@ -8,14 +8,14 @@ namespace CityFlow.Presentation.Overview
 {
     public static class OverviewReadout
     {
-        public static string Describe(OverviewTarget target, NetworkSnapshot state, NetworkSettings settings)
+        public static string Describe(OverviewTarget target, NetworkSnapshot state, NetworkSettings settings, double intervalScale = 1)
         {
             NodeSnapshot? node = state.Nodes.FirstOrDefault(n=>n.Definition.Id == target.NodeId);
             if (node != null)
             {
                 string colors = string.Join("  ", node.Buffer.GroupBy(f=>f.Color).OrderBy(g=>g.Key).Select(g=>$"{g.Key}: {g.Count()}"));
                 string sink = node.Definition.SinkColor.HasValue ? $" · {node.Definition.SinkColor} SINK" : "";
-                string source = node.Definition.Kind == NodeKind.Source ? $"\nGENERATE {node.Definition.GenerationInterval:0.00}s · GRACE {Math.Max(0,settings.OverloadGrace-node.OverloadSeconds):0.0}s" : "";
+                string source = node.Definition.Kind == NodeKind.Source ? $"\nGENERATE {node.Definition.GenerationInterval*intervalScale:0.00}s · GRACE {Math.Max(0,settings.OverloadGrace-node.OverloadSeconds):0.0}s" : "";
                 string incoming = string.Join(", ", state.Lines.Where(l=>l.DestinationId==node.Definition.Id && l.InFlight.Any(f=>f.IsStopped)).Select(l=>l.SourceId));
                 string outgoing = string.Join(", ", state.Lines.Where(l=>l.SourceId==node.Definition.Id).Select(l=>l.DestinationId));
                 return $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}{sink}\nBUFFER {node.Buffer.Count}/{settings.MaxBuffer} ({100d*node.Buffer.Count/settings.MaxBuffer:0}%)\n{(colors.Length==0 ? "No waiting FLOW" : colors)}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · OUT {node.OutgoingUsed}/{node.Definition.MaxOutgoing}\nINPUT {(node.IsInputStopped ? "STOPPED" : "OPEN")}{source}\nWAITING FROM {(incoming.Length==0 ? "—" : incoming)}\nOUTPUT TO {(outgoing.Length==0 ? "—" : outgoing)}";

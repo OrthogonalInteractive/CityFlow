@@ -62,13 +62,23 @@ namespace CityFlow.Domain.FlowNetwork
             }
         }
         public NetworkSettings Settings { get; }
-        public IReadOnlyList<NodeDefinition> NodeDefinitions => stage.Nodes;
+        public IReadOnlyList<NodeDefinition> NodeDefinitions => Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
         {
             this.stage = stage ?? throw new ArgumentNullException(nameof(stage));
             Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             stage.Validate(settings.Clearance);
             nodes = stage.Nodes.ToDictionary(n => n.Id, n => new NodeState(n));
+        }
+        public void ValidateAdditionalNodes(IEnumerable<NodeDefinition> additions)
+        {
+            new StageDefinition(stage.GroundHeight,stage.WalkableArea,stage.Buildings,NodeDefinitions.Concat(additions)).Validate(Settings.Clearance);
+        }
+        public bool TryAddNodes(IReadOnlyList<NodeDefinition> additions)
+        {
+            try { ValidateAdditionalNodes(additions); } catch(ArgumentException) { return false; }
+            foreach(NodeDefinition definition in additions) nodes.Add(definition.Id,new NodeState(definition));
+            return true;
         }
         public ConnectionFailure CheckConnection(string sourceId, string destinationId)
         {
@@ -105,14 +115,14 @@ namespace CityFlow.Domain.FlowNetwork
         {
             if (!nodes.TryGetValue(sourceId, out NodeState source) || source.Definition.Kind != NodeKind.Source)
                 throw new ArgumentException("Only an existing Source may generate FLOW.", nameof(sourceId));
-            if (!stage.Nodes.Any(n => n.SinkColor == color))
+            if (!nodes.Values.Any(n => n.Definition.SinkColor == color))
                 throw new ArgumentException("Generated colors require an existing Sink.", nameof(color));
             var flow = new Flow(nextFlowId++, color);
             // Specification 5.2 proposal: Source generation retains overflow instead of dropping FLOW.
             source.Buffer.Add(flow);
             return flow;
         }
-        public NetworkSnapshot Snapshot() => new NetworkSnapshot(stage.Nodes.Select(definition =>
+        public NetworkSnapshot Snapshot() => new NetworkSnapshot(NodeDefinitions.Select(definition =>
         {
             NodeState node = nodes[definition.Id];
             return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds);
