@@ -123,12 +123,15 @@ namespace CityFlow.Tests.EditMode
             network.AdvanceInFlight(5);
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2)); AssertConserved(network);
         }
-        [Test] public void UnblockedBurstTravelsAtCommonSpeedWithoutArtificialQueueDelay()
+        [Test] public void BurstWaitsForRouteSpacingThenContinuesAtCommonSpeed()
         {
             var network = Network(); int line = Connect(network, "S", "T");
             network.GenerateFlow("S", FlowColor.Red); network.GenerateFlow("S", FlowColor.Red);
             network.RouteWaitingFlows(new Choices());
             for (int i = 0; i < 4; i++) network.AdvanceInFlight(0.5);
+            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1));
+            Assert.That(Line(network, line).InFlight.Single().Distance, Is.EqualTo(10).Within(0.0001));
+            network.AdvanceInFlight(1);
             Assert.That(Line(network, line).InFlight, Is.Empty);
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2)); AssertConserved(network);
         }

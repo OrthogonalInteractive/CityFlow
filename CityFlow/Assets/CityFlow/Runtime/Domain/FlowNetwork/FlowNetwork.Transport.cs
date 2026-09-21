@@ -40,8 +40,8 @@ namespace CityFlow.Domain.FlowNetwork
             if (deltaSeconds == 0) return;
             foreach (LineState line in lines)
             {
-                // Provisional queue spacing [m], bounded so all capacity slots fit on any route.
-                double spacing = Math.Min(0.8, line.Route.Length / Settings.MaxInFlight);
+                // Equal capacity slots span the actual route; following spacing also applies before a blockage.
+                double spacing = line.Route.Length / Settings.MaxInFlight;
                 double frontLimit = line.Route.Length;
                 bool blockedAhead = false;
                 for (int index = 0; index < line.InFlight.Count;)
@@ -63,7 +63,7 @@ namespace CityFlow.Domain.FlowNetwork
                     }
                     flight.IsStopped = (atEnd && !canReceive) || (blockedAhead && flight.Distance + 1e-8 >= frontLimit);
                     blockedAhead |= atEnd && !canReceive;
-                    frontLimit = blockedAhead ? Math.Max(0, flight.Distance - spacing) : line.Route.Length;
+                    frontLimit = Math.Max(0, flight.Distance - spacing);
                     index++;
                 }
             }

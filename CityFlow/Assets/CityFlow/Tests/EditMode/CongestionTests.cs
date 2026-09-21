@@ -75,6 +75,31 @@ namespace CityFlow.Tests.EditMode
             Assert.That(Node(n, "S").Buffer.Count, Is.EqualTo(3));
             Assert.That(Node(n, "S").OverloadSeconds, Is.EqualTo(1)); Assert.That(n.IsGameOver, Is.False); Conserve(n);
         }
+        [Test] public void BlockedQueueUsesEqualFractionsOfTheWholeRouteWithoutMovingBackwards()
+        {
+            var n = new FlowNetwork(new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new[] {
+                new NodeDefinition("S",NodeKind.Source,Vector3.zero),
+                new NodeDefinition("R",NodeKind.Relay,new Vector3(30,0,0)),
+                new NodeDefinition("T",NodeKind.Sink,new Vector3(40,0,0),sinkColor:FlowColor.Red) }),
+                new NetworkSettings(10,1,3,10,0));
+            Connect(n,"S","R"); n.GenerateFlow("S",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(4);
+            for(int i=0;i<3;i++) n.GenerateFlow("S",FlowColor.Red);
+            n.RouteWaitingFlows(new First());
+            for(int tick=0;tick<80;tick++)
+            {
+                var before=n.Snapshot().Lines[0].InFlight.Select(f=>f.Distance).ToArray();
+                n.AdvanceInFlight(0.05);
+                var after=n.Snapshot().Lines[0].InFlight;
+                for(int i=0;i<after.Count;i++)
+                    Assert.That(after[i].Distance,Is.InRange(before[i],before[i]+0.50001),"FLOW must never jump or move backwards.");
+            }
+            var queue=n.Snapshot().Lines[0].InFlight;
+            Assert.That(queue.Select(f=>f.Distance),Is.EqualTo(new double[] {30,20,10}).Within(0.0001));
+            Assert.That(queue.All(f=>f.IsStopped),Is.True); Conserve(n);
+            Connect(n,"R","T"); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(0.05);
+            Assert.That(n.Snapshot().Lines[0].InFlight[0].Flow.Id,Is.EqualTo(queue[1].Flow.Id));
+            Assert.That(n.Snapshot().Lines[0].InFlight[0].Distance,Is.EqualTo(20.5).Within(0.0001)); Conserve(n);
+        }
         [Test] public void SimulationStopsAtDefeatWithoutDiscardingOrAdvancingFlows()
         {
             var n = Create(); Fill(n); var sim = new FlowSimulation(n, new First()); sim.Tick(20);
