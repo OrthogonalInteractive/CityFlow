@@ -15,6 +15,6 @@ MonoBehaviour:
   MaxBuffer: 50
   RandomSeed: 1337
   MaxInFlight: 10
-  FlowSpeed: 20
+  FlowSpeed: 8
   OverloadGrace: 5
   Clearance: 0.5

@@ -500,7 +500,7 @@ Lineが無料であることだけでは、I/Oの空きやネットワーク全�
 | 色数 | 開始時2色、最大5色 |
 | MaxBuffer | 全Node共通で50 FLOW |
 | MaxInFlight | 全Line共通で10 FLOW |
-| FLOW Speed | 全Line共通で20 m/s |
+| FLOW Speed | 全Line共通で8 m/s（視認性確認のため20から減速。最終採用値はプレイ比較で判断） |
 | SourceのOverload猶予 | 5秒（補完案）。Relay・Sinkには敗北用タイマーを設けない |
 | IN／OUT接続上限 | Nodeごとに設定。少ない上限と5色分の出口を持てる上限を比較 |
 | Source生成間隔 | Sourceごとに設定し、進行に応じて短縮 |

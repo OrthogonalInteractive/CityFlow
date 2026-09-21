@@ -239,3 +239,7 @@ Node 360では3D描画を左72%・下端6%を除く領域へ限定し、操作�
 `NodeSnapshot`にSourceごとの生成累計・直近生成色を保持する。生成と同じtickに出発してBufferが空になっても生成を観測できる。表示は`SourceStatusView`が所有し、生成リング（暫定0.75 s）と最大50個の待機粒子を描画する。表示上限でDomainのFLOWを削除しない。生成リングの時間源は`FlowSimulation.ElapsedSeconds`とし、Pauseで停止する。
 
 Sourceモニターは全Sourceの準備時間、生成累計・直近色、Buffer実数／容量、残容量を常設表示する。容量80%を予告警告の暫定値とし、満杯では継続Overloadの残り猶予を表示する。360では上端12%をSource表示専用に追加し、都市描画と重ならない。結果の見出しはGAME OVERとし、原因Source・生存時間・配送数とRetryを表示する。
+
+## v0.1 FLOW速度の暫定調整
+
+視認性の改善として、`GameplaySettings.FlowSpeed`と`ValidationGameplay`の速度を20から8 m/sへ下げた。距離・移動時間・Preview・輸送能力はすべて同じ実速度から計算する。42 mのLineは2.1から5.25 s、100.98 mは約5.05から12.62 sとなる。容量10、Buffer 50、生成間隔、Wave倍率、Overload猶予5 sは維持する。上記のStep 03記録と仕様中の20 m/sの計算例は当時の値／数式の例であり、現在の調整アセットは8 m/s。速度を落とすと容量回復も遅くなるため、最終採用値と生成量の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) で比較する。

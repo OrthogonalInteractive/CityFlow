@@ -15,7 +15,7 @@ namespace CityFlow.Infrastructure.Configuration
         [Tooltip("Provisional common capacity per line [FLOW].")]
         public int MaxInFlight = 10;
         [Tooltip("Provisional movement speed [m/s].")]
-        public float FlowSpeed = 20;
+        public float FlowSpeed = 8;
         [Tooltip("Provisional Source overload grace [s].")]
         public float OverloadGrace = 5;
         [Tooltip("Provisional footprint clearance [m].")]

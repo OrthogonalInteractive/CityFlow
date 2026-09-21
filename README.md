@@ -169,3 +169,5 @@ Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常
 Waveの時刻・追加Node・生成間隔と猶予は `WiringStage` で調整可能。現時点の値はプレイ確認用の暫定値であり、構成比較・難度調整・v0.1完了判定はIssue #12に残る。
 
 Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確認できる。上部のSourceモニターに生成累計・直近色・Buffer数／上限を常設表示し、80%から警告、満杯からGame Overまでの残り秒数を表示する。Node 360でも上部の専用領域に残る。Pauseで生成演出と敗北カウントダウンも停止する。敗北時はGAME OVER画面のRetryから配線0で再開できる。
+
+FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。表示だけでなく実際の移動速度を下げているため、Lineの回転と容量回復も遅くなる。最終的な速度・生成量・猶予の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) の比較プレイで決める。

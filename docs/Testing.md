@@ -196,3 +196,9 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 - 全PlayMode実行でProgressBar内部の子要素が読み取り専用HUDの入力透過条件を満たさないことを検出（32成功・1失敗）。ゲージを構成する子要素もPickingMode.Ignoreとし、修正後は全PlayMode **33/33成功**。
 - URP Unlitの生成リングには直近FLOW色の共有マテリアルを明示的に適用する。コンパイルエラー/警告0。
+
+## v0.1 FLOW速度の暫定調整
+
+- 速度20→8 m/sを設定クラスとUnityの調整アセットへ反映し、uloopでコンパイル成功（エラー/警告0）。EditMode **113/113成功**、PlayMode **33/33成功**。
+- 8 m/sでも0 Lineから13 Lineへ拡張し、4 Wave・11 Node・5色・240 sまで生存、100件超の配送とFLOW総数保存を確認。生成間隔・Wave倍率・容量・敗北猶予は変更していない。
+- 6/8/10 m/sの比較や最終採用値は未確定。議論用 [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) を作成し、統合プレイテストの #12 に接続する。
