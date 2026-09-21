@@ -122,3 +122,9 @@ Label { margin: 0; padding: 0; }
 
 .connection-active #line-actions { display: none; }
 #line-action-detail { margin-top: 10px; }
+
+.session-controls { position: absolute; left: 50%; top: 24px; translate: -50% 0;
+    background-color: rgba(5,9,15,0.95); padding: 12px 20px; border-width: 1px; border-color: rgb(76,125,128); width: 285px; }
+.session-controls .section-title { margin-bottom: 0; font-size: 14px; -unity-text-align: middle-center; }
+.session-controls.paused { border-color: rgb(255,207,107); }
+.session-controls.paused Label { color: rgb(255,207,107); }

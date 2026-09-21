@@ -18,6 +18,8 @@ namespace CityFlow.Application.UseCases
         private readonly Dictionary<string, double> nextGeneration = new Dictionary<string, double>();
         private double remainder;
         private long ticks;
+        public bool IsPaused { get; private set; }
+        public void SetPaused(bool value) { if (!network.IsGameOver) IsPaused=value; }
         public double ElapsedSeconds => ticks * StepSeconds;
 
         public FlowSimulation(FlowNetwork network, IRandomSource random)
@@ -32,7 +34,7 @@ namespace CityFlow.Application.UseCases
         {
             if (double.IsNaN(deltaSeconds) || double.IsInfinity(deltaSeconds) || deltaSeconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
-            if (deltaSeconds == 0 || network.IsGameOver) return;
+            if (deltaSeconds == 0 || IsPaused || network.IsGameOver) return;
             if (double.IsInfinity(remainder + deltaSeconds)) throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
             remainder += deltaSeconds;
             while (!network.IsGameOver && remainder + 1e-9 >= StepSeconds)

@@ -207,3 +207,9 @@ FlowNetwork集約が `Running / DeletePending / RouteChangePending` を所有す
 取消は予約と保留経路だけを解除し、Line ID、旧経路、FLOWのID・距離、接続枠を保持する。削除時にだけ両端から接続を取り除く。Line IDは単調増加し、削除後も再利用しない。
 
 既存Lineの編集も `ConnectionSession` と `LinePreviewService` を使い、端点変更は禁止、仮適用後I/Oは現在値を維持する。Previewの適用時に経路と予約状態を再検証し、削除済み・別予約中のLineを変更しない。描画は確定LineRouteの変更・削除を検出して更新する。選択Lineのパネルに残りFLOW、排出/Buffer空き待ち、取消操作を表示し、削除待ちは橙、切替待ちは紫で区別する。仕様§11の運行中Line編集・予約排他に関する補完案を採用した。
+
+## Step 10：シミュレーションPause
+
+`FlowSimulation.IsPaused` をApplicationの状態とし、Pause中はtick入口で経過時間・端数・生成予定・FLOW移動/受け渡し/出発・Overloadをすべて維持する。停止中に受け取った実時間差分を蓄積せず、再開後は元の端数・残り距離・猶予から継続する。Time.timeScaleは変更しない。
+
+`PauseView` がInput SystemのEscとUIボタンを結び、停止状態をHUDへ表示する。Escは編集取消に使用しない。カメラはunscaled時間で操作し、接続・Preview編集・予約・取消は通常の同期コマンドとして利用できる。空Lineの削除/切替は即時完了し、FLOWを含むLineは再開後の排出を待つ。仕様§14.1の再開と時間不要コマンドに関する補完案を採用した。

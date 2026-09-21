@@ -149,3 +149,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 削除完了前の枠保持、終点満杯での無期限待機、取消でのID/距離/経路保存、排出後の枠解放、新経路への切替、削除後IDの非再利用を検証。各シナリオでFLOW総数と所属一意性を確認。
 - UIから予約・取消・編集適用し、状態とBuffer空き待ち表示、削除/切替後の描画・距離表示更新を検証。コンパイルエラー/警告0、Console Error0。
 - 画面: `docs/screenshots/issue-9-delete-pending.png`。
+
+## Step 10 検証記録
+
+- Pause未実装で3テストが失敗するRedを確認。実装後はEditMode **104/104**、PlayMode **25/25**成功。
+- Pause中の生成数・経過時間・Overload・FLOW位置・旧経路・tick端数の保存、再開後の残り距離からの継続、空Lineの即時削除と占有Lineの待機を確認。
+- Input SystemのEscを手動編集中に送り、Previewを保持したまま停止、Wによるカメラ移動、停止中の配線適用、Esc再開をPlayModeで検証。シーン読込後の実行時間は初期値を仮定せず差分で評価。
+- 実Esc入力の画面: `docs/screenshots/issue-10-paused-edit.png`。コンパイルエラー/警告0、Console Error0。

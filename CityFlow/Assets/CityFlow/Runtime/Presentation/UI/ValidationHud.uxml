@@ -1,9 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ValidationHud.uss" />
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:VisualElement class="session-controls interactive">
+            <ui:Label name="pause-status" text="RUNNING" class="section-title" />
+            <ui:Button name="pause-toggle" text="Pause [Esc]" />
+        </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 09" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 10" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
