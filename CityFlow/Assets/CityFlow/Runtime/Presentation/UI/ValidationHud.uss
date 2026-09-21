@@ -109,3 +109,13 @@ Label { margin: 0; padding: 0; }
 .candidate-marker.blocked { color: rgb(248,196,114); }
 .candidate-marker.occluded { border-top-width: 3px; }
 .candidate-marker:hover { background-color: rgb(36,78,89); }
+
+.route-editor { display: none; position: absolute; left: 24px; top: 24px; width: 330px; }
+.route-editing .route-editor { display: flex; }
+.route-editing .connection-panel, .route-editing .detail-panel, .route-editing .readouts,
+.route-editing #route-edit, .route-editing .footer, .route-editing #connect-confirm { display: none; }
+.route-handle { position: absolute; width: 30px; height: 30px; border-radius: 15px;
+    background-color: rgb(12,48,59); color: rgb(147,255,232); border-width: 2px; border-color: rgb(96,221,210);
+    -unity-text-align: middle-center; font-size: 13px; }
+.route-handle.chosen { background-color: rgb(126,87,26); border-color: rgb(255,207,107); }
+.route-handle.endpoint { background-color: rgb(32,41,54); color: rgb(186,201,213); }

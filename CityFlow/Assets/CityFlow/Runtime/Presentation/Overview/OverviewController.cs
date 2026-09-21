@@ -23,6 +23,7 @@ namespace CityFlow.Presentation.Overview
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
         public OverviewTarget Selected { get; private set; }
         public OverviewTarget Hovered { get; private set; }
+        public bool EditingRoute { get; set; }
         public Func<Vector2, bool>? IsPointerBlocked { get; set; }
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera)
         {
@@ -40,7 +41,7 @@ namespace CityFlow.Presentation.Overview
             actions.AddAction("Select", InputActionType.Button, "<Mouse>/leftButton").performed += _ =>
             {
                 Vector2 point = pointerInput.ReadValue<Vector2>();
-                if (IsPointerBlocked?.Invoke(point) != true) Select(Pick(point));
+                if (!EditingRoute && IsPointerBlocked?.Invoke(point) != true) Select(Pick(point));
             };
             actions.AddAction("Focus", InputActionType.Button, "<Keyboard>/f").performed += _ => FocusSelection();
             actions.AddAction("Home", InputActionType.Button, "<Keyboard>/home").performed += _ => ResetView();
@@ -61,7 +62,7 @@ namespace CityFlow.Presentation.Overview
             if (pan != Vector2.zero) Pan(pan * (sceneCamera.orthographicSize * Time.unscaledDeltaTime));
             float zoom = zoomInput.ReadValue<float>();
             if (!blocked && zoom != 0) Zoom(zoom / 120f);
-            if (!blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
+            if (!EditingRoute && !blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
             if (!blocked && dragInput.IsPressed() && delta != Vector2.zero)
                 Pan(-delta * (2 * sceneCamera.orthographicSize / Mathf.Max(1, Screen.height)));
             if (point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
@@ -118,6 +119,7 @@ namespace CityFlow.Presentation.Overview
         { yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }
         public void FocusSelection()
         {
+            if (EditingRoute) return;
             if (network == null || sceneCamera == null) return;
             foreach (NodeDefinition node in network.NodeDefinitions)
                 if (node.Id == Selected.NodeId) { pivot = node.Position; sceneCamera.orthographicSize = 24; ApplyPose(); return; }
@@ -128,7 +130,7 @@ namespace CityFlow.Presentation.Overview
         {
             if (stage == null || sceneCamera == null) return;
             pivot = new Vector3(stage.WalkableArea.center.x, stage.GroundHeight, stage.WalkableArea.center.y);
-            yaw = -10; pitch = 60;
+            yaw = EditingRoute ? 0 : -10; pitch = EditingRoute ? 90 : 60;
             sceneCamera.orthographicSize = Mathf.Max(stage.WalkableArea.height * 0.7f, stage.WalkableArea.width / sceneCamera.aspect * 0.7f);
             ApplyPose();
         }
@@ -137,6 +139,12 @@ namespace CityFlow.Presentation.Overview
             if (sceneCamera == null) return;
             Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
             sceneCamera.transform.SetPositionAndRotation(pivot + rotation * Vector3.back * 220, rotation);
+        }
+        public void BeginRouteView()
+        {
+            EditingRoute = true;
+            if (sceneCamera != null) sceneCamera.orthographic = true;
+            ResetView();
         }
         public OverviewViewState CaptureView()
         {

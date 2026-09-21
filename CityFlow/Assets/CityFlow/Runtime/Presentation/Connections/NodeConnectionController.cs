@@ -27,6 +27,7 @@ namespace CityFlow.Presentation.Connections
         private bool overviewWasEnabled;
         private float yaw, pitch;
         public bool IsNode360 { get; private set; }
+        public bool IsEditing { get; private set; }
         public string? AttentionId { get; private set; }
         public void Initialize(ConnectionSession connection, OverviewController input, StageDefinition definition, Camera camera, ValidationCityView view)
         {
@@ -75,7 +76,8 @@ namespace CityFlow.Presentation.Connections
         {
             if (overview != null && bookmark.HasValue)
             { overview.RestoreView(bookmark.Value); overview.Select(previousSelection); overview.enabled = overviewWasEnabled; }
-            bookmark = null; IsNode360 = false; AttentionId = null;
+            if (overview != null) overview.EditingRoute = false;
+            IsEditing = false; bookmark = null; IsNode360 = false; AttentionId = null;
             if (cityView != null) cityView.SetHiddenNode(null);
         }
         private void Update()
@@ -94,7 +96,7 @@ namespace CityFlow.Presentation.Connections
         }
         public void ToggleOverview()
         {
-            if (session?.IsActive != true || overview == null || !bookmark.HasValue) return;
+            if (IsEditing || session?.IsActive != true || overview == null || !bookmark.HasValue) return;
             IsNode360 = !IsNode360;
             if (IsNode360) { overview.enabled = false; ApplyNodePose(); }
             else
@@ -102,6 +104,12 @@ namespace CityFlow.Presentation.Connections
                 overview.RestoreView(bookmark.Value); overview.enabled = true;
                 if (cityView != null) cityView.SetHiddenNode(null);
             }
+        }
+        public void BeginEditing()
+        {
+            if (session?.IsActive != true || overview == null) return;
+            if (IsNode360) ToggleOverview();
+            IsEditing = true; overview.BeginRouteView();
         }
         private void ApplyNodePose()
         {

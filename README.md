@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#7の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定まで実装。Unity EditorのBootstrapシーンで確認できる。手動経路編集、削除予約、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#8の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細、自動Ground経路とPreview、Node 360からの接続確定、Ground経路の手動編集まで実装。Unity EditorのBootstrapシーンで確認できる。削除予約、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
@@ -130,7 +130,7 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 右下の **GROUND ROUTE PREVIEW** でFROM/TOを選び、**Generate route** を押す。建物を迂回する可視グラフ＋A*の候補を破線表示し、長さ・移動時間・推定Throughput・仮確定後の接続枠を確認できる。**Cancel** でPreviewを消す。初期ペアは `R1 → BLUE`。`S1 → BLUE` など既存の同方向接続は理由付きで確定不可と表示する。
 
-この検証用パネル単独ではLineを追加しない。実際の接続は以下のNode 360フローを使う。制御点の手動編集はIssue #8で実装する。
+この検証用パネル単独ではLineを追加しない。実際の接続は以下のNode 360フローを使う。制御点の手動編集は下記の操作で行う。
 
 ## Node 360で接続する
 
@@ -143,3 +143,9 @@ Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.u
 5. **Confirm Line / Enter** で経路と両端枠を再検証し、成立時にだけLineを追加する。**Cancel connection / Backspace** で枠を消費せず取消。どちらも開始前のOverview位置・角度・ズームへ戻る。
 
 Escは後続のPause機能用に予約しており、接続取消には使用しない。Node 360でも輸送は進行する。
+
+## Ground経路を手動編集する
+
+Node 360で接続先を選び、**Edit Ground route / E** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Delete** で削除する。A/Bの端点とGround高さは固定。
+
+**Regenerate automatic route** で自動経路へ戻し、**Apply Line / Enter** で確定、**Cancel / Backspace** で配線全体を取り消す。建物を横切る区間は赤色と理由を表示し、適用不可になる。WASD/中ボタンドラッグとホイールで編集中もPan/Zoomできる。

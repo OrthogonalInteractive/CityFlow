@@ -3,7 +3,7 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 07" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 08" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
@@ -57,11 +57,22 @@
                 <ui:Button name="preview-cancel" text="Cancel" class="preview-lab" />
                 <ui:Button name="connect-confirm" text="Confirm Line [Enter]" class="connection-only" />
             </ui:VisualElement>
+            <ui:Button name="route-edit" text="Edit Ground route [E]" class="connection-only" />
             <ui:Label name="preview-detail" class="detail-text" />
         </ui:VisualElement>
         <ui:VisualElement class="panel detail-panel">
             <ui:Label text="NETWORK INSPECTOR" class="section-title" />
             <ui:Label name="overview-detail" class="detail-text" />
+        </ui:VisualElement>
+        <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
+        <ui:VisualElement name="route-editor" class="panel route-editor interactive">
+            <ui:Label text="GROUND / MANUAL ROUTE" class="section-title" />
+            <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag numbered handles: move on Ground&#10;Select a handle + Delete: remove&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
+            <ui:Label name="route-point-detail" class="band-hint" />
+            <ui:Button name="route-remove" text="Remove selected point [Delete]" />
+            <ui:Button name="route-regenerate" text="Regenerate automatic route" />
+            <ui:Button name="route-apply" text="Apply Line [Enter]" />
+            <ui:Button name="route-cancel" text="Cancel [Backspace]" />
         </ui:VisualElement>
         <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">

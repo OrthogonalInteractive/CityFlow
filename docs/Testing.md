@@ -134,3 +134,11 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 実入力でもS1をクリック→C（Connectボタンのクリックも確認）→TabでBLUEへ注目→SpaceでPreview→VでOverview確認→Enterで確定。長さ100.98 m、移動時間5.05 s、推定1.98 FLOW/s。明示的tickを8秒進め、Line 1本、In-Flight 5、同色到着1、Overview復帰を確認。
 - UI Toolkitの実ポインター検証ではUnity Editor本体に加えGame Viewへフォーカスする。撮影時はSimulationDriverの自動更新を止めて状態を固定し、手動tick以外の時間進行を除いた。
 - スクリーンショット: `docs/screenshots/issue-7-node360.png`、`docs/screenshots/issue-7-review.png`、`docs/screenshots/issue-7-connected.png`。対象はUnity Editor内で、Playerビルドは検証対象外。
+
+## Step 08 検証記録
+
+- 手動制御点操作の3テストが未実装により失敗するRedを確認。実装後はEditMode **94/94**、PlayMode **22/22**成功。
+- Ground投影、端点固定、点の追加・移動・削除、距離/時間/Throughput、無効適用拒否、自動再生成、非破壊取消を検証。
+- UIの編集開始→真上カメラ→無効経路→再生成→追加→適用と、取消時のOverview復帰をPlayModeで検証。
+- uloopの実Input System操作でSpace→E→Shiftクリック→Enterを通過。S1→BLUEの5点・101.934 mのLineを確定し、編集終了を確認。Errorログ0件。
+- 画面: `docs/screenshots/issue-8-manual-route.png`。

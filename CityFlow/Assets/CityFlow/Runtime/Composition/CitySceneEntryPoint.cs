@@ -54,6 +54,7 @@ namespace CityFlow.Composition
             hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera);
             hud.AddComponent<GroundPreviewView>().Initialize(preview, network, overview);
             hud.AddComponent<NodeConnectionView>().Initialize(connection, preview, overview, connectionController, camera);
+            hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.SetActive(true);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }

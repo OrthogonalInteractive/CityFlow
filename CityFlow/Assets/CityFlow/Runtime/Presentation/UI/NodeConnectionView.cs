@@ -41,6 +41,7 @@ namespace CityFlow.Presentation.UI
             ButtonAction("connect-cancel",session.Cancel);
             ButtonAction("connect-confirm",() => session.Confirm());
             ButtonAction("connect-review",controller.ToggleOverview);
+            ButtonAction("route-edit",controller.BeginEditing);
             foreach (DistanceBand band in Enum.GetValues(typeof(DistanceBand)))
                 ButtonAction("band-"+band.ToString().ToLowerInvariant(),() => session.SetFilter(band));
         }
@@ -66,6 +67,8 @@ namespace CityFlow.Presentation.UI
             VisualElement hud = root.Q("validation-hud");
             hud.EnableInClassList("connection-active",session.IsActive);
             hud.EnableInClassList("node-360",controller.IsNode360);
+            hud.EnableInClassList("route-editing",controller.IsEditing);
+            root.Q<Button>("route-edit").SetEnabled(preview.Current != null);
             Button start = root.Q<Button>("connect-start"); start.SetEnabled(overview.Selected.NodeId != null);
             root.Q<Label>("connect-selection").text = session.IsActive ? $"FROM {session.SourceId} / SELECT A TARGET" :
                 overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Select a Node to start wiring";

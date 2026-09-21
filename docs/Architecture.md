@@ -193,3 +193,9 @@ UI ToolkitのPreviewパネルからNodeペアを選び、Generate route/Cancel�
 `NodeConnectionView` はUI Toolkitで画面外方向・遮蔽中のマーカー、距離フィルター、注目情報、接続操作を表示する。表示用遮蔽判定は視点からNodeへの線分と建物ボリュームの交差を使い、Ground経路の通行可否とは分離する。マーカー重複時は注目候補を優先し、隠れた候補もTabによる順送りで再表示できる。仕様§13の見つけやすさに関する補完案はこのステップで採用した。
 
 検証シーン `WiringLab` は都市形状・Node配置を維持し、初期Lineを0本にした `WiringStage` を使う。Source生成間隔は配線操作の確認用に暫定1 sとする。`Bootstrap` の固定5本ではS1のOUTが満杯で、同色直結優先・満杯時待機によりRelayへ迂回しないため、Sourceから新規接続してFLOWが出発する検証をこの別シーンで行う。ゲームルールや上限を緩める変更はしない。
+
+## Step 08：Ground制御点の手動編集
+
+`LinePreviewService` に制御点の挿入・移動・削除と自動再生成を追加。始終点は変更不可、入力座標のYは始点のGround高さに投影し、毎回同じ全区間検証へ渡す。無効な点もPreviewには残して理由を表示し、確定を禁止する。適用時も全区間・接続枠を再検証する。
+
+`NodeConnectionController` は接続セッションと開始前のOverviewを維持したまま真上の正射影へ切り替える。編集時はOverviewのNode選択・Orbitを止め、Pan/Zoomを維持。UI Toolkitの番号付き制御点をドラッグし、Shift+クリックで最寄り区間へ点を挿入、Deleteで選択点を削除する。入力座標はCameraのGround平面との交点へ変換する。適用・取消で元のカメラ内部状態と選択を復元する。

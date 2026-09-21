@@ -45,6 +45,24 @@ namespace CityFlow.Application.Routing
                 snapshot.Nodes.FirstOrDefault(n=>n.Definition.Id==sourceId),snapshot.Nodes.FirstOrDefault(n=>n.Definition.Id==destinationId),network.Settings);
             changed.OnNext(Current);
         }
+        public bool InsertPoint(int segment, Vector3 position)
+        {
+            if (Current == null || segment < 0 || segment >= Current.Points.Count-1) return false;
+            var points = Current.Points.ToList(); position.y = points[0].y;
+            points.Insert(segment+1,position); UpdatePoints(points); return true;
+        }
+        public bool MovePoint(int index, Vector3 position)
+        {
+            if (Current == null || index <= 0 || index >= Current.Points.Count-1) return false;
+            var points = Current.Points.ToArray(); position.y = points[0].y;
+            points[index] = position; UpdatePoints(points); return true;
+        }
+        public bool RemovePoint(int index)
+        {
+            if (Current == null || index <= 0 || index >= Current.Points.Count-1) return false;
+            var points = Current.Points.ToList(); points.RemoveAt(index); UpdatePoints(points); return true;
+        }
+        public void Regenerate() { if (Current != null) Generate(Current.SourceId,Current.DestinationId); }
         public void Cancel() { Current = null; changed.OnNext(null); }
         public ConnectionFailure TryConfirm(out int? lineId)
         {
