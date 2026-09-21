@@ -111,3 +111,13 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 仮想キーボード入力はEditorのGame Viewフォーカスに依存しない配送設定をテスト中だけ使い、finallyで元へ戻す。
 - Green: EditMode **62/62**、PlayMode **12/12**成功。ゲージの見た目調整後もHUD関連4/4成功。コンパイルError/Warning 0、実画面確認後Console Error 0。
 - uloop入力シミュレーションでもFによるフォーカスとHome復帰を確認。選択Lineの強調・詳細・Bufferゲージの画面: `docs/screenshots/issue-5-overview.png`。
+
+## Step 06 検証結果
+
+- 経路・PreviewのRed: 13件中11件失敗、2件成功。UI未構成のRed: PlayMode 2件失敗。
+- Green: EditMode **79/79**、PlayMode **14/14**成功。コンパイルError/Warning **0**。
+- 直線、左右迂回、再現性、クリアランスによる狭路可否、区間貫通、Ground高さ、領域外、不正制御点、未登録Node、I/O不足、重複接続を検証。
+- Previewの非破壊性、取消、探索失敗時の端点保持、編集APIの全区間検証・端点固定、生成経路を接続したときの距離・実移動との一致を確認。
+- PlayModeでUI Toolkitの生成/取消操作、破線描画、メトリクス、重複・衝突理由表示と既存HUD/Overviewを検証。
+- 最終スタイル調整後のUI関連PlayMode **6/6**成功。uloopのマウス入力でもGenerateを確認。R1→BLUEの迂回経路は76.48 m、移動時間3.82 s、推定2.62 FLOW/s。生成後も確定Lineは5本で接続枠を消費しない。
+- Game Viewで有効な半透明破線・矢印と、建物を横切る無効区間の赤表示・理由を確認。スクリーンショット: `docs/screenshots/issue-6-ground-preview.png`、`docs/screenshots/issue-6-invalid-route.png`。最終Consoleログ **0**。Unity Editorで検証し、Playerビルドは対象外。

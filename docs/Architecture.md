@@ -100,7 +100,7 @@ Port Unit、Width、方向反転はv0.2で仕様に沿って導入する。v0.1�
 ## 保留事項
 
 - Node追加方式とWave構成（手動設計／自動生成／組み合わせ）。
-- Ground経路探索アルゴリズム、ステージ規模、固定tick幅、性能目標。
+- ステージ規模、性能目標（経路探索方式はStep 06、固定tick幅はStep 03に採用内容を記録）。
 - UIの具体構成、入力バインド、描画の最適化方式。
 - セーブ／ロード、対象プラットフォーム、PLATEAUの対象都市とSDKバージョン。
 
@@ -168,3 +168,14 @@ UI移行で輸送ルール、tick順序、乱数、初期配線は変更しな�
 `OverviewReadout` はスナップショットからBuffer色別内訳、I/O、入力停止、生成間隔・猶予、経路長・時間・容量・停止数・Throughputを生成する。選択Nodeの入出力Lineを太く表示し、停止FLOWは色を維持した扁平形状にする。NodeのBufferは無彩色ゲージと警告枠で示し、目的色と区別する。距離・移動・選択判定は確定済みLineRouteを使う。
 
 入力の暫定割当: WASD/中ドラッグ=Pan、ホイール=Zoom、右ドラッグ=Orbit、左クリック=選択、F=フォーカス、Home=全景。配線コマンドはStep 07以降。
+
+
+## Step 06：自動Ground経路とPreview（実装済み）
+
+v0.1のLine Routingは **可視グラフ＋A\*** を採用。まず直線を検証し、迂回が必要ならクリアランス付き建物Footprintの角と両端点を頂点とする。全区間が有効な頂点間だけを接続し、実距離コスト・直線距離ヒューリスティックで1候補を探索する。同コストの候補は固定順で決め、不要な制御点を除去した後に全区間を再検証する。矩形境界を衝突に含めるため、探索頂点には暫定2 mmの数値的余裕を追加する。厳密な最短保証は求めない。現在の簡易都市向けの同期処理であり、大規模都市・3D用の探索方式は別途検証する。
+
+`IGroundRoutePlanner` をApplicationの境界とし、Infrastructureの `GroundRoutePlanner` が空間問い合わせと探索を実装する。判定はDomainの `StageDefinition.ValidatePoint/ValidateRoute` に集約し、既存の接続時検証と同じ地形・クリアランスを参照する。Ground高さ、領域外、障害物、不正制御点は別の失敗理由として返し、該当区間番号を保持する。
+
+`LinePreviewService` が確定Lineと独立したPreviewを保持する。生成・編集・取消はネットワークや接続枠を変更しない。自動探索失敗時も始終点を保持し、後続の手動編集へ渡せる。接続制約は `FlowNetwork.CheckConnection` と `TryConnect` で共通化する。成功経路・描画・実移動・距離は同じ折れ線を使う。
+
+UI ToolkitのPreviewパネルからNodeペアを選び、Generate route/Cancelを操作する。半透明の破線・方向矢印、長さ・時間・固定容量・Throughput・仮確定後I/O・失敗理由を表示する。R3通知の購読はViewの有効期間に限定する。パネルとドロップダウン上のクリックはワールド選択へ渡さない。Line確定とNode 360はStep 07、制御点の手動操作はStep 08。

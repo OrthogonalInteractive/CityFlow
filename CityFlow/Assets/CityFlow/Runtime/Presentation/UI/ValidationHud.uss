@@ -56,3 +56,24 @@ Label { margin: 0; padding: 0; }
 .node-fill { height: 100%; background-color: rgb(203, 215, 228); }
 .input-stopped { border-color: rgb(255, 197, 91); }
 .input-stopped .node-fill { background-color: rgb(255, 197, 91); }
+
+.preview-panel { position: absolute; right: 24px; bottom: 80px; width: 380px; }
+.preview-panel .unity-base-field { margin-bottom: 8px; }
+.preview-panel .unity-base-field__label { min-width: 48px; }
+.preview-actions { flex-direction: row; margin-top: 4px; margin-bottom: 14px; }
+.preview-actions Button { height: 30px; flex-grow: 1; margin-right: 8px; }
+.readouts .panel { padding: 14px; }
+.readouts .table-row { height: 26px; }
+.readouts .section-title { margin-bottom: 12px; }
+.preview-panel .unity-base-field { min-height: 28px; height: 28px; }
+.preview-panel .unity-base-field__input {
+    min-height: 28px; height: 28px;
+    padding: 2px 10px;
+    background-color: rgb(29, 44, 58);
+    border-width: 1px; border-color: rgb(76, 104, 120);
+}
+.preview-panel Button {
+    background-color: rgb(29, 64, 73); color: rgb(235, 249, 247);
+    border-width: 1px; border-color: rgb(76, 125, 128);
+}
+.preview-panel Button:hover { background-color: rgb(44, 90, 100); }

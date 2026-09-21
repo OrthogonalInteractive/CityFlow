@@ -95,7 +95,12 @@ namespace CityFlow.Presentation.UI
             }
             // This read-only HUD must not block future world selection or wiring gestures.
             root.pickingMode = PickingMode.Ignore;
-            root.Query().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            VisualElement previewPanel = root.Q("preview-panel");
+            root.Query().ForEach(element =>
+            {
+                if (previewPanel == null || (element != previewPanel && !previewPanel.Contains(element)))
+                    element.pickingMode = PickingMode.Ignore;
+            });
             Refresh(snapshot);
         }
         private void LateUpdate()

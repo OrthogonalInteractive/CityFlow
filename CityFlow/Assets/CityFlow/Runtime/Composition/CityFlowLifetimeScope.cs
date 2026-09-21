@@ -3,6 +3,8 @@
 using System;
 using CityFlow.Domain.Spatial;
 using CityFlow.Application.UseCases;
+using CityFlow.Application.Routing;
+using CityFlow.Infrastructure.Routing;
 using CityFlow.Infrastructure.Configuration;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -40,6 +42,8 @@ namespace CityFlow.Composition
             builder.RegisterInstance(stage);
             var network = stageConfiguration.LoadNetwork(stage, gameplaySettings.LoadNetworkSettings());
             builder.RegisterInstance(network);
+            builder.RegisterInstance<IGroundRoutePlanner>(new GroundRoutePlanner(stage, gameplaySettings.Clearance));
+            builder.Register<LinePreviewService>(Lifetime.Singleton);
             builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed)));
             builder.RegisterEntryPoint<CitySceneEntryPoint>();
         }

@@ -51,30 +51,44 @@ namespace CityFlow.Domain.Spatial
                 throw new ArgumentException("Sources require at least one existing Sink color.");
         }
 
-        public bool IsWalkable(Vector3 point, float clearance)
+        public bool IsWalkable(Vector3 point, float clearance) => ValidatePoint(point, clearance) == RouteFailure.None;
+
+        public RouteFailure ValidatePoint(Vector3 point, float clearance)
         {
-            if (!Finite(point) || Mathf.Abs(point.y - GroundHeight) > 0.0001f ||
-                point.x < WalkableArea.xMin + clearance || point.x > WalkableArea.xMax - clearance ||
+            if (!Finite(point)) return RouteFailure.InvalidPoints;
+            if (Mathf.Abs(point.y - GroundHeight) > 0.0001f) return RouteFailure.GroundHeight;
+            if (point.x < WalkableArea.xMin + clearance || point.x > WalkableArea.xMax - clearance ||
                 point.z < WalkableArea.yMin + clearance || point.z > WalkableArea.yMax - clearance)
-                return false;
-            return !Buildings.Any(b => point.x >= b.min.x - clearance && point.x <= b.max.x + clearance &&
-                point.z >= b.min.z - clearance && point.z <= b.max.z + clearance);
+                return RouteFailure.OutsideArea;
+            return Buildings.Any(b => point.x >= b.min.x-clearance && point.x <= b.max.x+clearance &&
+                point.z >= b.min.z-clearance && point.z <= b.max.z+clearance) ? RouteFailure.Obstacle : RouteFailure.None;
         }
 
-        public bool IsRouteWalkable(LineRoute route, float clearance)
+        public bool IsRouteWalkable(LineRoute route, float clearance) =>
+            ValidateRoute(route.Points, clearance, out _) == RouteFailure.None;
+
+        public RouteFailure ValidateRoute(IReadOnlyList<Vector3> points, float clearance, out int invalidSegment)
         {
-            if (route.Points.Any(point => !IsWalkable(point, clearance))) return false;
-            for (int i = 1; i < route.Points.Count; i++)
+            invalidSegment = -1;
+            if (points == null || points.Count < 2) return RouteFailure.InvalidPoints;
+            for (int i = 0; i < points.Count; i++)
+            {
+                RouteFailure failure = ValidatePoint(points[i], clearance);
+                if (failure != RouteFailure.None) { invalidSegment = Math.Max(0, i-1); return failure; }
+                if (i > 0 && (points[i]-points[i-1]).sqrMagnitude <= 0)
+                { invalidSegment = i-1; return RouteFailure.InvalidPoints; }
+            }
+            for (int i = 1; i < points.Count; i++)
                 foreach (Bounds building in Buildings)
                 {
-                    Vector3 start = route.Points[i - 1];
-                    Vector3 delta = route.Points[i] - start;
+                    Vector3 start = points[i-1];
+                    Vector3 delta = points[i]-start;
                     double enter = 0, exit = 1;
-                    if (ClipAxis(start.x, delta.x, building.min.x - clearance, building.max.x + clearance, ref enter, ref exit) &&
-                        ClipAxis(start.z, delta.z, building.min.z - clearance, building.max.z + clearance, ref enter, ref exit))
-                        return false;
+                    if (ClipAxis(start.x, delta.x, building.min.x-clearance, building.max.x+clearance, ref enter, ref exit) &&
+                        ClipAxis(start.z, delta.z, building.min.z-clearance, building.max.z+clearance, ref enter, ref exit))
+                    { invalidSegment = i-1; return RouteFailure.Obstacle; }
                 }
-            return true;
+            return RouteFailure.None;
         }
         private static bool ClipAxis(double start, double delta, double min, double max, ref double enter, ref double exit)
         {

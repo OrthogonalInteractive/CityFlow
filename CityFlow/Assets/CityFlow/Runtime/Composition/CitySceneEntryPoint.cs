@@ -3,6 +3,7 @@
 using System;
 using CityFlow.Domain.Spatial;
 using CityFlow.Application.UseCases;
+using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Rendering;
 using CityFlow.Presentation.UI;
@@ -15,6 +16,7 @@ namespace CityFlow.Composition
 {
     public sealed class CitySceneEntryPoint : IStartable, IDisposable
     {
+        private readonly LinePreviewService preview;
         private readonly StageDefinition stage;
         private GameObject? city;
         private readonly FlowNetwork network;
@@ -22,9 +24,9 @@ namespace CityFlow.Composition
         private readonly VisualTreeAsset hudLayout;
         private readonly PanelSettings panelSettings;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
-            VisualTreeAsset hudLayout, PanelSettings panelSettings)
+            VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview)
         {
-            this.stage = stage; this.network = network; this.simulation = simulation;
+            this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
             this.hudLayout = hudLayout; this.panelSettings = panelSettings;
         }
         public void Start()
@@ -45,6 +47,7 @@ namespace CityFlow.Composition
             overview.Initialize(stage, network, camera);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view);
             hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera);
+            hud.AddComponent<GroundPreviewView>().Initialize(preview, network, overview);
             hud.SetActive(true);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }

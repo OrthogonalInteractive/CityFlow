@@ -67,19 +67,26 @@ namespace CityFlow.Domain.FlowNetwork
             stage.Validate(settings.Clearance);
             nodes = stage.Nodes.ToDictionary(n => n.Id, n => new NodeState(n));
         }
-        public ConnectionResult TryConnect(string sourceId, string destinationId, IReadOnlyList<Vector3> points)
+        public ConnectionFailure CheckConnection(string sourceId, string destinationId)
         {
             if (string.IsNullOrEmpty(sourceId) || !nodes.TryGetValue(sourceId, out NodeState source))
-                return new ConnectionResult(ConnectionFailure.UnknownSource);
+                return ConnectionFailure.UnknownSource;
             if (string.IsNullOrEmpty(destinationId) || !nodes.TryGetValue(destinationId, out NodeState destination))
-                return new ConnectionResult(ConnectionFailure.UnknownDestination);
-            if (source == destination) return new ConnectionResult(ConnectionFailure.SelfConnection);
+                return ConnectionFailure.UnknownDestination;
+            if (source == destination) return ConnectionFailure.SelfConnection;
             if (source.Outgoing.Any(line => line.Destination == destination))
-                return new ConnectionResult(ConnectionFailure.DuplicateDirection);
+                return ConnectionFailure.DuplicateDirection;
             if (source.Outgoing.Count >= source.Definition.MaxOutgoing)
-                return new ConnectionResult(ConnectionFailure.OutgoingLimit);
+                return ConnectionFailure.OutgoingLimit;
             if (destination.Incoming.Count >= destination.Definition.MaxIncoming)
-                return new ConnectionResult(ConnectionFailure.IncomingLimit);
+                return ConnectionFailure.IncomingLimit;
+            return ConnectionFailure.None;
+        }
+        public ConnectionResult TryConnect(string sourceId, string destinationId, IReadOnlyList<Vector3> points)
+        {
+            ConnectionFailure failure = CheckConnection(sourceId, destinationId);
+            if (failure != ConnectionFailure.None) return new ConnectionResult(failure);
+            NodeState source = nodes[sourceId], destination = nodes[destinationId];
             LineRoute route;
             try { route = new LineRoute(points); }
             catch (ArgumentException) { return new ConnectionResult(ConnectionFailure.InvalidRoute); }
