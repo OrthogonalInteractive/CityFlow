@@ -209,3 +209,14 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 58 sのSource S1は43/50、生成43・残り7枠の予告警告。生成色のリングとBufferの43粒子を表示: `docs/screenshots/v01-source-buffer.png`。
 - 65 sのNode 360では50/50・Game Overまで残り4.5 s、S2準備15 sを上部に保持。GREENの注目だけで54.9 m / 6.86 sのPreviewを生成し、半透明建物・右側情報欄・Node本体から離れた注目ラベルを確認: `docs/screenshots/v01-node-360.png`。
 - 再開して69.45 sでSource S1の継続OverloadからGame Over（UIは69.5 s）。Wave 2・配送0・原因S1とRetryを確認。超過生成も55/50として保持: `docs/screenshots/v01-game-over.png`。
+
+## Relay限定Routing・Buffer基本設定の変更
+
+- 上記までの共通Buffer 50・Sink中継を、Source 10／Relay 5／SinkはBufferなしへ変更した。Routingは同色Sink直結を優先し、直結がない場合はRelay行きだけからランダムに選ぶ。同色Sinkが複数ある場合は空きLineを接続作成順で選び、直結がすべて満杯なら待つ。
+- Routingの仕様変更でEditMode 6件、種別別容量で2件、容量表示・SinkゲージでPlayMode 3件のRedを確認してから実装。Relay満杯の既存画面テストも、新容量5で受け取り待ちを作るよう更新した。
+- 最終EditMode **118/118**、PlayMode **34/34**成功。コンパイルError/Warning **0**、実画面確認後のConsole Error **0**。既存の削除予約・経路切替・Pause・FLOW総数保存も通過。
+- REDとRelay 2つが接続されていても、Blueのランダム候補はRelay 2つだけ。Relayなし／Relay行きLine満杯ではBlueがSourceに残る。Sinkでは同色FLOWを即時消化し、BufferとOutgoingを持たないことを検証。
+- 新規設定と調整アセットの双方で、Relayの6個目はLine上で保持、Sourceは9個で入力可能・10個で満杯を確認。Game Overは現行の「10個以上が連続5秒」を維持。即時敗北は未採用で、判断は [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) に記録する。
+- 0 Line開始からS1/S2/S3→RED・BLUE・R1、R1→GREEN・YELLOW・PURPLEへWaveごとに拡張し、**4 Wave・11 Node・5色・12 Lineで240 s生存**、100件超の配送を確認。SinkのBufferは常に空、Relayは5以下、生成数＝消化数＋待機数＋In-Flightを維持。
+- 制御した実画面ではR1にBlueを5個保持し、6個目のBlueをS1→R1のLine終端で停止、RedをS1→RED上で移動させた。S1 0/10、R1 5/5、SinkのBuffer欄「—」とゲージなしを確認。撮影時は自動tickを止め、撮影用の配線とFLOWを作成してPauseした。
+- 画面: `docs/screenshots/relay-only-routing-buffer-capacities.png`。Unity Editor内での検証で、Playerビルドは対象外。
