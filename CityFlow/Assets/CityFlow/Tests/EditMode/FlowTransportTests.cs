@@ -196,6 +196,51 @@ namespace CityFlow.Tests.EditMode
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2));
             Assert.That(Line(network, line).InFlight, Is.Empty); AssertConserved(network);
         }
+        [Test] public void FullRelayDrainsOldestBufferAfterMatchingSinkIsConnectedAndResumesInput()
+        {
+            var network = Network(capacity: 3, buffer: 5);
+            int incoming = Connect(network, "S", "R"), wrongSink = Connect(network, "R", "T");
+            for (int i = 0; i < 5; i++)
+            {
+                network.GenerateFlow("S", FlowColor.Blue);
+                network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
+            }
+            long[] oldest = Node(network, "R").Buffer.Select(f => f.Id).ToArray();
+            Assert.That(Node(network, "R").IsInputStopped, Is.True);
+            for (int i = 0; i < 2; i++) network.GenerateFlow("S", FlowColor.Blue);
+            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
+            Assert.That(Line(network, incoming).InFlight.All(f => f.IsStopped), Is.True);
+            Assert.That(Line(network, wrongSink).InFlight, Is.Empty);
+
+            var simulation = new FlowSimulation(network, new Choices());
+            simulation.SetPaused(true);
+            int blueSink = Connect(network, "R", "B");
+            simulation.Tick(1);
+            Assert.That(Node(network, "R").Buffer.Select(f => f.Id), Is.EqualTo(oldest));
+            simulation.SetPaused(false); simulation.Tick(FlowSimulation.StepSeconds);
+            Assert.That(Line(network, blueSink).InFlight.Select(f => f.Flow.Id), Is.EqualTo(oldest.Take(3)));
+            Assert.That(Node(network, "R").Buffer.Select(f => f.Id), Is.EqualTo(oldest.Skip(3)));
+            Assert.That(Node(network, "R").IsInputStopped, Is.False);
+            Assert.That(Line(network, incoming).InFlight.Count, Is.EqualTo(2), "Release input capacity only after transfer.");
+
+            simulation.Tick(10);
+            Assert.That(Node(network, "R").Buffer, Is.Empty);
+            Assert.That(network.Snapshot().Lines.All(l => l.InFlight.Count == 0), Is.True);
+            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(7));
+            AssertConserved(network);
+        }
+        [Test] public void SourceDispatchesOlderBufferBeforeFlowGeneratedInTheCurrentTick()
+        {
+            var network = Network(capacity: 1, buffer: 5, interval: 0.05);
+            Flow oldest = network.GenerateFlow("S", FlowColor.Blue);
+            Flow later = network.GenerateFlow("S", FlowColor.Blue);
+            int blueSink = Connect(network, "S", "B");
+            new FlowSimulation(network, new Choices()).Tick(FlowSimulation.StepSeconds);
+            Assert.That(Line(network, blueSink).InFlight.Single().Flow.Id, Is.EqualTo(oldest.Id));
+            Assert.That(Node(network, "S").Buffer.First().Id, Is.EqualTo(later.Id));
+            Assert.That(Node(network, "S").Buffer.Last().Color, Is.EqualTo(FlowColor.Red));
+            AssertConserved(network);
+        }
         [Test] public void SimultaneousIncomingLinesCannotOverfillReceiver()
         {
             var network = Network(buffer: 1, capacity: 1);

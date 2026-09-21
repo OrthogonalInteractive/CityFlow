@@ -268,3 +268,9 @@ Domainの待機間隔は`Route.Length / MaxInFlight`。停止を検出してか�
 `ValidationHud`はDELIVERED/TIME、簡易Nodeラベル、Line一覧を表示し、UIに対するワールド入力の遮断も所有する。常設NETWORK INSPECTOR・Source詳細・Node接続表・独立Previewパネルは廃止。`OverviewDetailsView`がホバー中のNode/Lineだけを選び、`OverviewReadout`の詳細を対象付近へ置き、カーソルを外すと消す。選択は詳細表示の保持条件にしない。Node 360の始点・候補コントロールも同じNode情報を公開する。
 
 `SourceStatusView`は生成リングと待機粒子だけを描画し、数値カードを生成しない。`GroundPreviewView`は実経路の破線描画と配線・手動編集欄のメトリクス／無効理由を担当する。Node 360の上部Source専用領域を廃止し、都市のカメラ領域を縦に拡大した。接続確定・取消・手動編集・削除予約は既存Applicationユースケースを継続利用する。
+
+## Buffer満杯後の排出と待機順の確認
+
+Source／Relayの出力元は常に `NodeState.Buffer`。生成・到着FLOWは末尾へ追加し、`RouteWaitingFlows` が古い順に出発可否を再評価する。満杯判定は受け取りだけを止め、出力は止めない。出発できない色を残して後続の別色も評価するため、先頭の色の出口不足だけで全出力を止めない。
+
+対応Sinkを後から接続すると、Pause解除後の次tickで既存BufferからLine容量分だけ出発し、空きができたNodeは以降の受け取りを再開する。新規生成・到着分が、既に待っている同色FLOWを追い越して出発することはない。これらは既存実装で成立しており、今回の確認では輸送ロジックの変更を要しなかった。

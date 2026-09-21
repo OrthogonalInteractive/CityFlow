@@ -175,6 +175,8 @@ FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。
 
 同色Sinkへの直結を優先し、そのLineが満杯なら待機する。直結がなければ空いているRelay行きLineだけから選ぶ。例としてS1の接続がREDとR1なら、RedはREDへ、BlueはR1へ送る。Relay行きも満杯ならS1で待つ。異色Sinkへは流さない。
 
+Source／RelayはBufferに入っているFLOWを古い順に出力する。出られない色は残して、出られる後続FLOWも評価する。満杯でも出力は継続し、対応色Sinkを後からつなげば次のtickから排出・受け取り再開できる（Pause中は再開後）。
+
 BufferはSource（S1/S2/S3）**10**、Relay **5**。SinkにはBuffer・中継・Outgoing Lineがなく、同色FLOWを到着時に消化する。Relay満杯の6個目はLine上で待ち、Relayの混雑だけでは敗北しない。Sourceは現在、**10個以上が5秒続くとGame Over**。上限到達と同時の敗北ではなく、10未満へ回復すると猶予がリセットされる。
 
 

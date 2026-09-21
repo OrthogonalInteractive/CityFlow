@@ -232,3 +232,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 新しい生成間隔・容量3でも、0 LineからRelay経由の12 Lineへ拡張して4 Wave・11 Node・5色で240秒生存、100件超の配送とFLOW総数保存を確認。難度の比較・最終採用値は引き続き #12／#13。
 - 撮影用にR1へBlue 5個、S1→R1へBlue 3個、S1→REDへRed 1個、S1にBlue 4個を作り、自動tickを止めてPause。26 mのLine上でBlueが8.67／17.33／26 mに並び、Lineがオレンジになることを確認した。
 - Sourceのホバー時は生成3.00秒・Buffer 4/10・接続数・送り先を表示: `docs/screenshots/v01-hover-source.png`。ホバーを外すと詳細が消える: `docs/screenshots/v01-minimal-hud-queue.png`。360では独立Previewパネルをなくし、配線欄に実経路の情報を集約: `docs/screenshots/v01-minimal-node360.png`。
+
+## Buffer満杯後の排出確認
+
+- uloopの実データ読み取りでは、R2にBlue 5個、出口はGREEN／YELLOW。前回残っていたYellowは出力済みで、空いた枠へBlueが到着していた。異色Sinkへ送れないBlueだけが残り、単色ゲージでは入れ替わりを把握できなかった。
+- EditModeの追加2件は、実装変更前から **2/2成功**。Buffer出力が欠けているという不具合は再現しなかったため、輸送ロジックは変更していない。
+- Blue 5個で満杯のRelayへ対応Sinkを後から追加し、Pause中は保持、再開後は古い3個から出発、入力再開、全7個の配送までを固定tickで確認。FLOW ID・総数・容量も検証。
+- Sourceでも、同じtickに新規生成したFLOWより古いBuffer内FLOWが先に出発することを確認。既存の「出られない色は残して後続の別色を出力する」テストと併せて待機順を固定した。
