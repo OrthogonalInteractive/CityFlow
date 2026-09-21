@@ -140,6 +140,7 @@ namespace CityFlow.Presentation.Connections
         {
             if (sceneCamera == null || stage == null || session?.SourceId == null) return;
             Vector3 position = session.Nodes.Single(n => n.Id == session.SourceId).Position + Vector3.up * 3.2f;
+            sceneCamera.rect=new Rect(0,0.06f,0.72f,0.94f);
             sceneCamera.orthographic = false; sceneCamera.fieldOfView = 70; sceneCamera.nearClipPlane = 0.1f;
             sceneCamera.transform.SetPositionAndRotation(position,Quaternion.Euler(pitch,yaw,0));
             if (cityView != null) cityView.SetHiddenNode(session.SourceId);

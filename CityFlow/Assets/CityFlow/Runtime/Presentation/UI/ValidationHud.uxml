@@ -1,6 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ValidationHud.uss" />
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
+        <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
             <ui:Button name="pause-toggle" text="Pause [Esc]" />
@@ -53,18 +55,7 @@
                 <ui:VisualElement name="line-rows" />
             </ui:VisualElement>
         </ui:ScrollView>
-        <ui:VisualElement name="preview-panel" class="panel preview-panel interactive">
-            <ui:Label text="GROUND ROUTE PREVIEW" class="section-title" />
-            <ui:DropdownField name="preview-source" label="FROM" class="preview-endpoints" />
-            <ui:DropdownField name="preview-target" label="TO" class="preview-endpoints" />
-            <ui:VisualElement class="preview-actions">
-                <ui:Button name="preview-generate" text="Generate route" class="preview-lab" />
-                <ui:Button name="preview-cancel" text="Cancel" class="preview-lab" />
-                <ui:Button name="connect-confirm" text="Confirm Line [Enter]" class="connection-only" />
-            </ui:VisualElement>
-            <ui:Button name="route-edit" text="Edit Ground route [E]" class="connection-only" />
-            <ui:Label name="preview-detail" class="detail-text" />
-        </ui:VisualElement>
+
         <ui:VisualElement class="panel detail-panel">
             <ui:Label text="NETWORK INSPECTOR" class="section-title" />
             <ui:Label name="overview-detail" class="detail-text" />
@@ -80,34 +71,50 @@
             <ui:Button name="route-cancel" text="Cancel [Backspace]" />
         </ui:VisualElement>
         <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
-        <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
-            <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
-            <ui:Label name="connect-selection" class="detail-text" />
-            <ui:VisualElement name="line-actions">
-                <ui:Label name="line-action-detail" class="detail-text" />
-                <ui:Button name="line-edit" text="Edit selected Line" />
-                <ui:Button name="line-delete" text="Reserve deletion" />
-                <ui:Button name="line-cancel" text="Cancel pending change" />
-            </ui:VisualElement>
-            <ui:VisualElement class="connection-only">
-                <ui:Label name="connection-bands" class="band-hint" />
-                <ui:VisualElement class="band-buttons">
-                    <ui:Button name="band-all" text="All" />
-                    <ui:Button name="band-near" text="Near" />
-                    <ui:Button name="band-mid" text="Mid" />
-                    <ui:Button name="band-far" text="Far" />
+
+
+        <ui:VisualElement name="connection-workspace" class="connection-workspace" picking-mode="Ignore">
+            <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
+                <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
+                <ui:Label name="connect-selection" class="detail-text" />
+                <ui:VisualElement name="line-actions">
+                    <ui:Label name="line-action-detail" class="detail-text" />
+                    <ui:Button name="line-edit" text="Edit selected Line" />
+                    <ui:Button name="line-delete" text="Reserve deletion" />
+                    <ui:Button name="line-cancel" text="Cancel pending change" />
                 </ui:VisualElement>
-                <ui:Label name="connection-count" class="band-hint" />
-                <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
-                <ui:Label text="Hover / Tab: preview a route.&#10;Click a Node or candidate: connect.&#10;E: edit route before connecting." class="band-hint" />
-                <ui:Button name="connect-review" text="Review in Overview [V]" />
-                <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
+                <ui:VisualElement class="connection-only">
+                    <ui:Label name="connection-bands" class="band-hint" />
+                    <ui:VisualElement class="band-buttons">
+                        <ui:Button name="band-all" text="All" />
+                        <ui:Button name="band-near" text="Near" />
+                        <ui:Button name="band-mid" text="Mid" />
+                        <ui:Button name="band-far" text="Far" />
+                    </ui:VisualElement>
+                    <ui:Label name="connection-count" class="band-hint" />
+                    <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
+                    <ui:Label name="connection-help" text="Hover / Tab: preview a route.&#10;Click a Node or candidate: connect.&#10;E: edit route before connecting." class="band-hint" />
+                    <ui:Button name="connect-review" text="Review in Overview [V]" />
+                    <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
+                </ui:VisualElement>
             </ui:VisualElement>
-        </ui:VisualElement>
-        <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive">
-            <ui:Label text="CONNECTION TARGETS" class="section-title" />
-            <ui:Label name="candidate-list-count" class="band-hint" />
-            <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+            <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive">
+                <ui:Label text="CONNECTION TARGETS" class="section-title" />
+                <ui:Label name="candidate-list-count" class="band-hint" />
+                <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+            </ui:VisualElement>
+            <ui:VisualElement name="preview-panel" class="panel preview-panel interactive">
+                <ui:Label text="GROUND ROUTE PREVIEW" class="section-title" />
+                <ui:DropdownField name="preview-source" label="FROM" class="preview-endpoints" />
+                <ui:DropdownField name="preview-target" label="TO" class="preview-endpoints" />
+                <ui:VisualElement class="preview-actions">
+                    <ui:Button name="preview-generate" text="Generate route" class="preview-lab" />
+                    <ui:Button name="preview-cancel" text="Cancel" class="preview-lab" />
+                    <ui:Button name="connect-confirm" text="Confirm Line [Enter]" class="connection-only" />
+                </ui:VisualElement>
+                <ui:Button name="route-edit" text="Edit Ground route [E]" class="connection-only" />
+                <ui:Label name="preview-detail" class="detail-text" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK NODE · CONNECT    SHIFT + LINE · EDIT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
         <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    CLICK · CONNECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />

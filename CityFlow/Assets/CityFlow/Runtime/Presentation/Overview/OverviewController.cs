@@ -162,6 +162,7 @@ namespace CityFlow.Presentation.Overview
             if (sceneCamera == null) return;
             pivot = state.Pivot; yaw = state.Yaw; pitch = state.Pitch;
             sceneCamera.transform.SetPositionAndRotation(state.Position,state.Rotation);
+            sceneCamera.rect=state.Viewport;
             sceneCamera.orthographic = state.Orthographic; sceneCamera.orthographicSize = state.Size;
             sceneCamera.fieldOfView = state.FieldOfView; sceneCamera.nearClipPlane = state.NearClip;
             Hovered = default;

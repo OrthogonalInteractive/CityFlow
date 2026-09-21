@@ -10,11 +10,12 @@ namespace CityFlow.Presentation.Overview
         public readonly Quaternion Rotation;
         public readonly float Yaw, Pitch, Size, FieldOfView, NearClip;
         public readonly bool Orthographic;
+        public readonly Rect Viewport;
         public OverviewViewState(Vector3 pivot, float yaw, float pitch, Camera camera)
         {
             Pivot = pivot; Yaw = yaw; Pitch = pitch; Position = camera.transform.position; Rotation = camera.transform.rotation;
             Size = camera.orthographicSize; FieldOfView = camera.fieldOfView; NearClip = camera.nearClipPlane;
-            Orthographic = camera.orthographic;
+            Orthographic = camera.orthographic; Viewport=camera.rect;
         }
     }
 }

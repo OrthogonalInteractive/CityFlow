@@ -91,8 +91,9 @@ namespace CityFlow.Presentation.UI
             RenderCandidateList(candidates,state);
             float width = root.layout.width, height = root.layout.height;
             if (width <= 0 || height <= 0) return;
-            // Keep markers clear of the control panels; attention wins when labels overlap.
-            var safe = new Rect(Mathf.Min(500,width*0.34f),110,Mathf.Max(160,width-980),Mathf.Max(100,height-460));
+            Rect cameraRect=sceneCamera.rect;
+            var viewport=new Rect(cameraRect.x*width,(1-cameraRect.yMax)*height,cameraRect.width*width,cameraRect.height*height);
+            var safe=new Rect(viewport.x+104,viewport.y+40,Mathf.Max(1,viewport.width-208),Mathf.Max(1,viewport.height-80));
             var occupied = new List<Rect>();
             foreach (var candidate in candidates.OrderBy(c => c.Node.Definition.Id == controller.AttentionId ? 0 :
                          c.Node.Definition.Id == state?.DestinationId ? 1 : 2).ThenBy(c => c.Distance))
@@ -106,9 +107,9 @@ namespace CityFlow.Presentation.UI
                     root.Q("connection-markers").Add(marker); markers.Add(id,marker);
                 }
                 Vector3 projected = sceneCamera.WorldToViewportPoint(candidate.Node.Definition.Position + Vector3.up*1.4f);
-                Vector2 point = new Vector2(projected.x*width,(1-projected.y)*height);
-                bool outside = projected.z <= 0 || !safe.Contains(point);
-                Vector2 direction = point - new Vector2(width/2,height/2);
+                Vector2 point = new Vector2(viewport.x+projected.x*viewport.width,viewport.y+(1-projected.y)*viewport.height);
+                bool outside = projected.z <= 0 || projected.x < 0 || projected.x > 1 || projected.y < 0 || projected.y > 1;
+                Vector2 direction = point - viewport.center;
                 if (projected.z <= 0) direction = -direction;
                 if (direction.sqrMagnitude < 0.001f) direction = Vector2.right;
                 if (outside)
@@ -116,6 +117,13 @@ namespace CityFlow.Presentation.UI
                     float scale = Mathf.Min(safe.width*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.x)),
                         safe.height*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.y)));
                     point = safe.center + direction*scale;
+                }
+                else
+                {
+                    // Leave the actual Node visible below (or above) its label.
+                    point.y += point.y-60>=safe.yMin ? -60 : 60;
+                    point.x=Mathf.Clamp(point.x,safe.xMin,safe.xMax);
+                    point.y=Mathf.Clamp(point.y,safe.yMin,safe.yMax);
                 }
                 string arrow = Mathf.Abs(direction.x) > Mathf.Abs(direction.y) ? direction.x > 0 ? ">" : "<" : direction.y > 0 ? "v" : "^";
                 bool occluded = controller.IsOccluded(id);

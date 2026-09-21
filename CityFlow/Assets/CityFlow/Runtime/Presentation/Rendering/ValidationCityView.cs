@@ -14,6 +14,10 @@ namespace CityFlow.Presentation.Rendering
     {
         private readonly List<Material> materials = new List<Material>();
         private StageDefinition? stage;
+        private readonly List<Renderer> buildings = new();
+        private readonly Dictionary<Renderer,Material> opaqueBuildings = new();
+        private readonly Dictionary<Material,Material> transparentMaterials = new();
+        private bool transparentBuildings;
         private Camera? sceneCamera;
         private FlowNetwork? network;
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
@@ -52,9 +56,10 @@ namespace CityFlow.Presentation.Rendering
                 Cube("10 m grid", new Vector3(area.center.x, definition.GroundHeight + 0.01f, z), new Vector3(area.width, 0.02f, 0.06f), grid);
             foreach (Bounds b in definition.Buildings)
             {
-                Cube("Building", b.center, b.size, building);
-                Cube("Roof", new Vector3(b.center.x, b.max.y + 0.08f, b.center.z), new Vector3(b.size.x + 0.15f, 0.16f, b.size.z + 0.15f), roof);
+                buildings.Add(Cube("Building", b.center, b.size, building).GetComponent<Renderer>());
+                buildings.Add(Cube("Roof", new Vector3(b.center.x, b.max.y + 0.08f, b.center.z), new Vector3(b.size.x + 0.15f, 0.16f, b.size.z + 0.15f), roof).GetComponent<Renderer>());
             }
+            foreach(Renderer renderer in buildings) opaqueBuildings.Add(renderer,renderer.sharedMaterial);
             CreateLines(flowNetwork.Snapshot());
             CreateNodes();
         }
@@ -180,6 +185,27 @@ namespace CityFlow.Presentation.Rendering
         }
         public void SetHiddenNode(string? id)
         {
+            bool transparent=id!=null;
+            if (transparent != transparentBuildings)
+            {
+                transparentBuildings=transparent;
+                foreach(Renderer renderer in buildings)
+                {
+                    Material original=opaqueBuildings[renderer];
+                    if(transparent && !transparentMaterials.ContainsKey(original))
+                    {
+                        var material=new Material(original);
+                        Color color=original.GetColor("_BaseColor"); color.a=0.18f;
+                        material.SetColor("_BaseColor",color); material.SetFloat("_Surface",1); material.SetFloat("_ZWrite",0);
+                        material.SetFloat("_SrcBlend",(float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        material.SetFloat("_DstBlend",(float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); material.SetOverrideTag("RenderType","Transparent");
+                        material.renderQueue=3000; materials.Add(material); transparentMaterials.Add(original,material);
+                    }
+                    renderer.sharedMaterial=transparent ? transparentMaterials[original] : original;
+                    renderer.shadowCastingMode=transparent ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
+                }
+            }
             foreach (var node in nodeViews)
                 foreach (GameObject view in node.Value)
                     if (view != null) view.SetActive(node.Key != id);

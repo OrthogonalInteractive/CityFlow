@@ -35,6 +35,32 @@ namespace CityFlow.Tests.PlayMode
         }
         private static void Submit(Button button)
         { button.Focus(); using var ev=NavigationSubmitEvent.GetPooled(); button.SendEvent(ev); }
+        [UnityTest] public IEnumerator Node360SeparatesPanelsFromCityAndRestoresOpaqueBuildings()
+        {
+            var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();
+            var camera=Camera.main; var viewport=camera.rect;
+            var buildings=Object.FindObjectsByType<MeshRenderer>()
+                .Where(r=>r.name=="Building" || r.name=="Roof").ToArray();
+            var original=buildings.Select(r=>r.sharedMaterial.GetColor("_BaseColor")).ToArray();
+            overview.Select(OverviewTarget.Node("R1")); c.BeginSelected(); c.FocusTarget("BLUE"); yield return null; yield return null;
+            Assert.That(buildings.All(r=>r.sharedMaterial.GetColor("_BaseColor").a<0.5f),Is.True,"Walls and roofs must reveal the city behind them.");
+            Assert.That(buildings.All(r=>r.sharedMaterial.GetFloat("_ZWrite")==0),Is.True);
+            var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            Rect view=new Rect(camera.rect.x*root.layout.width,(1-camera.rect.yMax)*root.layout.height,
+                camera.rect.width*root.layout.width,camera.rect.height*root.layout.height);
+            foreach(string name in new[]{"connection-panel","candidate-list-panel","preview-panel"})
+                Assert.That(root.Q(name).worldBound.Overlaps(view),Is.False,name+" must not hide Nodes in the camera viewport.");
+            var blue=Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<ConnectionSession>().Nodes.Single(n=>n.Id=="BLUE");
+            Vector3 projected=camera.WorldToViewportPoint(blue.Position+Vector3.up*1.4f);
+            Vector2 point=new Vector2(view.x+projected.x*view.width,view.y+(1-projected.y)*view.height);
+            Assert.That(root.Q("candidate-BLUE").worldBound.Contains(point),Is.False,"A focused label must not cover the Node itself.");
+            c.ToggleOverview(); yield return null;
+            Assert.That(camera.rect,Is.EqualTo(viewport));
+            Assert.That(buildings.Select(r=>r.sharedMaterial.GetColor("_BaseColor")),Is.EqualTo(original));
+            c.ToggleOverview(); c.enabled=false; yield return null;
+            Assert.That(camera.rect,Is.EqualTo(viewport));
+            Assert.That(buildings.Select(r=>r.sharedMaterial.GetColor("_BaseColor")),Is.EqualTo(original));
+        }
         [UnityTest] public IEnumerator MouseOpensNodeAndShiftClickOpensLineWithoutAddingPoint()
         {
             var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();

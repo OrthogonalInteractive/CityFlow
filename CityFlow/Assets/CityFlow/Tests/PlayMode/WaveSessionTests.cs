@@ -46,6 +46,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
             Assert.That(green.enabledInHierarchy,Is.True);
             Assert.That(green.text,Does.Contain("GREEN").And.Contain("55 m"));
+            list.ScrollTo(green); yield return null; yield return null;
             Assert.That(list.contentViewport.worldBound.Contains(green.worldBound.center),Is.True);
             var hit=root.panel.Pick(green.worldBound.center);
             Assert.That(hit==green || green.Contains(hit),Is.True,"GREEN must be clickable without a hidden-marker keyboard workaround.");

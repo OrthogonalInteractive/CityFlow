@@ -160,3 +160,22 @@ Label { margin: 0; padding: 0; }
 .readouts .unity-scroller__low-button, .readouts .unity-scroller__high-button { display: none; }
 .readouts .unity-base-slider__tracker { background-color: rgb(22,35,46); }
 .readouts .unity-base-slider__dragger { background-color: rgb(78,115,131); border-radius: 4px; }
+
+.connection-workspace { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.node-360 .connection-workspace { left: 72%; top: 92px; padding: 12px; background-color: rgb(5,9,15); }
+.node-360 .connection-workspace .panel { position: relative; left: auto; right: auto; top: auto; bottom: auto;
+    translate: 0 0; width: 100%; padding: 10px; margin-bottom: 8px; flex-shrink: 0; }
+.node-360 .connection-workspace .section-title { font-size: 14px; margin-bottom: 6px; }
+.node-360 #connection-bands, .node-360 #connection-count, .node-360 #connection-help { display: none; }
+.node-360 .candidate-detail { min-height: 86px; margin-top: 8px; font-size: 12px; }
+.node-360 .connection-workspace .candidate-list-panel { flex-grow: 1; flex-shrink: 1; min-height: 100px; max-height: none; }
+.node-360 .candidate-list-panel Button.candidate-option { height: 44px; min-height: 44px; }
+.node-360 .preview-actions { display: none; }
+.node-360 .preview-panel .detail-text { font-size: 12px; }
+.node-360 .session-controls { left: 72%; right: 0; top: 0; width: auto; translate: 0 0; }
+.node-360 .wave-notice, .node-360 #arrival-markers { display: none; }
+.node-360 .footer { font-size: 11px; bottom: 12px; }
+
+.node-360-bottom-backdrop, .node-360-right-backdrop { display: none; position: absolute; background-color: rgb(5,9,15); }
+.node-360 .node-360-bottom-backdrop { display: flex; left: 0; width: 72%; bottom: 0; height: 6%; }
+.node-360 .node-360-right-backdrop { display: flex; left: 72%; right: 0; top: 0; bottom: 0; }
