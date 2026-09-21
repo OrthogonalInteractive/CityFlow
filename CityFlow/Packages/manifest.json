@@ -36,6 +36,16 @@
     "com.unity.test-framework": "1.6.0",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualeffectgraph": "17.4.0",
+    "io.github.hatayama.uloopmcp": "3.6.3",
     "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.19.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "io.github.hatayama.uloopmcp"
+      ]
+    }
+  ]
 }

@@ -16,6 +16,10 @@
 /CityFlow/Assets/Packages/
 /CityFlow/Assets/Packages.meta
 
+# Unity CLI Loop generated cache and outputs
+/CityFlow/.uloop/tools.json
+/CityFlow/.uloop/outputs/
+
 # IDE and local tools
 /.vs/
 /.idea/
