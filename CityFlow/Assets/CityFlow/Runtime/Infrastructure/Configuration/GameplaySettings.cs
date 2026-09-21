@@ -10,6 +10,8 @@ namespace CityFlow.Infrastructure.Configuration
     {
         [Tooltip("Provisional common buffer threshold [FLOW].")]
         public int MaxBuffer = 50;
+        [Tooltip("Repeatable random seed for the validation scene.")]
+        public int RandomSeed = 1337;
         [Tooltip("Provisional common capacity per line [FLOW].")]
         public int MaxInFlight = 10;
         [Tooltip("Provisional movement speed [m/s].")]

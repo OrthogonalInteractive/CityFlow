@@ -2,6 +2,7 @@
 
 using System;
 using CityFlow.Domain.Spatial;
+using CityFlow.Application.UseCases;
 using CityFlow.Infrastructure.Configuration;
 using UnityEngine;
 using VContainer;
@@ -26,7 +27,9 @@ namespace CityFlow.Composition
             gameplaySettings.Validate();
             StageDefinition stage = stageConfiguration.Load(gameplaySettings.Clearance);
             builder.RegisterInstance(stage);
-            builder.RegisterInstance(stageConfiguration.LoadNetwork(stage, gameplaySettings.LoadNetworkSettings()));
+            var network = stageConfiguration.LoadNetwork(stage, gameplaySettings.LoadNetworkSettings());
+            builder.RegisterInstance(network);
+            builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed)));
             builder.RegisterEntryPoint<CitySceneEntryPoint>();
         }
     }

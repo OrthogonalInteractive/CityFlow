@@ -28,7 +28,7 @@ DomainはUnityEngine参照を許可したままEditModeでテストする。独�
 
 ## 最初の実装順とテスト候補
 
-下表は未実装のテスト計画であり、現在の成功済みテスト一覧ではない。
+下表はMVP全体のテスト計画。実装・実行済みの範囲と結果は末尾のStep別記録を参照。
 
 | 順序 | 仕様 | 主に確認する振る舞い |
 | --- | --- | --- |
@@ -48,8 +48,8 @@ Source自身の超過生成、異色Buffer満杯のSinkへの同色到着、同�
 - `Tests/PlayMode`：シーン起動、DIの寿命、PlayerLoop、Input SystemとPresentationの連携。
 - 見た目・操作感：EditorでOverview / Node 360 / 停止中の編集・ホバーを確認。自動テストの成功で描画品質を保証したことにしない。
 
-現段階の基盤テストはURP割当、起動シーン登録、Input System設定、起動時のVContainer構築、UniTask / R3のPlayerLoop連携と購読破棄を確認する。
-ゲームルールは未実装のため、次の作業から上記の順で失敗するテストを追加する。
+基盤テストはURP割当、起動シーン登録、Input System設定、起動時のVContainer構築、UniTask / R3のPlayerLoop連携と購読破棄を確認する。
+設定・接続・基本輸送のテストはStep 01〜03で追加済み。未実装の削除・切替・進行・入力等は、引き続き失敗するテストから追加する。
 
 ## 完了時の報告
 
@@ -71,3 +71,16 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 両端枠の同時確保、自己接続・重複・OUT/IN不足、逆方向、全区間障害物判定、読み取り専用スナップショット、FLOW IDとBuffer所属を検証。
 - PlayModeで5本の固定配線、IN/OUT合計、生成されない初期状態を確認。
 - EditorのGame Viewスクリーンショット: `docs/screenshots/issue-2-network.png`。
+
+
+## Step 03 検証結果
+
+- Routing・輸送のRed: 21件中20件失敗、1件成功。無処理の生成・移動・出発を検出。
+- 混雑がない同時出発への不要な減速を追加テストで再現（1件失敗）し、停止列の間隔を混雑時だけ適用して修正。
+- 最終Green: EditMode **52/52**、PlayMode **4/4**成功。コンパイルError/Warning **0**、Console Error **0**。
+- 直結優先、複数同色直結、満杯直結待機、後続別色、空きLine間の乱数分岐、異色Sink中継、同色即時消化、固定容量、長距離の容量回復遅延を検証。
+- 受け取り完了までのLine所属、FIFO、満杯異色Bufferでの同色受け取り、複数Incomingの容量競合、FLOW保存と一意性を検証。
+- 0.05 s固定tickの生成→移動・受け渡し→出発を検証。30/60/144 fpsへ10秒を分割した場合と一括入力で、生成数・成功数・所属ID・移動距離が一致。
+- PlayModeでは明示的tickによる生成・移動・消化、表示粒子の位置と消滅、設定アセット不変性を検証。元のEditor高速Play設定（Domain/Scene Reload無効）へ戻した後にも再起動を確認。
+- スクリーンショット `docs/screenshots/issue-3-transport.png` はseed=1337、20秒時点で表示を固定して撮影。生成80、消化50、待機15、In-Flight15。長距離青Lineは10/10、短距離赤Lineは5/10。
+- 対象はUnity Editor内。Playerビルドは今回の検証対象外。

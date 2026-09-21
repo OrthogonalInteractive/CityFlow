@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: ValidationGameplay
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.GameplaySettings
   MaxBuffer: 50
+  RandomSeed: 1337
   MaxInFlight: 10
   FlowSpeed: 20
   OverloadGrace: 5

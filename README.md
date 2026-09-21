@@ -32,7 +32,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市とSource・Relay・赤／青Sinkを表示する。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
+5. `uloop --project-path CityFlow control-play-mode --action Play` で起動する。固定の簡易都市・5 Node・5 Lineを読み込み、Sourceから赤／青FLOWが生成・移動し、同色Sinkで消化される。HUDでBuffer・In-Flight・成功数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` の2アセットで調整する。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -66,7 +66,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-空のモジュールは配置先だけを用意している。必要な振る舞いをTDDで追加し、基底クラスや仮のゲームルールを先に作らない。
+現在はIssue #1〜#3の検証都市、FlowNetwork集約、基本輸送まで実装。Unity EditorのBootstrapシーンで確認できる。配線操作、Overload敗北、Waveは後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
