@@ -165,7 +165,7 @@ UI移行で輸送ルール、tick順序、乱数、初期配線は変更しな�
 
 `OverviewController` がInput SystemのAction Mapを所有し、Pan/Zoom/Orbit、画面投影によるNode/Line選択、フォーカス、全景復帰を担当する。カメラはシミュレーション時間と独立して動く。選択通知はR3の読み取り専用Observableとして公開し、`OverviewDetailsView` が有効中だけ購読する。破棄時はAction MapとSubjectを終了・破棄する。
 
-`OverviewReadout` はスナップショットからBuffer色別内訳、I/O、入力停止、生成間隔・猶予、経路長・時間・容量・停止数・Throughputを生成する。選択Nodeの入出力Lineを太く表示し、停止FLOWは色を維持した扁平形状にする。NodeのBufferは無彩色ゲージと警告枠で示し、目的色と区別する。距離・移動・選択判定は確定済みLineRouteを使う。
+`OverviewReadout` はスナップショットからBuffer色別内訳、I/O、入力停止、生成間隔・猶予、経路長・時間・容量・停止数・Throughputを生成する。選択Nodeの入出力Lineを太く表示し、停止FLOWは色を維持した扁平形状にする。NodeのBufferは当初の無彩色ゲージから、末尾「Bufferゲージの色別表示」に記載した色付き枠へ変更した。距離・移動・選択判定は確定済みLineRouteを使う。
 
 入力の暫定割当: WASD/中ドラッグ=Pan、ホイール=Zoom、右ドラッグ=Orbit、左クリック=選択、F=フォーカス、Home=全景。配線コマンドはStep 07以降。
 
@@ -274,3 +274,9 @@ Domainの待機間隔は`Route.Length / MaxInFlight`。停止を検出してか�
 Source／Relayの出力元は常に `NodeState.Buffer`。生成・到着FLOWは末尾へ追加し、`RouteWaitingFlows` が古い順に出発可否を再評価する。満杯判定は受け取りだけを止め、出力は止めない。出発できない色を残して後続の別色も評価するため、先頭の色の出口不足だけで全出力を止めない。
 
 対応Sinkを後から接続すると、Pause解除後の次tickで既存BufferからLine容量分だけ出発し、空きができたNodeは以降の受け取りを再開する。新規生成・到着分が、既に待っている同色FLOWを追い越して出発することはない。これらは既存実装で成立しており、今回の確認では輸送ロジックの変更を要しなかった。
+
+## Bufferゲージの色別表示
+
+`ValidationHud` が `NodeSnapshot.Buffer` を待機順に読み、UI Toolkitの等幅枠へFLOW色を反映する。Sourceは通常10枠、Relayは5枠で、空き枠も残して容量と比較できる。ラベルは実数／容量を併記し、満杯警告は外枠だけに適用する。色は描画側の既存FLOWパレットと共有し、別のBuffer状態は持たない。
+
+Source容量超過時は枠数を実数まで増やして全色を表示する。子要素を再利用し、出発や受け取り後の次描画で色・個数・空き枠を更新する。ゲージも各枠も入力透過とし、Pause中・UIDocument再生成後・Wave追加Nodeにも同じ表示を適用する。Sinkにはゲージを生成しない。

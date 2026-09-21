@@ -239,3 +239,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - EditModeの追加2件は、実装変更前から **2/2成功**。Buffer出力が欠けているという不具合は再現しなかったため、輸送ロジックは変更していない。
 - Blue 5個で満杯のRelayへ対応Sinkを後から追加し、Pause中は保持、再開後は古い3個から出発、入力再開、全7個の配送までを固定tickで確認。FLOW ID・総数・容量も検証。
 - Sourceでも、同じtickに新規生成したFLOWより古いBuffer内FLOWが先に出発することを確認。既存の「出られない色は残して後続の別色を出力する」テストと併せて待機順を固定した。
+
+## Bufferゲージの色別表示
+
+- PlayMode追加2件は旧ゲージで **2/2失敗（Red）**、色付き枠・実数表示の実装後に **2/2成功（Green）**。
+- SourceのRed／Blue混在・空き枠・11/10の超過Buffer・UIDocument再生成、Relayの満杯5/5・色の保持・対応Sink追加後の3/5への減少を検証。Pause中も描画し、各枠は入力透過、Sinkにはゲージなし。
+- 全体の確認は **EditMode 122/122成功、PlayMode 39/39成功**。コンパイルError／Warning 0、Unity Console Error 0。Nodeラベルのカメラ追従、ホバー非重複、Wave追加、0 Lineからの全色ネットワーク進行も成功。
+- uloop実画面では撮影用にR2へBlue 4個＋Yellow 1個、S2へ4色4個を配置し、色付き枠と5/5・4/10を確認: `docs/screenshots/v01-buffer-colors-full.png`。対応するYELLOW・BLUEを追加して再開し、1tickでYellow 1個・Blue 3個が出発、R2がBlue 1個の1/5へ更新: `docs/screenshots/v01-buffer-colors-recovery.png`。撮影時は自動tickを止め、公開APIで配置・出発を行った制御検証であり、ユーザーのセッションを保存・復元したものではない。

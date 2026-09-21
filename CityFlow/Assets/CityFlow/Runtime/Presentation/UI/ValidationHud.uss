@@ -47,10 +47,12 @@ Label { margin: 0; padding: 0; }
 .footer { position: absolute; left: 32px; bottom: 28px; font-size: 15px; color: rgb(182, 200, 214); }
 .detail-text { white-space: normal; font-size: 14px; color: rgb(195, 212, 226); }
 .city-caption { display: none; }
-.node-gauge { position: absolute; left: 4px; right: 4px; bottom: 2px; height: 3px; background-color: rgb(44, 53, 65); }
-.node-fill { height: 100%; background-color: rgb(203, 215, 228); }
+.node-label.has-buffer { height: 38px; padding-bottom: 10px; }
+.node-gauge { position: absolute; left: 4px; right: 4px; bottom: 3px; height: 8px; flex-direction: row; }
+.node-buffer-slot { height: 100%; flex-grow: 1; flex-basis: 0;
+    border-right-width: 1px; border-right-color: rgb(10, 17, 25); }
+.node-buffer-slot.empty { background-color: rgb(44, 53, 65); }
 .input-stopped { border-color: rgb(255, 197, 91); }
-.input-stopped .node-fill { background-color: rgb(255, 197, 91); }
 .readouts .panel { padding: 14px; }
 .readouts .table-row { height: 26px; }
 .readouts .section-title { margin-bottom: 12px; }

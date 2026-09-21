@@ -6,6 +6,7 @@ using System.Linq;
 using CityFlow.Application.UseCases;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Presentation.Rendering;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -70,9 +71,9 @@ namespace CityFlow.Presentation.UI
                     "node-label", $"node-label-{id}");
                 if (node.BufferCapacity.HasValue)
                 {
-                    var gauge = new VisualElement(); gauge.AddToClassList("node-gauge");
-                    var fill = new VisualElement { name = $"node-fill-{id}" }; fill.AddToClassList("node-fill");
-                    gauge.Add(fill); label.Add(gauge);
+                    label.AddToClassList("has-buffer");
+                    var gauge = new VisualElement { name = $"node-gauge-{id}", pickingMode = PickingMode.Ignore };
+                    gauge.AddToClassList("node-gauge"); label.Add(gauge);
                 }
                 nodeLabels.Add(id, label);
             }
@@ -126,7 +127,8 @@ namespace CityFlow.Presentation.UI
                 if (node.BufferCapacity.HasValue)
                 {
                     int capacity = node.BufferCapacity.Value;
-                    marker.Q<VisualElement>($"node-fill-{node.Definition.Id}").style.width = Length.Percent(Mathf.Min(100, 100f * node.Buffer.Count / capacity));
+                    marker.text += $"  {node.Buffer.Count}/{capacity}";
+                    RefreshBufferGauge(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node, capacity);
                 }
             }
             foreach (LineSnapshot line in snapshot.Lines)
@@ -136,6 +138,25 @@ namespace CityFlow.Presentation.UI
                 elements.Root.Q<Label>($"line-length-{line.Id}").text=$"{line.Route.Length:0}m";
                 elements.Root.Q<Label>($"line-time-{line.Id}").text=$"{line.Route.Length/network.Settings.FlowSpeed:0.0}s";
                 load.EnableInClassList("full", line.InFlight.Count >= line.Capacity);
+            }
+        }
+        private static void RefreshBufferGauge(VisualElement gauge, NodeSnapshot node, int capacity)
+        {
+            // One slot per waiting FLOW, oldest first. Overflow stays visible instead of hiding newer colors.
+            int slots = Math.Max(capacity, node.Buffer.Count);
+            while (gauge.childCount > slots) gauge.RemoveAt(gauge.childCount - 1);
+            while (gauge.childCount < slots)
+            {
+                var slot = new VisualElement { pickingMode = PickingMode.Ignore };
+                slot.AddToClassList("node-buffer-slot"); gauge.Add(slot);
+            }
+            for (int index = 0; index < slots; index++)
+            {
+                VisualElement slot = gauge[index];
+                bool empty = index >= node.Buffer.Count;
+                slot.EnableInClassList("empty", empty);
+                slot.style.backgroundColor = empty ? new StyleColor(StyleKeyword.Null) :
+                    new StyleColor(ValidationCityView.ColorFor(node.Buffer[index].Color));
             }
         }
         private void PositionNodeLabels()

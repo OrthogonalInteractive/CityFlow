@@ -12,6 +12,7 @@
 
 - Unity **6.4 / 6000.4.7f1**、URP、Input System、Cinemachine 3、VFX Graph、Shader Graph。
 - ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
+- Source／RelayのBufferゲージは1枠1 FLOWで待機順の色を表示する。空き枠と実数／容量を残し、満杯警告でFLOW色を上書きしない。SinkにはBufferゲージを表示しない。
 - 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・独立Ground Previewパネルを復活させない。
 - UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。
