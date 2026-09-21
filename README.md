@@ -89,7 +89,7 @@ CityFlow/              # Unityプロジェクトルート
 docs/                 # 設計・テスト方針
 ```
 
-現在はIssue #1〜#4の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overloadまで実装。Unity EditorのBootstrapシーンで確認できる。カメラ・配線操作、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
+現在はIssue #1〜#5の検証都市、FlowNetwork集約、基本輸送、混雑・Source Overload、Overview操作・ホバー詳細まで実装。Unity EditorのBootstrapシーンで確認できる。配線操作、Wave・結果画面は後続の実装対象。空のモジュールは配置先だけを用意している。
 
 ## 開発と検証
 
@@ -121,3 +121,7 @@ PLATEAU SDKはまだ導入していない。対象都市・詳細度・性能目
 ゲーム内UIはUI Toolkitを使用する。`Assets/CityFlow/Runtime/Presentation/UI/ValidationHud.uxml` をUI Builderで開き、構造を編集する。見た目は同じフォルダーの `ValidationHud.uss`、画面スケーリングは `Assets/CityFlow/Settings/UI/ValidationPanelSettings.asset` に分けている。HUDとNodeラベルは `ValidationHud` が読み取り専用スナップショットから更新する。
 
 BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する場合は、uloopから `CityFlow.Editor.ValidationSceneSetup.Create()` を実行する。通常のPlayでは再構成不要。
+
+## Overview操作
+
+WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Node/Lineを左クリックで選択し、Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。

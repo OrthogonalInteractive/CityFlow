@@ -80,6 +80,9 @@ namespace CityFlow.Presentation.UI
                 nodeRows.Add(id, (incoming, outgoing, buffer));
                 Label label = Cell(labels, $"{id.ToUpperInvariant()} · {node.Definition.Kind.ToString().ToUpperInvariant()}",
                     "node-label", $"node-label-{id}");
+                var gauge = new VisualElement(); gauge.AddToClassList("node-gauge");
+                var fill = new VisualElement { name = $"node-fill-{id}" }; fill.AddToClassList("node-fill");
+                gauge.Add(fill); label.Add(gauge);
                 nodeLabels.Add(id, label);
             }
             foreach (LineSnapshot line in snapshot.Lines)
@@ -128,6 +131,10 @@ namespace CityFlow.Presentation.UI
                 row.incoming.text = $"{node.IncomingUsed}/{node.Definition.MaxIncoming}";
                 row.outgoing.text = $"{node.OutgoingUsed}/{node.Definition.MaxOutgoing}";
                 row.buffer.text = node.Buffer.Count.ToString();
+                Label marker = nodeLabels[node.Definition.Id];
+                marker.text = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}  {node.Buffer.Count}/{network.Settings.MaxBuffer}";
+                marker.EnableInClassList("input-stopped", node.IsInputStopped);
+                marker.Q<VisualElement>($"node-fill-{node.Definition.Id}").style.width = Length.Percent(Mathf.Min(100, 100f * node.Buffer.Count / network.Settings.MaxBuffer));
                 row.buffer.EnableInClassList("full", node.Buffer.Count >= network.Settings.MaxBuffer);
             }
             foreach (LineSnapshot line in snapshot.Lines)

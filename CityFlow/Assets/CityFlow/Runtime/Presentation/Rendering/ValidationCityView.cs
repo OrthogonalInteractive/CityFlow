@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Presentation.Overview;
 using UnityEngine;
 
 namespace CityFlow.Presentation.Rendering
@@ -17,6 +18,9 @@ namespace CityFlow.Presentation.Rendering
         private FlowNetwork? network;
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
+        private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
+        private OverviewTarget selected;
+        public void SetSelection(OverviewTarget target) => selected = target;
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => stage?.Nodes.Count ?? 0;
 
@@ -49,22 +53,7 @@ namespace CityFlow.Presentation.Rendering
                 Cube("Building", b.center, b.size, building);
                 Cube("Roof", new Vector3(b.center.x, b.max.y + 0.08f, b.center.z), new Vector3(b.size.x + 0.15f, 0.16f, b.size.z + 0.15f), roof);
             }
-            foreach (LineSnapshot line in flowNetwork.Snapshot().Lines)
-            {
-                NodeDefinition destination = definition.Nodes.Single(node => node.Id == line.DestinationId);
-                Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f, 0.65f, 0.55f);
-                var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-                material.SetColor("_BaseColor", color); materials.Add(material);
-                Stroke($"Line {line.Id}: {line.SourceId} -> {line.DestinationId}",
-                    line.Route.Points.Select(p => p + Vector3.up * 0.2f).ToArray(), material, 0.5f);
-                for (int i = 1; i < line.Route.Points.Count; i++)
-                {
-                    Vector3 direction = (line.Route.Points[i] - line.Route.Points[i - 1]).normalized;
-                    Vector3 side = Vector3.Cross(Vector3.up, direction);
-                    Vector3 center = (line.Route.Points[i] + line.Route.Points[i - 1]) * 0.5f + Vector3.up * 0.22f;
-                    Stroke("Direction", new[] { center - direction * 1.8f + side, center, center - direction * 1.8f - side }, material, 0.35f);
-                }
-            }
+            CreateLines(flowNetwork.Snapshot());
             foreach (NodeDefinition node in definition.Nodes)
             {
                 Color color = node.Kind == NodeKind.Source ? new Color(1, 0.76f, 0.32f) :
@@ -80,10 +69,45 @@ namespace CityFlow.Presentation.Rendering
             }
         }
 
+        private void CreateLines(NetworkSnapshot snapshot)
+        {
+            if (stage == null) return;
+            foreach (LineSnapshot line in snapshot.Lines)
+            {
+                if (lineViews.ContainsKey(line.Id)) continue;
+                var renderers = new List<LineRenderer>();
+                lineViews.Add(line.Id, renderers);
+                NodeDefinition destination = stage.Nodes.Single(node => node.Id == line.DestinationId);
+                Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f, 0.65f, 0.55f);
+                var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                material.SetColor("_BaseColor", color); materials.Add(material);
+                renderers.Add(Stroke($"Line {line.Id}: {line.SourceId} -> {line.DestinationId}",
+                    line.Route.Points.Select(p => p + Vector3.up * 0.2f).ToArray(), material, 0.5f));
+                for (int i = 1; i < line.Route.Points.Count; i++)
+                {
+                    Vector3 direction = (line.Route.Points[i] - line.Route.Points[i - 1]).normalized;
+                    Vector3 side = Vector3.Cross(Vector3.up, direction);
+                    Vector3 center = (line.Route.Points[i] + line.Route.Points[i - 1]) * 0.5f + Vector3.up * 0.22f;
+                    renderers.Add(Stroke("Direction", new[] { center - direction * 1.8f + side, center, center - direction * 1.8f - side }, material, 0.35f));
+                }
+            }
+        }
+
         private void LateUpdate()
         {
             if (network == null) return;
             NetworkSnapshot snapshot = network.Snapshot();
+            CreateLines(snapshot);
+            foreach (LineSnapshot line in snapshot.Lines)
+            {
+                bool highlight = selected.LineId == line.Id || (selected.NodeId != null &&
+                    (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
+                foreach (LineRenderer renderer in lineViews[line.Id])
+                {
+                    renderer.widthMultiplier = highlight ? 1.0f : 0.45f;
+                    renderer.startColor = renderer.endColor = !selected.IsEmpty && !highlight ? new Color(0.35f,0.35f,0.35f) : Color.white;
+                }
+            }
             var active = new HashSet<long>();
             foreach (LineSnapshot line in snapshot.Lines)
                 foreach (InFlightSnapshot flight in line.InFlight)
@@ -105,6 +129,7 @@ namespace CityFlow.Presentation.Rendering
                         particle.GetComponent<Renderer>().sharedMaterial = material;
                         particles.Add(flight.Flow.Id, particle);
                     }
+                    particle.transform.localScale = flight.IsStopped ? new Vector3(1.8f, 0.5f, 1.8f) : Vector3.one * 1.15f;
                     particle.transform.position = line.Route.PositionAt(flight.Distance) + Vector3.up * 0.9f;
                 }
             foreach (long id in particles.Keys.Where(id => !active.Contains(id)).ToArray())
@@ -137,7 +162,7 @@ namespace CityFlow.Presentation.Rendering
             cube.transform.position = position; cube.transform.localScale = scale;
             cube.GetComponent<Renderer>().sharedMaterial = material;
         }
-        private void Stroke(string label, Vector3[] points, Material material, float width)
+        private LineRenderer Stroke(string label, Vector3[] points, Material material, float width)
         {
             var obj = new GameObject(label);
             obj.transform.SetParent(transform);
@@ -145,6 +170,7 @@ namespace CityFlow.Presentation.Rendering
             line.sharedMaterial = material; line.positionCount = points.Length;
             line.SetPositions(points); line.startWidth = width; line.endWidth = width;
             line.numCornerVertices = 2; line.numCapVertices = 2;
+            return line;
         }
         private void OnDestroy()
         {

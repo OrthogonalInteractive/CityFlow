@@ -6,6 +6,7 @@ using CityFlow.Application.UseCases;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Rendering;
 using CityFlow.Presentation.UI;
+using CityFlow.Presentation.Overview;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer.Unity;
@@ -29,7 +30,8 @@ namespace CityFlow.Composition
         public void Start()
         {
             city = new GameObject("Validation City");
-            city.AddComponent<ValidationCityView>().Initialize(stage, network);
+            var view = city.AddComponent<ValidationCityView>();
+            view.Initialize(stage, network);
             city.AddComponent<SimulationDriver>().Initialize(simulation);
             var hud = new GameObject("Validation HUD");
             hud.SetActive(false);
@@ -39,6 +41,9 @@ namespace CityFlow.Composition
             document.visualTreeAsset = hudLayout;
             Camera camera = Camera.main;
             if (camera == null) throw new InvalidOperationException("The HUD requires an overview camera.");
+            var overview = city.AddComponent<OverviewController>();
+            overview.Initialize(stage, network, camera);
+            hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view);
             hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera);
             hud.SetActive(true);
         }

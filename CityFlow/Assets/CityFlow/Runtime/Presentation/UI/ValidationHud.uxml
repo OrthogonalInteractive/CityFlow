@@ -3,7 +3,7 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  LAB 04" class="title" />
+            <ui:Label text="CITY FLOW  /  LAB 05" class="title" />
             <ui:Label text="LIVE TRANSPORT  ·  v0.1" class="subtitle" />
             <ui:Label name="network-summary" class="summary" />
             <ui:Label name="capacity-summary" class="summary" />
@@ -48,6 +48,11 @@
                 <ui:VisualElement name="line-rows" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="footer" />
+        <ui:VisualElement class="panel detail-panel">
+            <ui:Label text="NETWORK INSPECTOR" class="section-title" />
+            <ui:Label name="overview-detail" class="detail-text" />
+        </ui:VisualElement>
+        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer" />
+        <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="city-caption" />
     </ui:VisualElement>
 </ui:UXML>

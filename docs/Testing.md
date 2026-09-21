@@ -102,3 +102,12 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - PlayModeでSource警告→Game Over表示と停止を確認。輸送速度・Routingだけを検証する既存テストは猶予を1000秒へ設定し、敗北の検証とは分離。
 - Play画面でRelay 50、Line停止10、Source 56（猶予残3.5秒）を再現。排出先追加で停止10件が受け渡され、FLOW総数の保存を確認。動的Line追加時のHUD例外も再現テスト（Red 1件）で修正。
 - スクリーンショット: `docs/screenshots/issue-4-congestion.png`。
+
+## Step 05 検証結果
+
+- Red: Overview未構成のためPlayMode 3件が失敗。
+- 表示値のEditModeテストでBuffer内訳・接続枠・実経路長・時間・容量使用率・推定Throughputを検証。
+- PlayModeでPan/Zoom/Orbit、フォーカス、全景復帰、Node/Lineホバー・選択、Input Action経由のF操作、R3の完了・破棄、操作前後の輸送状態保持を検証。
+- 仮想キーボード入力はEditorのGame Viewフォーカスに依存しない配送設定をテスト中だけ使い、finallyで元へ戻す。
+- Green: EditMode **62/62**、PlayMode **12/12**成功。ゲージの見た目調整後もHUD関連4/4成功。コンパイルError/Warning 0、実画面確認後Console Error 0。
+- uloop入力シミュレーションでもFによるフォーカスとHome復帰を確認。選択Lineの強調・詳細・Bufferゲージの画面: `docs/screenshots/issue-5-overview.png`。

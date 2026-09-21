@@ -38,13 +38,21 @@ Label { margin: 0; padding: 0; }
 .node-labels { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
 .node-label {
     position: absolute;
-    width: 128px; height: 26px;
+    width: 156px; height: 30px;
     translate: -50% -100%;
     background-color: rgba(10, 17, 25, 0.75);
     border-width: 1px;
     border-color: rgb(62, 79, 94);
     border-radius: 3px;
     -unity-text-align: middle-center;
-    font-size: 13px;
+    font-size: 12px;
 }
 .footer { position: absolute; left: 32px; bottom: 28px; font-size: 15px; color: rgb(182, 200, 214); }
+
+.detail-panel { position: absolute; left: 24px; bottom: 80px; width: 400px; }
+.detail-text { white-space: normal; font-size: 14px; color: rgb(195, 212, 226); }
+.city-caption { display: none; }
+.node-gauge { position: absolute; left: 4px; right: 4px; bottom: 2px; height: 3px; background-color: rgb(44, 53, 65); }
+.node-fill { height: 100%; background-color: rgb(203, 215, 228); }
+.input-stopped { border-color: rgb(255, 197, 91); }
+.input-stopped .node-fill { background-color: rgb(255, 197, 91); }

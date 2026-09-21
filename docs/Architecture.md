@@ -160,3 +160,11 @@ UI移行で輸送ルール、tick順序、乱数、初期配線は変更しな�
 `NodeSnapshot.IsInputStopped` は共通Buffer上限以上を示し、`InFlightSnapshot.IsStopped` は受け取り待ち・停止列へ到達したFLOWを示す。Sink同色の即時消化とFIFO、受け取り完了までの容量保持はStep 03のルールを維持する。
 
 §5.2の補完案を採用し、各Sourceの連続Overload時間を出発処理後に評価する。上限と等しい場合から計時し、下回れば0へ戻す。猶予は設定の `OverloadGrace`（暫定5 s）。Relay/Sinkは計時対象外。猶予到達時のSource IDを保持し、Applicationはそのtickで更新を終了する。Game Over後は生成・移動・経過時間を止め、FLOWを残す。結果画面・再試行はStep 11。
+
+## Step 05：Overview操作と情報表示
+
+`OverviewController` がInput SystemのAction Mapを所有し、Pan/Zoom/Orbit、画面投影によるNode/Line選択、フォーカス、全景復帰を担当する。カメラはシミュレーション時間と独立して動く。選択通知はR3の読み取り専用Observableとして公開し、`OverviewDetailsView` が有効中だけ購読する。破棄時はAction MapとSubjectを終了・破棄する。
+
+`OverviewReadout` はスナップショットからBuffer色別内訳、I/O、入力停止、生成間隔・猶予、経路長・時間・容量・停止数・Throughputを生成する。選択Nodeの入出力Lineを太く表示し、停止FLOWは色を維持した扁平形状にする。NodeのBufferは無彩色ゲージと警告枠で示し、目的色と区別する。距離・移動・選択判定は確定済みLineRouteを使う。
+
+入力の暫定割当: WASD/中ドラッグ=Pan、ホイール=Zoom、右ドラッグ=Orbit、左クリック=選択、F=フォーカス、Home=全景。配線コマンドはStep 07以降。
