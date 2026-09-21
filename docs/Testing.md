@@ -165,3 +165,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 未接続の追加Sourceを放置した画面確認ではWave 3・140.4 s・処理107・原因S2でGame Over。HUDと結果が一致。Retryボタンで新スコープ・Wave 1・0 Line・結果なしに戻ることを自動/画面操作の両方で確認。
 - 追加Nodeの選択・Node 360・配線、出現通知・画面外方向を検証。画面内Nodeをパネル回避位置によって画面外と誤表示する不整合を再現テストでRedにし、画面外判定とラベル配置の分離後にGreenを確認。
 - 画面: `docs/screenshots/issue-11-zero-lines.png`、`issue-11-wave.png`、`issue-11-result.png`。
+
+## Node 360の候補表示修正
+
+- S1のNode 360で、GREENの候補マーカーがREDと重なると非表示になり、マウスでは候補の存在を把握できない問題を修正。全候補を選べる一覧がないことをPlayModeの再現テスト1件でRed確認。
+- 修正後はPlayMode **29/29**成功。Wave進行中の候補追加、GREENの表示領域とポインター到達、Near/Midフィルター、カメラ回転後の選択、確定前の非破壊性、S1→GREEN確定を検証。
+- Game View上の一覧をInput Systemのマウス入力でクリックし、S1→GREENの54.9 mの有効Preview生成を確認。コンパイルエラー/警告0、Consoleログ0。Domain/Applicationの変更はなく、今回EditModeは再実行していない。
+- 画面: `docs/screenshots/node-360-candidate-list.png`。確認用のWave 2を再作成し、ゲームPause・GREENの確定前Previewで停止。

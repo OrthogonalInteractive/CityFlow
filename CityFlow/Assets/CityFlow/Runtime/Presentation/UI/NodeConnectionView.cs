@@ -24,6 +24,7 @@ namespace CityFlow.Presentation.UI
         private UIDocument? document;
         private VisualElement? root;
         private readonly Dictionary<string,Button> markers = new();
+        private readonly Dictionary<string,Button> candidateOptions = new();
         private readonly List<(Button button,Action handler)> handlers = new();
         public void Initialize(ConnectionSession connection, LinePreviewService linePreview, OverviewController input,
             NodeConnectionController cameraController, Camera camera)
@@ -57,7 +58,8 @@ namespace CityFlow.Presentation.UI
             foreach (var binding in handlers) binding.button.clicked -= binding.handler;
             handlers.Clear();
             foreach (var marker in markers.Values) marker.RemoveFromHierarchy();
-            markers.Clear(); root = null;
+            foreach (var option in candidateOptions.Values) option.RemoveFromHierarchy();
+            markers.Clear(); candidateOptions.Clear(); root = null;
         }
         private void LateUpdate()
         {
@@ -80,6 +82,7 @@ namespace CityFlow.Presentation.UI
             foreach (DistanceBand band in Enum.GetValues(typeof(DistanceBand)))
                 root.Q<Button>("band-"+band.ToString().ToLowerInvariant()).EnableInClassList("chosen",session.Filter == band);
             foreach (Button marker in markers.Values) marker.style.display = DisplayStyle.None;
+            foreach (Button option in candidateOptions.Values) option.style.display = DisplayStyle.None;
             if (!session.IsActive) return;
             var candidates = session.Candidates();
             ConnectionCandidate? attention = candidates.FirstOrDefault(c => c.Node.Definition.Id == controller.AttentionId);
@@ -87,10 +90,11 @@ namespace CityFlow.Presentation.UI
                 "Hover a marker or press Tab to inspect a candidate.\nSpace selects the focused candidate.";
             root.Q<Label>("connection-count").text = $"{candidates.Count} CANDIDATES / {session.Filter.ToString().ToUpperInvariant()}";
             if (!controller.IsNode360) return;
+            RenderCandidateList(candidates,state);
             float width = root.layout.width, height = root.layout.height;
             if (width <= 0 || height <= 0) return;
             // Keep markers clear of the control panels; attention wins when labels overlap.
-            var safe = new Rect(Mathf.Min(500,width*0.34f),110,Mathf.Max(160,width-640),Mathf.Max(100,height-460));
+            var safe = new Rect(Mathf.Min(500,width*0.34f),110,Mathf.Max(160,width-980),Mathf.Max(100,height-460));
             var occupied = new List<Rect>();
             foreach (var candidate in candidates.OrderBy(c => c.Node.Definition.Id == controller.AttentionId ? 0 :
                          c.Node.Definition.Id == state?.DestinationId ? 1 : 2).ThenBy(c => c.Distance))
@@ -133,6 +137,37 @@ namespace CityFlow.Presentation.UI
                 if (!overlaps) occupied.Add(bounds);
             }
             if (controller.AttentionId != null && markers.TryGetValue(controller.AttentionId,out Button focused)) focused.BringToFront();
+        }
+        private void RenderCandidateList(IReadOnlyList<ConnectionCandidate> candidates,LinePreviewState? state)
+        {
+            if (root == null || session == null || controller == null) return;
+            var list = root.Q<ScrollView>("connection-candidates");
+            // Keep rows in roster order so hovering, turning, and filtering cannot move click targets.
+            foreach (var node in session.Nodes)
+            {
+                string id = node.Id;
+                if (candidateOptions.ContainsKey(id)) continue;
+                var option = new Button(() => { controller.FocusTarget(id); session.SelectTarget(id); })
+                    { name = "candidate-option-"+id };
+                option.AddToClassList("candidate-option");
+                option.RegisterCallback<PointerEnterEvent>(_ => controller.SetAttention(id));
+                option.style.display = DisplayStyle.None;
+                list.Add(option); candidateOptions.Add(id,option);
+            }
+            root.Q<Label>("candidate-list-count").text = $"{candidates.Count} NODES / {session.Filter.ToString().ToUpperInvariant()} · CLICK TO PREVIEW";
+            foreach (var candidate in candidates)
+            {
+                var node = candidate.Node;
+                string id = node.Definition.Id;
+                var option = candidateOptions[id];
+                string status = candidate.Failure != ConnectionFailure.None ? "BLOCKED / INSPECT" :
+                    state?.DestinationId == id ? state.Geometry.IsValid ? "PREVIEW READY" : "ROUTE INVALID" : "SLOTS OPEN / ROUTE ?";
+                option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
+                option.tooltip = ConnectionReadout.Candidate(candidate,state);
+                option.EnableInClassList("chosen",id == controller.AttentionId);
+                option.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);
+                option.style.display = DisplayStyle.Flex;
+            }
         }
     }
 }

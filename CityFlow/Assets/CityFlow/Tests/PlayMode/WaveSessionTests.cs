@@ -29,6 +29,40 @@ namespace CityFlow.Tests.PlayMode
         }
         private static int Connect(ConnectionSession s,string from,string to)
         { Assert.That(s.Begin(from),Is.True); s.SelectTarget(to); Assert.That(s.Confirm(),Is.EqualTo(ConnectionFailure.None)); return s.LastCreatedLineId!.Value; }
+        [UnityTest] public IEnumerator WaveCandidateListKeepsGreenSelectableDespiteOverlappingMarkers()
+        {
+            var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var sim=scope.Container.Resolve<FlowSimulation>(); var network=scope.Container.Resolve<FlowNetwork>();
+            var session=scope.Container.Resolve<ConnectionSession>(); var preview=scope.Container.Resolve<LinePreviewService>();
+            Connect(session,"S1","RED");
+            Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Node("S1"));
+            var controller=Object.FindAnyObjectByType<NodeConnectionController>(); controller.BeginSelected();
+            sim.Tick(60-sim.ElapsedSeconds); sim.SetPaused(true); yield return null; yield return null;
+            var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            var list=root.Q<ScrollView>("connection-candidates");
+            Assert.That(list,Is.Not.Null,"Every candidate needs a discoverable mouse target when world markers overlap.");
+            var green=list.Q<Button>("candidate-option-GREEN");
+            Assert.That(green,Is.Not.Null,"A new Wave Node must appear while Node 360 is already open.");
+            Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
+            Assert.That(green.enabledInHierarchy,Is.True);
+            Assert.That(green.text,Does.Contain("GREEN").And.Contain("55 m"));
+            Assert.That(list.contentViewport.worldBound.Contains(green.worldBound.center),Is.True);
+            var hit=root.panel.Pick(green.worldBound.center);
+            Assert.That(hit==green || green.Contains(hit),Is.True,"GREEN must be clickable without a hidden-marker keyboard workaround.");
+            Assert.That(list.Query<Button>().ToList().Count(b=>b.resolvedStyle.display==DisplayStyle.Flex),Is.EqualTo(session.Candidates().Count));
+            session.SetFilter(DistanceBand.Near); yield return null; yield return null;
+            Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
+            session.SetFilter(DistanceBand.Mid); controller.Look(new Vector2(180,0)); yield return null; yield return null;
+            Assert.That(green.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
+            green.Focus(); using(var e=NavigationSubmitEvent.GetPooled()) green.SendEvent(e);
+            yield return null;
+            Assert.That(controller.AttentionId,Is.EqualTo("GREEN"));
+            Assert.That(preview.Current?.DestinationId,Is.EqualTo("GREEN")); Assert.That(preview.Current!.CanConfirm,Is.True);
+            Assert.That(network.Snapshot().Lines.Count,Is.EqualTo(1),"Selecting a candidate must only create a Preview.");
+            Assert.That(session.Confirm(),Is.EqualTo(ConnectionFailure.None)); yield return null;
+            Assert.That(network.Snapshot().Lines.Any(l=>l.SourceId=="S1" && l.DestinationId=="GREEN"),Is.True);
+            Assert.That(root.Q("candidate-list-panel").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
+        }
         [UnityTest] public IEnumerator WaveAddsVisibleSelectableNodesWithoutReplacingNetworkOrReservations()
         {
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();

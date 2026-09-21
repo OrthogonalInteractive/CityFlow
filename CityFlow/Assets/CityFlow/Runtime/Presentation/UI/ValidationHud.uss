@@ -109,6 +109,19 @@ Label { margin: 0; padding: 0; }
 .candidate-marker.blocked { color: rgb(248,196,114); }
 .candidate-marker.occluded { border-top-width: 3px; }
 .candidate-marker:hover { background-color: rgb(36,78,89); }
+.candidate-list-panel { display: none; position: absolute; right: 24px; top: 24px;
+    width: 332px; max-height: 55%; padding: 14px; }
+.node-360 .candidate-list-panel { display: flex; }
+.candidate-list-panel .section-title { margin-bottom: 0; }
+.candidate-list-panel .band-hint { margin-top: 8px; margin-bottom: 8px; font-size: 11px; }
+#connection-candidates { flex-shrink: 1; }
+.candidate-list-panel Button.candidate-option { height: 50px; min-height: 50px; flex-shrink: 0;
+    margin: 0 2px 4px 0; padding: 5px 10px; font-size: 12px; white-space: normal; -unity-text-align: middle-left; }
+.candidate-list-panel Button.blocked { color: rgb(248,196,114); }
+.candidate-list-panel .unity-scroller--vertical { width: 12px; background-color: rgb(15,25,34); }
+.candidate-list-panel .unity-scroller__low-button, .candidate-list-panel .unity-scroller__high-button { display: none; }
+.candidate-list-panel .unity-base-slider__tracker { background-color: rgb(22,35,46); }
+.candidate-list-panel .unity-base-slider__dragger { background-color: rgb(78,115,131); border-radius: 4px; }
 
 .route-editor { display: none; position: absolute; left: 24px; top: 24px; width: 330px; }
 .route-editing .route-editor { display: flex; }

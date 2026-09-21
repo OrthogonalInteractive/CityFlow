@@ -138,7 +138,7 @@ Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.u
 
 1. OverviewでNodeを選び、**Connect** または **C** を押す。WiringLabでは `S1 → BLUE`、Bootstrapでは `R1 → BLUE` が接続可能な例。Bootstrapの `S1` は初期配線でOUTが3/3のため、接続先を選ぶと枠不足や重複の理由を表示する。
 2. 始点付近から、右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで候補を絞る。暫定閾値はステージ対角長の25%・50%で、検証都市では37.5 m・75 m。距離はGround面上の直線距離。
-3. 候補マーカーをクリックすると自動Previewを生成する。**Tab** で候補に注目し、**Space** で選択も可能。画面外の方向表示・遮蔽中マーカー・接続不可候補も選べる。注目中の詳細に種類、Sink色、IN/OUTと失敗理由を表示する。
+3. 候補マーカー、または右上の **CONNECTION TARGETS** 一覧をクリックすると自動Previewを生成する。一覧は距離フィルターに該当する全候補を表示し、ラベルが重なるNode・画面外・遮蔽中・Waveで追加されたNodeも選べる。候補が多い場合は一覧をスクロールする。**Tab** で候補に注目し、**Space** で選択も可能。注目中の詳細に種類、Sink色、IN/OUTと失敗理由を表示する。
 4. **Review in Overview / V** で経路全体を確認できる。再度VでNode 360へ戻り、始点・終点・Previewを保持する。
 5. **Confirm Line / Enter** で経路と両端枠を再検証し、成立時にだけLineを追加する。**Cancel connection / Backspace** で枠を消費せず取消。どちらも開始前のOverview位置・角度・ズームへ戻る。
 

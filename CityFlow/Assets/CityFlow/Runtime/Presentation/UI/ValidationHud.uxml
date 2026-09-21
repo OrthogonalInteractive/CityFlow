@@ -100,10 +100,15 @@
                 </ui:VisualElement>
                 <ui:Label name="connection-count" class="band-hint" />
                 <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
-                <ui:Label text="Click a marker to preview a route.&#10;Tab focuses candidates / Space selects.&#10;Blocked and hidden Nodes are selectable." class="band-hint" />
+                <ui:Label text="Click a marker or a Node in the target list.&#10;Tab focuses candidates / Space selects.&#10;The list includes hidden and blocked Nodes." class="band-hint" />
                 <ui:Button name="connect-review" text="Review in Overview [V]" />
                 <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive">
+            <ui:Label text="CONNECTION TARGETS" class="section-title" />
+            <ui:Label name="candidate-list-count" class="band-hint" />
+            <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
         </ui:VisualElement>
         <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK · SELECT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
         <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    SPACE · SELECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
