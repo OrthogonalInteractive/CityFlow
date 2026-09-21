@@ -25,6 +25,7 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
         private readonly Dictionary<int, LineRoute> drawnRoutes = new();
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
+        private MaterialPropertyBlock? arrowTint;
         private OverviewTarget selected;
         public void SetSelection(OverviewTarget target) => selected = target;
         public int VisibleFlowCount => particles.Count;
@@ -34,6 +35,7 @@ namespace CityFlow.Presentation.Rendering
         {
             stage = definition;
             network = flowNetwork;
+            arrowTint = new MaterialPropertyBlock();
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
             sceneCamera.transform.position = new Vector3(25, 190, -120);
@@ -117,21 +119,27 @@ namespace CityFlow.Presentation.Rendering
 
         private void LateUpdate()
         {
-            if (network == null) return;
+            if (network == null || arrowTint == null) return;
             NetworkSnapshot snapshot = network.Snapshot();
             CreateNodes();
             CreateLines(snapshot);
             foreach (LineSnapshot line in snapshot.Lines)
             {
                 var destination=network.NodeDefinitions.Single(n=>n.Id==line.DestinationId);
+                bool stopped=line.InFlight.Any(f=>f.IsStopped);
+                Color warning=new Color(1,0.38f,0.10f);
                 Color tint=line.Status==LineStatus.DeletePending ? new Color(1,0.62f,0.18f) :
                     line.Status==LineStatus.RouteChangePending ? new Color(0.8f,0.5f,1) :
+                    stopped ? warning :
                     destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f,0.65f,0.55f);
                 lineViews[line.Id][0].sharedMaterial.SetColor("_BaseColor",tint);
                 bool highlight = selected.LineId == line.Id || (selected.NodeId != null &&
                     (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
                 foreach (LineRenderer renderer in lineViews[line.Id])
                 {
+                    arrowTint.Clear();
+                    if (stopped && renderer != lineViews[line.Id][0]) arrowTint.SetColor("_BaseColor",warning);
+                    renderer.SetPropertyBlock(arrowTint);
                     renderer.widthMultiplier = highlight ? 1.0f : 0.45f;
                     renderer.startColor = renderer.endColor = !selected.IsEmpty && !highlight ? new Color(0.35f,0.35f,0.35f) : Color.white;
                 }
@@ -157,7 +165,8 @@ namespace CityFlow.Presentation.Rendering
                         particle.GetComponent<Renderer>().sharedMaterial = material;
                         particles.Add(flight.Flow.Id, particle);
                     }
-                    particle.transform.localScale = flight.IsStopped ? new Vector3(1.8f, 0.5f, 1.8f) : Vector3.one * 1.15f;
+                    // The stop disc extends around a terminal Node so its final capacity slot stays visible.
+                    particle.transform.localScale = flight.IsStopped ? new Vector3(4.6f, 0.35f, 4.6f) : Vector3.one * 1.15f;
                     particle.transform.position = line.Route.PositionAt(flight.Distance) + Vector3.up * 0.9f;
                 }
             foreach (long id in particles.Keys.Where(id => !active.Contains(id)).ToArray())

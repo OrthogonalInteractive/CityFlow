@@ -17,7 +17,15 @@ namespace CityFlow.Presentation.Overview
                     return $"{node.Definition.Id} · SINK · {node.Definition.SinkColor}\nCONSUME MATCHING FLOW ON ARRIVAL\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming}";
                 string colors = string.Join("  ", node.Buffer.GroupBy(f=>f.Color).OrderBy(g=>g.Key).Select(g=>$"{g.Key}: {g.Count()}"));
                 string sink = node.Definition.SinkColor.HasValue ? $" · {node.Definition.SinkColor} SINK" : "";
-                string source = node.Definition.Kind == NodeKind.Source ? $"\nGENERATE {node.Definition.GenerationInterval*intervalScale:0.00}s · GRACE {Math.Max(0,settings.OverloadGrace-node.OverloadSeconds):0.0}s" : "";
+                string source = "";
+                if(node.Definition.Kind == NodeKind.Source)
+                {
+                    int free=node.BufferCapacity.Value-node.Buffer.Count;
+                    string warning=node.IsInputStopped ? $"{Math.Max(0,settings.OverloadGrace-node.OverloadSeconds):0.0}s TO GAME OVER" :
+                        $"{(node.Buffer.Count>=node.BufferCapacity.Value*0.8f ? "WARNING · " : "")}{free} FREE";
+                    string color=node.LastGeneratedColor.HasValue ? " · "+node.LastGeneratedColor.Value.ToString().ToUpperInvariant() : "";
+                    source=$"\nGENERATE {node.Definition.GenerationInterval*intervalScale:0.00}s\nGENERATED {node.GeneratedCount}{color}\n{warning}";
+                }
                 string incoming = string.Join(", ", state.Lines.Where(l=>l.DestinationId==node.Definition.Id && l.InFlight.Any(f=>f.IsStopped)).Select(l=>l.SourceId));
                 string outgoing = string.Join(", ", state.Lines.Where(l=>l.SourceId==node.Definition.Id).Select(l=>l.DestinationId));
                 return $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}{sink}\nBUFFER {node.Buffer.Count}/{node.BufferCapacity.Value} ({100d*node.Buffer.Count/node.BufferCapacity.Value:0}%)\n{(colors.Length==0 ? "No waiting FLOW" : colors)}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · OUT {node.OutgoingUsed}/{node.Definition.MaxOutgoing}\nINPUT {(node.IsInputStopped ? "STOPPED" : "OPEN")}{source}\nWAITING FROM {(incoming.Length==0 ? "—" : incoming)}\nOUTPUT TO {(outgoing.Length==0 ? "—" : outgoing)}";

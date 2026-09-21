@@ -48,7 +48,7 @@ namespace CityFlow.Tests.PlayMode
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             Rect view=new Rect(camera.rect.x*root.layout.width,(1-camera.rect.yMax)*root.layout.height,
                 camera.rect.width*root.layout.width,camera.rect.height*root.layout.height);
-            foreach(string name in new[]{"connection-panel","candidate-list-panel","preview-panel"})
+            foreach(string name in new[]{"connection-panel","candidate-list-panel"})
                 Assert.That(root.Q(name).worldBound.Overlaps(view),Is.False,name+" must not hide Nodes in the camera viewport.");
             var blue=Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<ConnectionSession>().Nodes.Single(n=>n.Id=="BLUE");
             Vector3 projected=camera.WorldToViewportPoint(blue.Position+Vector3.up*1.4f);
@@ -113,7 +113,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(s.IsActive,Is.False); Assert.That(camera.orthographic,Is.True); Assert.That(overview.enabled,Is.True);
             Assert.That(camera.transform.position,Is.EqualTo(before)); Assert.That(camera.transform.rotation,Is.EqualTo(rotation));
             Assert.That(camera.orthographicSize,Is.EqualTo(size)); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(count+1));
-            Assert.That(root.Q<Label>("capacity-summary").text,Does.Contain("6 DIRECTED"));
+            Assert.That(root.Q("line-rows").childCount,Is.EqualTo(6));
         }
         [UnityTest] public IEnumerator CameraReviewAndDistanceFiltersRetainPreviewAndCancelRestoresOriginalPose()
         {
@@ -175,17 +175,17 @@ namespace CityFlow.Tests.PlayMode
             c.Look(new Vector2(180,0)); yield return null;
             Assert.That(blue.text,Does.Contain("OFFSCREEN"));
             yield return null;
-            Assert.That(root.Q<Label>("preview-detail").text,Does.Contain("R1 → BLUE"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("R1 → BLUE"));
             Assert.That(root.Q<Label>("candidate-detail").text,Does.Contain("Route preview ready"));
             Assert.That(blue.text,Does.Contain("PREVIEW READY"));
             var s=Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<ConnectionSession>();
             s.SelectTarget("R2"); yield return null;
-            Assert.That(root.Q<Label>("preview-detail").text,Does.Contain("already exists"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("already exists"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);
             s.SelectTarget("R1"); yield return null;
-            Assert.That(root.Q<Label>("preview-detail").text,Does.Contain("different Nodes"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("different Nodes"));
             s.Cancel(); overview.Select(OverviewTarget.Node("S1")); c.BeginSelected(); s.SelectTarget("R2"); yield return null;
-            Assert.That(root.Q<Label>("preview-detail").text,Does.Contain("Source OUT slots are full"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("Source OUT slots are full"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);
         }
         [UnityTest] public IEnumerator KeyboardCanBeginLookConfirmAndCancelWithoutFocusDependentInput()

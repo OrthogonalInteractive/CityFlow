@@ -79,7 +79,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(n.Snapshot().Lines.Single(x=>x.Id==blue).Route,Is.SameAs(before.Route));
             Assert.That(Object.FindAnyObjectByType<ValidationCityView>().VisibleNodeCount,Is.EqualTo(7));
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Assert.That(root.Q<Label>("wave-status").text,Does.Contain("WAVE 2"));
+            Assert.That(root.Q<Label>("wave-notice").text,Does.Contain("WAVE 2"));
             Assert.That(root.Q("node-label-GREEN"),Is.Not.Null); Assert.That(root.Q("arrival-S2"),Is.Not.Null);
             Assert.That(sim.SourceStartRemaining("S2"),Is.GreaterThan(19));
             Assert.That(root.Q<Button>("arrival-GREEN").text,Does.Not.Contain("OFFSCREEN"),"A visible Node must not be labelled offscreen just because its label avoids a panel.");

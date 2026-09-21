@@ -12,6 +12,7 @@
 
 - Unity **6.4 / 6000.4.7f1**、URP、Input System、Cinemachine 3、VFX Graph、Shader Graph。
 - ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
+- 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・独立Ground Previewパネルを復活させない。
 - UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。
 - Unity Editorの起動・コンパイル・テスト・Play Mode制御・ログ取得・シーン／アセット操作は、すべて **uloop CLI** を通して行う。Unity実行ファイルの直接起動、`-batchmode`、Editorの手動操作を自動化手段として使わない。
@@ -74,7 +75,7 @@
 ## 守るべきv0.1の不変条件
 
 - Node / LineはGround上。全区間の衝突判定と描画・距離計測・移動の実経路を一致させる。
-- Lineは有向で固定容量。Lineが長くても容量を増やさない。
+- Lineは有向で固定容量（基本3）。Lineが長くても容量を増やさない。待機間隔は実経路長 / 容量とし、停止時にFLOWの位置を付け替えたり後退させたりしない。
 - 同色Sinkへの利用可能な直結を優先し、その直結が満杯なら待機する。直結がない場合のランダム候補はRelayだけ。異色SinkとSourceへはランダム転送しない。FLOWに大域的な経路探索をさせない。
 - Sinkは同色FLOWを即時消化する終点で、Buffer・中継・Outgoing Lineを持たない。Bufferの基本設定はSource 10、Relay 5。
 - FLOWの受け渡し完了前にLineの容量を解放しない。停止中もIn-Flightを保持する。

@@ -35,7 +35,7 @@ namespace CityFlow.Tests.PlayMode
             simulation.Tick(12);
             yield return null;
             NetworkSnapshot state = network.Snapshot();
-            Assert.That(state.GeneratedCount, Is.GreaterThanOrEqualTo(48));
+            Assert.That(state.GeneratedCount, Is.GreaterThanOrEqualTo(16));
             Assert.That(state.DeliveredCount, Is.GreaterThan(0));
             Assert.That(state.Nodes.Single(n => n.Definition.Id == "S1").Buffer.Count, Is.GreaterThan(0));
             Assert.That(state.Lines.All(l => l.InFlight.Count <= l.Capacity), Is.True);

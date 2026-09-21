@@ -66,6 +66,6 @@ namespace CityFlow.Editor
         private static StageConfiguration.NodePlacement Node(string id, NodeKind kind, float x, float z,
             FlowColor color = FlowColor.Red) => new StageConfiguration.NodePlacement {
                 Id = id, Kind = kind, SinkColor = color, Position = new Vector3(x, 0, z),
-                MaxIncoming = 3, MaxOutgoing = 3, GenerationInterval = 0.25f };
+                MaxIncoming = 3, MaxOutgoing = 3, GenerationInterval = 0.75f };
     }
 }

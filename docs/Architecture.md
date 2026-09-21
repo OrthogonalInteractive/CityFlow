@@ -255,3 +255,16 @@ Sinkは消化専用の終点とする。`NodeDefinition.MaxOutgoing`を0にし�
 `NetworkSettings` / `GameplaySettings`の共通MaxBufferを`SourceBufferCapacity`と`RelayBufferCapacity`へ分離し、基本設定をSource 10、Relay 5とする。S1・Wave追加のS2/S3もSourceの設定を使う。`NodeSnapshot.BufferCapacity`を受け取り上限・入力停止・HUDの基準に使い、Sourceの敗北判定はSource容量だけを見る。猶予は現行5秒を維持し、10個以上が5秒続くとGame Over。10未満へ戻れば猶予をリセットする。即時敗北への変更は別判断とする。
 
 旧スナップショットを変更せず、満杯Relayへの6個目はLineに保持する。削除予約・経路切替・Pause・FLOW保存のルールは維持する。旧来のSinkから次のSinkへ中継する検証配線は使わず、Wave追加色にはRelayからOutgoingを増設する。
+
+
+## 生成頻度・In-Flight容量・ホバー中心のHUD
+
+Sourceの生成間隔を約3倍、MaxInFlightを3へ変更した。WiringLabはS1/S3 3秒、S2 3.9秒、Bootstrapは0.75秒。Wave倍率とSourceのOverload猶予5秒は維持する。値は設定アセットに保存し、生成間隔の基準・調整履歴をREADMEと仕様へ記録する。
+
+Domainの待機間隔は`Route.Length / MaxInFlight`。停止を検出してからFLOWの位置を並べ替えるのではなく、通常移動中から先行FLOWとの間隔を制約する。出発直後に後続が始点で待つ場合はあるが、各tickの進行量は0〜共通速度×時間差分で、後退・追い越し・瞬間移動を起こさない。停止・Pause・予約中も実距離とFLOW IDを維持する。
+
+`ValidationCityView`は`InFlight.IsStopped`から混雑色を表示する。通常Lineはオレンジ、削除予約・経路切替中は本線の状態色を保って矢印をオレンジにする。Pauseそのものは混雑色を付けない。
+
+`ValidationHud`はDELIVERED/TIME、簡易Nodeラベル、Line一覧を表示し、UIに対するワールド入力の遮断も所有する。常設NETWORK INSPECTOR・Source詳細・Node接続表・独立Previewパネルは廃止。`OverviewDetailsView`がホバー中のNode/Lineだけを選び、`OverviewReadout`の詳細を対象付近へ置き、カーソルを外すと消す。選択は詳細表示の保持条件にしない。Node 360の始点・候補コントロールも同じNode情報を公開する。
+
+`SourceStatusView`は生成リングと待機粒子だけを描画し、数値カードを生成しない。`GroundPreviewView`は実経路の破線描画と配線・手動編集欄のメトリクス／無効理由を担当する。Node 360の上部Source専用領域を廃止し、都市のカメラ領域を縦に拡大した。接続確定・取消・手動編集・削除予約は既存Applicationユースケースを継続利用する。

@@ -15,7 +15,7 @@ MonoBehaviour:
   SourceBufferCapacity: 10
   RelayBufferCapacity: 5
   RandomSeed: 1337
-  MaxInFlight: 10
+  MaxInFlight: 3
   FlowSpeed: 8
   OverloadGrace: 5
   Clearance: 0.5

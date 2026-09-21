@@ -54,7 +54,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(network.Snapshot().Lines.Count, Is.EqualTo(before.Lines.Count));
             yield return null;
         }
-        [UnityTest] public IEnumerator HoverAndSelectionShowNodeAndLineDetails()
+        [UnityTest] public IEnumerator HoverShowsNodeAndLineDetailsWithoutPinningSelection()
         {
             var c = Controller(); var cam = Camera.main;
             var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
@@ -63,9 +63,13 @@ namespace CityFlow.Tests.PlayMode
             c.Hover(cam.WorldToScreenPoint(p + Vector3.up * 1.4f));
             Assert.That(c.Hovered.NodeId, Is.EqualTo("S1"));
             yield return null;
-            var label = Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q<Label>("overview-detail");
+            var label = Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q<Label>("hover-detail");
             Assert.That(label.text, Does.Contain("S1").And.Contain("BUFFER").And.Contain("OUT"));
             c.Select(OverviewTarget.Line(1)); c.Hover(new Vector2(-100,-100));
+            yield return null;
+            Assert.That(Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
+            var lineRoute=n.Snapshot().Lines[0].Route;
+            c.Hover(cam.WorldToScreenPoint(lineRoute.PositionAt(lineRoute.Length*0.5f)+Vector3.up*0.2f));
             yield return null;
             Assert.That(label.text, Does.Contain("S1 → RED").And.Contain("THROUGHPUT").And.Contain("STOPPED"));
             var route = n.Snapshot().Lines[0].Route;

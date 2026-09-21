@@ -61,11 +61,6 @@ namespace CityFlow.Presentation.UI
         {
             if(document==null||simulation==null||network==null||overview==null||connectionCamera==null||sceneCamera==null) return;
             if(root!=document.rootVisualElement) Bind(); if(root==null) return;
-            string next=simulation.NextWaveSeconds.HasValue ? $" / NEXT IN {Math.Max(0,simulation.NextWaveSeconds.Value-simulation.ElapsedSeconds):0}s" : " / SURVIVE";
-            root.Q<Label>("wave-status").text=$"WAVE {simulation.Wave}{next}";
-            var warmup=network.NodeDefinitions.Where(n=>n.Kind==NodeKind.Source && simulation.SourceStartRemaining(n.Id)>0)
-                .Select(n=>$"{n.Id} {simulation.SourceStartRemaining(n.Id):0}s").ToArray();
-            root.Q<Label>("source-warmup").text=warmup.Length>0 ? "PREPARING / "+string.Join(" · ",warmup) : $"SOURCE RATE ×{1/simulation.GenerationIntervalScale:0.00}";
             SessionResult? result=simulation.Result;
             root.Q("result-overlay").style.display=result!=null ? DisplayStyle.Flex : DisplayStyle.None;
             if(result!=null)

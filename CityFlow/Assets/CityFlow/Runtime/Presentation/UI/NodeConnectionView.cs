@@ -72,6 +72,9 @@ namespace CityFlow.Presentation.UI
             root.Q<Button>("route-edit").SetEnabled(preview.Current != null);
             root.Q<Label>("connect-selection").text = session.IsActive ? $"FROM {session.SourceId} / SELECT A TARGET" :
                 overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Click a Node to start wiring";
+            root.Q("connect-selection").userData = session.IsActive && session.SourceId != null ? OverviewTarget.Node(session.SourceId) : default(OverviewTarget);
+            root.Q("connect-selection").pickingMode = PickingMode.Position;
+            root.Q("connection-panel").style.display = session.IsActive || overview.Selected.LineId.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
             root.Q<Label>("connect-mode").text = controller.IsNode360 ? "NODE 360 / CONNECTION" : "OVERVIEW / CONNECTION";
             root.Q<Button>("connect-review").text = controller.IsNode360 ? "Review in Overview [V]" : "Return to Node 360 [V]";
             var state = preview.Current;
@@ -102,6 +105,7 @@ namespace CityFlow.Presentation.UI
                 if (!markers.TryGetValue(id,out Button marker))
                 {
                     marker = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-"+id };
+                    marker.userData = OverviewTarget.Node(id);
                     marker.AddToClassList("candidate-marker"); marker.AddToClassList("interactive");
                     marker.RegisterCallback<PointerEnterEvent>(_ => controller.SetAttention(id));
                     root.Q("connection-markers").Add(marker); markers.Add(id,marker);
@@ -155,6 +159,7 @@ namespace CityFlow.Presentation.UI
                 if (candidateOptions.ContainsKey(id)) continue;
                 var option = new Button(() => controller.ConfirmTarget(id))
                     { name = "candidate-option-"+id };
+                option.userData = OverviewTarget.Node(id);
                 option.AddToClassList("candidate-option");
                 option.RegisterCallback<PointerEnterEvent>(_ => controller.FocusTarget(id));
                 option.style.display = DisplayStyle.None;
@@ -169,7 +174,6 @@ namespace CityFlow.Presentation.UI
                 string status = candidate.Failure != ConnectionFailure.None ? "BLOCKED / INSPECT" :
                     state?.DestinationId == id ? state.Geometry.IsValid ? "PREVIEW READY" : "ROUTE INVALID" : "SLOTS OPEN / ROUTE ?";
                 option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
-                option.tooltip = ConnectionReadout.Candidate(candidate,state);
                 option.EnableInClassList("chosen",id == controller.AttentionId);
                 option.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);
                 option.style.display = DisplayStyle.Flex;

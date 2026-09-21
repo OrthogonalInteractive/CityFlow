@@ -44,11 +44,9 @@ namespace CityFlow.Tests.PlayMode
             VisualElement root = document.rootVisualElement;
             NetworkSnapshot state = network.Snapshot();
             Assert.That(root.Q<Label>("delivered-value").text, Is.EqualTo(state.DeliveredCount.ToString("0000")));
-            Assert.That(root.Q<Label>("waiting-value").text, Is.EqualTo(state.Nodes.Sum(n => n.Buffer.Count).ToString("000")));
-            Assert.That(root.Q<Label>("inflight-value").text, Is.EqualTo(state.Lines.Sum(l => l.InFlight.Count).ToString("000")));
-            Assert.That(root.Q<Label>("node-buffer-S1").text, Is.EqualTo($"{state.Nodes.Single(n => n.Definition.Id == "S1").Buffer.Count}/{network.Settings.SourceBufferCapacity}"));
             Assert.That(root.Q<Label>("line-load-2").text, Is.EqualTo($"{state.Lines[1].InFlight.Count}/{state.Lines[1].Capacity}"));
-            Assert.That(root.Q("node-rows").childCount, Is.EqualTo(5));
+            Assert.That(root.Q("node-rows"),Is.Null);
+            Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo($"{scope.Container.Resolve<FlowSimulation>().ElapsedSeconds:0.0} s"));
             Assert.That(root.Q("line-rows").childCount, Is.EqualTo(5));
             Assert.That(root.Query().ToList().Where(element=>!root.Query(className:"interactive").ToList().Any(panel=>element==panel || panel.Contains(element))).All(element => element.pickingMode == PickingMode.Ignore), Is.True,
                 "Read-only overlays must leave world interaction available.");
@@ -105,7 +103,6 @@ namespace CityFlow.Tests.PlayMode
             yield return null;
             yield return null;
             Assert.That(Object.FindObjectsByType<UIDocument>().Length, Is.EqualTo(1));
-            Assert.That(document.rootVisualElement.Q("node-rows").childCount, Is.EqualTo(5));
             Assert.That(document.rootVisualElement.Q("node-labels").childCount, Is.EqualTo(5));
             Assert.That(document.rootVisualElement.Q<Label>("delivered-value").text,
                 Is.EqualTo(scope.Container.Resolve<FlowNetwork>().Snapshot().DeliveredCount.ToString("0000")));

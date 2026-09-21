@@ -34,7 +34,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。UI ToolkitのHUDでWave・Buffer・In-Flight・処理数・接続数を確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
+5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。左上HUDはDELIVEREDとTIMEのみ。NodeとLineの情報はホバー中だけ確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -128,13 +128,11 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 ## Ground経路Preview
 
-右下の **GROUND ROUTE PREVIEW** でFROM/TOを選び、**Generate route** を押す。建物を迂回する可視グラフ＋A*の候補を破線表示し、長さ・移動時間・推定Throughput・仮確定後の接続枠を確認できる。**Cancel** でPreviewを消す。初期ペアは `R1 → BLUE`。`S1 → BLUE` など既存の同方向接続は理由付きで確定不可と表示する。
-
-この検証用パネル単独ではLineを追加しない。実際の接続は以下のNode 360フローを使う。制御点の手動編集は下記の操作で行う。
+独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Eで手動編集できる。PreviewだけではLine・接続枠を消費しない。
 
 ## Node 360で接続する
 
-Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は1 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
+Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は3 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
 
 1. OverviewでNodeをクリックすると、そのNodeの360モードへ入る。**C**でも選択Nodeから開始できる。Connectボタンは不要。
 2. 右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
@@ -168,7 +166,7 @@ Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常
 
 Waveの時刻・追加Node・生成間隔と猶予は `WiringStage` で調整可能。現時点の値はプレイ確認用の暫定値であり、構成比較・難度調整・v0.1完了判定はIssue #12に残る。
 
-Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確認できる。上部のSourceモニターに生成累計・直近色・Buffer数／上限を常設表示し、80%から警告、満杯からGame Overまでの残り秒数を表示する。Node 360でも上部の専用領域に残る。Pauseで生成演出と敗北カウントダウンも停止する。敗北時はGAME OVER画面のRetryから配線0で再開できる。
+Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確認できる。生成累計・直近色・Buffer数／上限・空き数・準備時間・敗北までの残り秒数はNodeへホバーして確認する。カーソルを外すと詳細は消え、選択で固定されない。Node 360では始点表示や候補にもホバーできる。Pause中もホバー可能で、生成演出と敗北カウントダウンは停止する。敗北時はGAME OVER画面のRetryから配線0で再開できる。
 
 FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。表示だけでなく実際の移動速度を下げているため、Lineの回転と容量回復も遅くなる。最終的な速度・生成量・猶予の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) の比較プレイで決める。
 
@@ -178,3 +176,8 @@ FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。
 同色Sinkへの直結を優先し、そのLineが満杯なら待機する。直結がなければ空いているRelay行きLineだけから選ぶ。例としてS1の接続がREDとR1なら、RedはREDへ、BlueはR1へ送る。Relay行きも満杯ならS1で待つ。異色Sinkへは流さない。
 
 BufferはSource（S1/S2/S3）**10**、Relay **5**。SinkにはBuffer・中継・Outgoing Lineがなく、同色FLOWを到着時に消化する。Relay満杯の6個目はLine上で待ち、Relayの混雑だけでは敗北しない。Sourceは現在、**10個以上が5秒続くとGame Over**。上限到達と同時の敗北ではなく、10未満へ回復すると猶予がリセットされる。
+
+
+LineのIn-Flight上限は **3**。待機間隔はLineの実経路長の1/3で、満杯時は始点から1/3・2/3・終点に分散する。移動中も間隔を確保し、停止・再開で位置を付け替えない。受け取り待ちのLineはオレンジに変わり、解消後は通常色に戻る。削除予約・経路切替の色は保持し、同時に詰まった場合は矢印をオレンジにする。
+
+Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S1/S3: 3秒、S2: 3.9秒**、Wave倍率は従来どおり。Bootstrapの負荷検証用Sourceも0.25→0.75秒へ変更した。最終的な難度はIssue #13で比較する。

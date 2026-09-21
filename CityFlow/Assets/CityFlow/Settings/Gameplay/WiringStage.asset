@@ -30,7 +30,7 @@ MonoBehaviour:
       Position: {x: 48, y: 0, z: -20}
       MaxIncoming: 3
       MaxOutgoing: 3
-      GenerationInterval: 1.3
+      GenerationInterval: 3.9
       GenerationDelay: 20
   - StartSeconds: 120
     IntervalScale: 0.75
@@ -68,7 +68,7 @@ MonoBehaviour:
       Position: {x: -48, y: 0, z: -36}
       MaxIncoming: 3
       MaxOutgoing: 3
-      GenerationInterval: 1
+      GenerationInterval: 3
       GenerationDelay: 20
   Lines: []
   GroundHeight: 0
@@ -98,7 +98,7 @@ MonoBehaviour:
     Position: {x: -38, y: 0, z: -20}
     MaxIncoming: 3
     MaxOutgoing: 3
-    GenerationInterval: 1
+    GenerationInterval: 3
     GenerationDelay: 15
   - Id: R1
     Kind: 1

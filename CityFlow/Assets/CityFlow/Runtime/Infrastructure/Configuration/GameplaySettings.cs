@@ -17,7 +17,7 @@ namespace CityFlow.Infrastructure.Configuration
         [Tooltip("Repeatable random seed for the validation scene.")]
         public int RandomSeed = 1337;
         [Tooltip("Provisional common capacity per line [FLOW].")]
-        public int MaxInFlight = 10;
+        public int MaxInFlight = 3;
         [Tooltip("Provisional movement speed [m/s].")]
         public float FlowSpeed = 8;
         [Tooltip("Provisional Source overload grace [s].")]

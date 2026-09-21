@@ -50,9 +50,9 @@ namespace CityFlow.Composition
             overview.Initialize(stage, network, camera);
             var connectionController = city.AddComponent<NodeConnectionController>();
             connectionController.Initialize(connection, overview, stage, camera, view);
-            hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation);
-            hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera);
-            hud.AddComponent<GroundPreviewView>().Initialize(preview, network, overview);
+            hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation, connectionController, camera);
+            hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera, overview);
+            hud.AddComponent<GroundPreviewView>().Initialize(preview);
             hud.AddComponent<NodeConnectionView>().Initialize(connection, preview, overview, connectionController, camera);
             hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);

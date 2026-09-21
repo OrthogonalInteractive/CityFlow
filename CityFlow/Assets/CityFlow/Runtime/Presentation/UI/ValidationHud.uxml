@@ -3,21 +3,12 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
-        <ui:VisualElement class="node-360-top-backdrop" picking-mode="Ignore" />
-        <ui:VisualElement name="source-monitor" class="source-monitor" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
             <ui:Button name="pause-toggle" text="Pause [Esc]" />
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement class="panel summary-panel">
-            <ui:Label text="CITY FLOW  /  v0.1" class="title" />
-            <ui:Label name="wave-status" text="WAVE 1" class="subtitle" />
-            <ui:Label name="source-warmup" class="summary" />
-            <ui:Label name="network-summary" class="summary" />
-            <ui:Label name="capacity-summary" class="summary" />
-            <ui:Label name="congestion-status" class="summary" />
-            <ui:Label name="source-status" class="summary" />
             <ui:VisualElement class="metrics">
                 <ui:VisualElement class="metric">
                     <ui:Label text="DELIVERED" class="metric-caption" />
@@ -28,24 +19,8 @@
                     <ui:Label name="elapsed-value" text="0.0 s" class="metric-value" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement class="metrics secondary-metrics">
-                <ui:Label text="WAITING" class="metric-caption" />
-                <ui:Label name="waiting-value" text="000" class="small-value" />
-                <ui:Label text="IN FLIGHT" class="metric-caption" />
-                <ui:Label name="inflight-value" text="000" class="small-value" />
-            </ui:VisualElement>
         </ui:VisualElement>
         <ui:ScrollView class="readouts interactive" mode="Vertical">
-            <ui:VisualElement class="panel node-panel">
-                <ui:Label text="NODE CONNECTIONS" class="section-title" />
-                <ui:VisualElement class="table-row table-header">
-                    <ui:Label text="NODE" class="node-name" />
-                    <ui:Label text="IN" class="connection" />
-                    <ui:Label text="OUT" class="connection" />
-                    <ui:Label text="BUFFER" class="buffer" />
-                </ui:VisualElement>
-                <ui:VisualElement name="node-rows" />
-            </ui:VisualElement>
             <ui:VisualElement class="panel line-panel">
                 <ui:Label text="DIRECTED LINES" class="section-title" />
                 <ui:VisualElement class="table-row table-header">
@@ -57,15 +32,11 @@
                 <ui:VisualElement name="line-rows" />
             </ui:VisualElement>
         </ui:ScrollView>
-
-        <ui:VisualElement class="panel detail-panel">
-            <ui:Label text="NETWORK INSPECTOR" class="section-title" />
-            <ui:Label name="overview-detail" class="detail-text" />
-        </ui:VisualElement>
         <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="route-editor" class="panel route-editor interactive">
             <ui:Label text="GROUND / MANUAL ROUTE" class="section-title" />
             <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag numbered handles: move on Ground&#10;Select a handle + Delete: remove&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
+            <ui:Label name="edit-route-feedback" class="detail-text route-feedback" />
             <ui:Label name="route-point-detail" class="band-hint" />
             <ui:Button name="route-remove" text="Remove selected point [Delete]" />
             <ui:Button name="route-regenerate" text="Regenerate automatic route" />
@@ -73,8 +44,6 @@
             <ui:Button name="route-cancel" text="Cancel [Backspace]" />
         </ui:VisualElement>
         <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
-
-
         <ui:VisualElement name="connection-workspace" class="connection-workspace" picking-mode="Ignore">
             <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
                 <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
@@ -98,6 +67,9 @@
                     <ui:Label name="connection-help" text="Hover / Tab: preview a route.&#10;Click a Node or candidate: connect.&#10;E: edit route before connecting." class="band-hint" />
                     <ui:Button name="connect-review" text="Review in Overview [V]" />
                     <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
+                    <ui:Label name="route-feedback" class="detail-text route-feedback" />
+                    <ui:Button name="connect-confirm" text="Confirm Line [Enter]" />
+                    <ui:Button name="route-edit" text="Edit Ground route [E]" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive">
@@ -105,21 +77,12 @@
                 <ui:Label name="candidate-list-count" class="band-hint" />
                 <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
             </ui:VisualElement>
-            <ui:VisualElement name="preview-panel" class="panel preview-panel interactive">
-                <ui:Label text="GROUND ROUTE PREVIEW" class="section-title" />
-                <ui:DropdownField name="preview-source" label="FROM" class="preview-endpoints" />
-                <ui:DropdownField name="preview-target" label="TO" class="preview-endpoints" />
-                <ui:VisualElement class="preview-actions">
-                    <ui:Button name="preview-generate" text="Generate route" class="preview-lab" />
-                    <ui:Button name="preview-cancel" text="Cancel" class="preview-lab" />
-                    <ui:Button name="connect-confirm" text="Confirm Line [Enter]" class="connection-only" />
-                </ui:VisualElement>
-                <ui:Button name="route-edit" text="Edit Ground route [E]" class="connection-only" />
-                <ui:Label name="preview-detail" class="detail-text" />
-            </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK NODE · CONNECT    SHIFT + LINE · EDIT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
         <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    CLICK · CONNECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
+        <ui:VisualElement name="node-tooltip" class="panel hover-panel" picking-mode="Ignore">
+            <ui:Label name="hover-detail" class="detail-text" picking-mode="Ignore" />
+        </ui:VisualElement>
         <ui:Label name="wave-notice" class="wave-notice" picking-mode="Ignore" />
         <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="result-overlay" class="result-overlay interactive">

@@ -17,21 +17,13 @@ namespace CityFlow.Presentation.UI
         private sealed class Elements
         {
             public VisualElement Root { get; }
-            public Label Summary { get; }
-            public Label Capacity { get; }
             public Label Delivered { get; }
             public Label Elapsed { get; }
-            public Label Waiting { get; }
-            public Label InFlight { get; }
             public Elements(VisualElement root)
             {
                 Root = root;
-                Summary = Required<Label>(root, "network-summary");
-                Capacity = Required<Label>(root, "capacity-summary");
                 Delivered = Required<Label>(root, "delivered-value");
                 Elapsed = Required<Label>(root, "elapsed-value");
-                Waiting = Required<Label>(root, "waiting-value");
-                InFlight = Required<Label>(root, "inflight-value");
             }
         }
 
@@ -41,12 +33,13 @@ namespace CityFlow.Presentation.UI
         private FlowSimulation? simulation;
         private Camera? sceneCamera;
         private Elements? elements;
-        private readonly Dictionary<string, (Label incoming, Label outgoing, Label buffer)> nodeRows = new();
+        private CityFlow.Presentation.Overview.OverviewController? overview;
         private readonly Dictionary<int, Label> lineLoads = new();
         private readonly Dictionary<string, Label> nodeLabels = new();
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera, CityFlow.Presentation.Overview.OverviewController input)
         {
+            overview = input;
             stage = definition; network = flowNetwork; simulation = flowSimulation; sceneCamera = camera;
             document = GetComponent<UIDocument>();
             if (isActiveAndEnabled) Bind();
@@ -54,8 +47,9 @@ namespace CityFlow.Presentation.UI
         private void OnEnable() => Bind();
         private void OnDisable()
         {
+            if (overview != null) overview.IsPointerBlocked = null;
             elements = null;
-            nodeRows.Clear(); lineLoads.Clear(); nodeLabels.Clear();
+            lineLoads.Clear(); nodeLabels.Clear();
         }
         private void Bind()
         {
@@ -63,21 +57,15 @@ namespace CityFlow.Presentation.UI
             VisualElement root = document.rootVisualElement;
             if (root == null) return;
             elements = new Elements(root);
-            VisualElement rows = Required<VisualElement>(root, "node-rows");
+            if (overview != null) overview.IsPointerBlocked = PointerBlocked;
             VisualElement lines = Required<VisualElement>(root, "line-rows");
             VisualElement labels = Required<VisualElement>(root, "node-labels");
-            rows.Clear(); lines.Clear(); labels.Clear();
-            nodeRows.Clear(); lineLoads.Clear(); nodeLabels.Clear();
+            lines.Clear(); labels.Clear();
+            lineLoads.Clear(); nodeLabels.Clear();
             NetworkSnapshot snapshot = network.Snapshot();
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 string id = node.Definition.Id;
-                var row = new VisualElement(); row.AddToClassList("table-row"); rows.Add(row);
-                Cell(row, id, "node-name");
-                Label incoming = Cell(row, "", "connection");
-                Label outgoing = Cell(row, "", "connection");
-                Label buffer = Cell(row, "", "buffer", $"node-buffer-{id}");
-                nodeRows.Add(id, (incoming, outgoing, buffer));
                 Label label = Cell(labels, $"{id.ToUpperInvariant()} · {node.Definition.Kind.ToString().ToUpperInvariant()}",
                     "node-label", $"node-label-{id}");
                 if (node.BufferCapacity.HasValue)
@@ -106,49 +94,40 @@ namespace CityFlow.Presentation.UI
             });
             Refresh(snapshot);
         }
+        private bool PointerBlocked(Vector2 screen)
+        {
+            if (document == null || document.rootVisualElement.panel == null) return false;
+            var panel = document.rootVisualElement.panel;
+            Vector2 point = RuntimePanelUtils.ScreenToPanel(panel,new Vector2(screen.x,Screen.height-screen.y));
+            for (VisualElement? element = panel.Pick(point); element != null; element = element.parent)
+                if (element.ClassListContains("interactive")) return true;
+            return false;
+        }
         private void LateUpdate()
         {
             if (document == null || network == null) return;
             // UIDocument recreates its visual tree when disabled and enabled again.
             NetworkSnapshot snapshot = network.Snapshot();
             if (elements == null || elements.Root != document.rootVisualElement ||
-                snapshot.Lines.Count != lineLoads.Count || snapshot.Lines.Any(l=>!lineLoads.ContainsKey(l.Id)) || snapshot.Nodes.Count != nodeRows.Count) Bind();
+                snapshot.Lines.Count != lineLoads.Count || snapshot.Lines.Any(l=>!lineLoads.ContainsKey(l.Id)) || snapshot.Nodes.Count != nodeLabels.Count) Bind();
             Refresh(snapshot);
             PositionNodeLabels();
         }
         private void Refresh(NetworkSnapshot snapshot)
         {
             if (elements == null || stage == null || network == null || simulation == null) return;
-            int colors = network.NodeDefinitions.Where(node => node.SinkColor.HasValue).Select(node => node.SinkColor).Distinct().Count();
-            elements.Summary.text = $"{snapshot.Nodes.Count} NODES   /   {colors} SINK COLORS   /   10 m GRID";
-            elements.Capacity.text = $"{snapshot.Lines.Count} DIRECTED LINES   /   CAPACITY {network.Settings.MaxInFlight}";
-            Required<Label>(elements.Root, "congestion-status").text = $"INPUT STOPPED {snapshot.Nodes.Count(n => n.IsInputStopped)}   /   STOPPED FLOW {snapshot.Lines.Sum(l => l.InFlight.Count(f => f.IsStopped))}";
-            Label sourceStatus = Required<Label>(elements.Root, "source-status");
-            NodeSnapshot? warning = snapshot.Nodes.Where(n => n.Definition.Kind == NodeKind.Source && n.IsInputStopped)
-                .OrderByDescending(n => n.OverloadSeconds).FirstOrDefault();
-            sourceStatus.text = network.IsGameOver ? $"GAME OVER · SOURCE {network.GameOverSourceId}" :
-                warning != null ? $"OVERLOAD {warning.Definition.Id} · {Math.Max(0, network.Settings.OverloadGrace - warning.OverloadSeconds):0.0}s LEFT" : "SOURCE STATUS · NORMAL";
-            sourceStatus.EnableInClassList("full", warning != null || network.IsGameOver);
             elements.Delivered.text = snapshot.DeliveredCount.ToString("0000");
             elements.Elapsed.text = $"{simulation.ElapsedSeconds:0.0} s";
-            elements.Waiting.text = snapshot.Nodes.Sum(node => node.Buffer.Count).ToString("000");
-            elements.InFlight.text = snapshot.Lines.Sum(line => line.InFlight.Count).ToString("000");
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
-                var row = nodeRows[node.Definition.Id];
-                row.incoming.text = $"{node.IncomingUsed}/{node.Definition.MaxIncoming}";
-                row.outgoing.text = node.Definition.Kind == NodeKind.Sink ? "—" : $"{node.OutgoingUsed}/{node.Definition.MaxOutgoing}";
-                row.buffer.text = node.BufferCapacity.HasValue ? $"{node.Buffer.Count}/{node.BufferCapacity.Value}" : "—";
                 Label marker = nodeLabels[node.Definition.Id];
                 marker.text = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}";
                 marker.EnableInClassList("input-stopped", node.IsInputStopped);
                 if (node.BufferCapacity.HasValue)
                 {
                     int capacity = node.BufferCapacity.Value;
-                    marker.text += $"  {node.Buffer.Count}/{capacity}";
                     marker.Q<VisualElement>($"node-fill-{node.Definition.Id}").style.width = Length.Percent(Mathf.Min(100, 100f * node.Buffer.Count / capacity));
                 }
-                row.buffer.EnableInClassList("full", node.IsInputStopped);
             }
             foreach (LineSnapshot line in snapshot.Lines)
             {

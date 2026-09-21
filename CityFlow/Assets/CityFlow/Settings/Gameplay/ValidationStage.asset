@@ -71,7 +71,7 @@ MonoBehaviour:
     Position: {x: -38, y: 0, z: -20}
     MaxIncoming: 3
     MaxOutgoing: 3
-    GenerationInterval: 0.25
+    GenerationInterval: 0.75
     GenerationDelay: 0
   - Id: R1
     Kind: 1

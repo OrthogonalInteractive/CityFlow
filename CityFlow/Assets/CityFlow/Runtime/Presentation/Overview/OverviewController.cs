@@ -25,6 +25,7 @@ namespace CityFlow.Presentation.Overview
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
         public OverviewTarget Selected { get; private set; }
         public OverviewTarget Hovered { get; private set; }
+        public Vector2 HoverScreenPosition { get; private set; }
         public bool EditingRoute { get; set; }
         public Func<Vector2, bool>? IsPointerBlocked { get; set; }
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera)
@@ -72,14 +73,14 @@ namespace CityFlow.Presentation.Overview
             if (!blocked && dragInput.IsPressed() && delta != Vector2.zero)
                 Pan(-delta * (2 * sceneCamera.orthographicSize / Mathf.Max(1, Screen.height)));
             if (point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
-            { Hovered = blocked ? default : Pick(point); lastPointer = point; }
+            { HoverScreenPosition = point; Hovered = blocked ? default : Pick(point); lastPointer = point; }
         }
         public void Select(OverviewTarget target)
         {
             if (Selected.Equals(target)) return;
             Selected = target; selectionChanged.OnNext(target);
         }
-        public void Hover(Vector2 screen) => Hovered = Pick(screen);
+        public void Hover(Vector2 screen) { HoverScreenPosition = screen; Hovered = Pick(screen); }
         public OverviewTarget Pick(Vector2 screen)
         {
             if (stage == null || network == null || sceneCamera == null || !sceneCamera.pixelRect.Contains(screen)) return default;
