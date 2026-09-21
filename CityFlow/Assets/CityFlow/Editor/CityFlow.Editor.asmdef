@@ -1,0 +1,21 @@
+{
+  "name": "CityFlow.Editor",
+  "rootNamespace": "CityFlow.Editor",
+  "references": [
+    "CityFlow.Composition",
+    "Unity.InputSystem",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "VContainer"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

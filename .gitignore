@@ -1,0 +1,50 @@
+# Unity generated files
+/CityFlow/[Ll]ibrary/
+/CityFlow/[Tt]emp/
+/CityFlow/[Oo]bj/
+/CityFlow/[Bb]uild/
+/CityFlow/[Bb]uilds/
+/CityFlow/[Ll]ogs/
+/CityFlow/[Uu]ser[Ss]ettings/
+/CityFlow/[Tt]est[Rr]esults/
+/CityFlow/MemoryCaptures/
+/CityFlow/Recordings/
+/CityFlow/[Ee]xported[Oo]bj/
+/CityFlow/Assets/AssetStoreTools*
+
+# Restored NuGet packages
+/CityFlow/Assets/Packages/
+/CityFlow/Assets/Packages.meta
+
+# IDE and local tools
+/.vs/
+/.idea/
+/.vscode/
+/.gradle/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.unityproj
+*.opendb
+*.VC.db
+*.pdb
+*.mdb
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+.DS_Store
+*.log
+sysinfo.txt
+crashlytics-build.properties
+
+# Crash and build artifacts
+*.apk
+*.aab
+*.unitypackage
+*_BackUpThisFolder_ButDontShipItWithYourGame/
+*_BurstDebugInformation_DoNotShip/

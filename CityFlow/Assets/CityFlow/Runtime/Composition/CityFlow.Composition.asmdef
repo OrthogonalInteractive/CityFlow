@@ -1,0 +1,20 @@
+{
+  "name": "CityFlow.Composition",
+  "rootNamespace": "CityFlow.Composition",
+  "references": [
+    "CityFlow.Domain",
+    "CityFlow.Application",
+    "CityFlow.Infrastructure",
+    "CityFlow.Presentation",
+    "VContainer"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
