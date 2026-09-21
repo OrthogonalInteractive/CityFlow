@@ -16,6 +16,7 @@ namespace CityFlow.Tests.EditMode
         private static readonly Vector3 B = new Vector3(10, 0, -5);
         private static readonly Vector3 C = new Vector3(10, 0, 5);
         private static readonly Vector3 D = new Vector3(-10, 0, 5);
+        private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         private static FlowNetwork Network(int outgoing = 3, int incoming = 3, bool building = false) =>
             new FlowNetwork(new StageDefinition(0, new Rect(-30, -30, 60, 60), building ?
                 new[] { new Bounds(new Vector3(0, 2, 0), new Vector3(4, 4, 4)) } : Array.Empty<Bounds>(),
@@ -92,6 +93,21 @@ namespace CityFlow.Tests.EditMode
             Assert.Throws<ArgumentException>(() => network.GenerateFlow("A", FlowColor.Green));
             for (int i = 0; i < 5; i++) network.GenerateFlow("A", FlowColor.Blue);
             Assert.That(network.Snapshot().Nodes.SelectMany(n => n.Buffer).Select(f => f.Id).Distinct().Count(), Is.EqualTo(5));
+        }
+        [Test] public void SourceGenerationRemainsObservableAfterImmediateDeparture()
+        {
+            var network = Network();
+            network.TryConnect("A", "C", new[] { A, C });
+            NodeSnapshot before = network.Snapshot().Nodes.Single(n => n.Definition.Id == "A");
+            network.GenerateFlow("A", FlowColor.Red);
+            network.RouteWaitingFlows(new First());
+            NodeSnapshot after = network.Snapshot().Nodes.Single(n => n.Definition.Id == "A");
+            Assert.That(after.Buffer, Is.Empty);
+            Assert.That(after.GeneratedCount, Is.EqualTo(1));
+            Assert.That(after.LastGeneratedColor, Is.EqualTo(FlowColor.Red));
+            Assert.That(before.GeneratedCount, Is.Zero);
+            Assert.That(before.LastGeneratedColor, Is.Null);
+            Assert.That(network.Snapshot().Nodes.Where(n => n.Definition.Kind != NodeKind.Source).All(n => n.GeneratedCount == 0), Is.True);
         }
     }
 }

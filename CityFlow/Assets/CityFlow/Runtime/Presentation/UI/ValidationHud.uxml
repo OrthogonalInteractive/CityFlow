@@ -3,6 +3,8 @@
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
         <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
+        <ui:VisualElement class="node-360-top-backdrop" picking-mode="Ignore" />
+        <ui:VisualElement name="source-monitor" class="source-monitor" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
             <ui:Button name="pause-toggle" text="Pause [Esc]" />
@@ -122,7 +124,7 @@
         <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="result-overlay" class="result-overlay interactive">
             <ui:VisualElement class="panel result-panel">
-                <ui:Label text="NETWORK OVERLOADED" class="title" />
+                <ui:Label name="result-title" text="GAME OVER" class="title" />
                 <ui:Label name="result-detail" class="result-detail" />
                 <ui:Label text="Keep the Source moving.&#10;Use Pause to plan and reconnect your network." class="detail-text" />
                 <ui:Button name="retry-session" text="Retry / start with 0 Lines" />

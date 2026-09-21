@@ -233,3 +233,9 @@ Overviewの実クリックをR3で通知し、NodeクリックはNode 360へ、S
 Node本体・マーカー・候補一覧への注目でPreviewを生成し、クリックで接続確定する。無効な接続はPreviewと理由を保持する。Enterでの確定、Eでの確定前編集、VでのOverview確認、Backspace取消も維持する。画面上のConnectボタンは削除した。
 
 Node 360では3D描画を左72%・下端6%を除く領域へ限定し、操作・候補一覧・Previewを右側へまとめる。Node位置への投影と画面外判定もCamera.rectを使う。注目ラベルはNodeの上（上端では下）へずらす。建物と屋根はアルファ0.18の専用マテリアルへ切り替え、元の不透明マテリアルを保持する。Overview復帰・手動編集・Controller無効化で元のマテリアル、影、カメラ領域を復元する。空間判定と確定経路は変更しない。
+
+## v0.1 Sourceの視認性
+
+`NodeSnapshot`にSourceごとの生成累計・直近生成色を保持する。生成と同じtickに出発してBufferが空になっても生成を観測できる。表示は`SourceStatusView`が所有し、生成リング（暫定0.75 s）と最大50個の待機粒子を描画する。表示上限でDomainのFLOWを削除しない。生成リングの時間源は`FlowSimulation.ElapsedSeconds`とし、Pauseで停止する。
+
+Sourceモニターは全Sourceの準備時間、生成累計・直近色、Buffer実数／容量、残容量を常設表示する。容量80%を予告警告の暫定値とし、満杯では継続Overloadの残り猶予を表示する。360では上端12%をSource表示専用に追加し、都市描画と重ならない。結果の見出しはGAME OVERとし、原因Source・生存時間・配送数とRetryを表示する。

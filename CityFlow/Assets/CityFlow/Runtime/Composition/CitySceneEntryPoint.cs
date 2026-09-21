@@ -58,6 +58,7 @@ namespace CityFlow.Composition
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);
             hud.AddComponent<PauseView>().Initialize(simulation);
             hud.AddComponent<GameSessionView>().Initialize(simulation, network, connection, overview, connectionController, camera);
+            hud.AddComponent<SourceStatusView>().Initialize(network, simulation, connection, connectionController);
             hud.SetActive(true);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }

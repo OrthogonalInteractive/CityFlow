@@ -13,6 +13,8 @@ namespace CityFlow.Domain.FlowNetwork
         private sealed class NodeState
         {
             public double OverloadSeconds { get; set; }
+            public long GeneratedCount { get; set; }
+            public FlowColor? LastGeneratedColor { get; set; }
             public NodeDefinition Definition { get; }
             public List<Flow> Buffer { get; } = new List<Flow>();
             public List<LineState> Incoming { get; } = new List<LineState>();
@@ -120,12 +122,14 @@ namespace CityFlow.Domain.FlowNetwork
             var flow = new Flow(nextFlowId++, color);
             // Specification 5.2 proposal: Source generation retains overflow instead of dropping FLOW.
             source.Buffer.Add(flow);
+            source.GeneratedCount++; source.LastGeneratedColor = color;
             return flow;
         }
         public NetworkSnapshot Snapshot() => new NetworkSnapshot(NodeDefinitions.Select(definition =>
         {
             NodeState node = nodes[definition.Id];
-            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds);
+            return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.MaxBuffer, node.OverloadSeconds,
+                node.GeneratedCount, node.LastGeneratedColor);
         }), lines.Select(line => new LineSnapshot(line.Id, line.Source.Definition.Id, line.Destination.Definition.Id,
             line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)), line.Status, line.PendingRoute)),
             nextFlowId - 1, deliveredCount);
