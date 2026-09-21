@@ -220,3 +220,15 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - 0 Line開始からS1/S2/S3→RED・BLUE・R1、R1→GREEN・YELLOW・PURPLEへWaveごとに拡張し、**4 Wave・11 Node・5色・12 Lineで240 s生存**、100件超の配送を確認。SinkのBufferは常に空、Relayは5以下、生成数＝消化数＋待機数＋In-Flightを維持。
 - 制御した実画面ではR1にBlueを5個保持し、6個目のBlueをS1→R1のLine終端で停止、RedをS1→RED上で移動させた。S1 0/10、R1 5/5、SinkのBuffer欄「—」とゲージなしを確認。撮影時は自動tickを止め、撮影用の配線とFLOWを作成してPauseした。
 - 画面: `docs/screenshots/relay-only-routing-buffer-capacities.png`。Unity Editor内での検証で、Playerビルドは対象外。
+
+## 生成頻度・容量3・ホバー中心HUDの検証
+
+- 生成間隔／容量と等間隔待機でEditMode 2件、ホバー専用表示と停止Lineの色でPlayMode 2件のRedを確認。旧「同時出発したFLOWが重なったまま同時到着する」テストは、先行FLOWとの間隔を待ってから共通速度で進む仕様へ更新した。
+- 最終EditMode **120/120**、PlayMode **37/37**成功。コンパイルError/Warning **0**、Console Error **0**。PlayModeで見つけた描画オブジェクトの初期化タイミングを修正し、全件を再実行した。
+- 新規設定とアセットのLine容量3、WiringLabのS1/S3 3秒・S2 3.9秒を検証。S1は準備15秒＋生成間隔3秒で初回18秒、次は21秒に生成する。Wave倍率と敗北猶予は維持。
+- 30 m・容量3のLineで停止位置30／20／10 m、FLOW ID・所属・容量の保持、各tickの進行量0〜速度×時間差分を確認。回復後も現在位置から前進する。通常Lineの混雑色と回復時の色復元をPlayModeで確認。
+- Source／Relay／Sink／Lineのホバー、カーソルを外した時の消去、選択で固定されないこと、Pause中の情報確認、360の始点／候補への実Pointer入力、都市領域外への配置を確認。パネル削除後も接続・Preview・手動編集・削除予約・Retry・UI入力透過が通過。
+- 実画面でSourceのホバーパネルが隣のR1へ重なる問題を見つけ、再現テスト1件をRedにした。周辺Nodeを避けて左右上下から配置を選ぶ修正後、全PlayMode **37/37**を再実行して成功。停止FLOWの円盤は終点Nodeの周囲にも見える大きさにした。
+- 新しい生成間隔・容量3でも、0 LineからRelay経由の12 Lineへ拡張して4 Wave・11 Node・5色で240秒生存、100件超の配送とFLOW総数保存を確認。難度の比較・最終採用値は引き続き #12／#13。
+- 撮影用にR1へBlue 5個、S1→R1へBlue 3個、S1→REDへRed 1個、S1にBlue 4個を作り、自動tickを止めてPause。26 mのLine上でBlueが8.67／17.33／26 mに並び、Lineがオレンジになることを確認した。
+- Sourceのホバー時は生成3.00秒・Buffer 4/10・接続数・送り先を表示: `docs/screenshots/v01-hover-source.png`。ホバーを外すと詳細が消える: `docs/screenshots/v01-minimal-hud-queue.png`。360では独立Previewパネルをなくし、配線欄に実経路の情報を集約: `docs/screenshots/v01-minimal-node360.png`。
