@@ -34,6 +34,8 @@ namespace CityFlow.Presentation.UI
                 Warning = new Label { name = "source-warning-" + id, pickingMode = PickingMode.Ignore };
                 Generation.AddToClassList("source-generation"); Warning.AddToClassList("source-warning");
                 Card.Add(Buffer); Card.Add(Generation); Card.Add(Warning); monitor.Add(Card);
+                // ProgressBar creates internal elements that must also pass through world input.
+                Card.Query().ForEach(element => element.pickingMode = PickingMode.Ignore);
                 Waiting = new GameObject("Source buffer " + id);
                 Waiting.transform.SetParent(parent); Waiting.transform.position = position;
                 var pulseObject = new GameObject("Source generation " + id);
@@ -129,6 +131,7 @@ namespace CityFlow.Presentation.UI
                 {
                     view.Pulse.transform.localScale = Vector3.one * (1 + (float)age);
                     Color color = node.LastGeneratedColor.HasValue ? ValidationCityView.ColorFor(node.LastGeneratedColor.Value) : Color.white;
+                    if (node.LastGeneratedColor.HasValue) view.Pulse.sharedMaterial = FlowMaterial(node.LastGeneratedColor.Value);
                     view.Pulse.startColor = view.Pulse.endColor = Color.Lerp(color, Color.white, 0.3f);
                 }
             }
