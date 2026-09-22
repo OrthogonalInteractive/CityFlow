@@ -54,6 +54,10 @@ Label { margin: 0; padding: 0; }
     border-right-width: 1px; border-right-color: rgb(10, 17, 25); }
 .node-buffer-slot.empty { background-color: rgb(44, 53, 65); }
 .input-stopped { border-color: rgb(255, 197, 91); }
+.node-label.source-warning { border-color: rgb(255, 197, 91); }
+.node-label.source-overload { height: 56px; border-width: 2px; border-color: rgb(255, 78, 55); }
+.node-label.source-flash { border-color: rgb(255, 190, 140); }
+.source-danger { position: absolute; left: 0; right: 0; top: 0; bottom: 0; opacity: 0; --edge-size: 48; }
 .readouts .panel { padding: 14px; }
 .readouts .table-row { height: 26px; }
 .readouts .section-title { margin-bottom: 12px; }

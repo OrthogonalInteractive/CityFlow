@@ -8,6 +8,7 @@ using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Connections;
 using CityFlow.Presentation.Rendering;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace CityFlow.Presentation.UI
 {
@@ -44,6 +45,9 @@ namespace CityFlow.Presentation.UI
         private readonly Dictionary<string, SourceView> sources = new();
         private readonly Dictionary<FlowColor, Material> materials = new();
         private Material? pulseMaterial;
+        private Material? warningMaterial;
+        private VisualElement? vignette;
+        private static readonly CustomStyleProperty<float> edgeSize = new("--edge-size");
 
         public void Initialize(FlowNetwork state, FlowSimulation clock, ConnectionSession wiring, NodeConnectionController controller)
         {
@@ -57,7 +61,18 @@ namespace CityFlow.Presentation.UI
             {
                 pulseMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
                 pulseMaterial.SetColor("_BaseColor", Color.white);
+                warningMaterial = new Material(pulseMaterial);
+                warningMaterial.SetColor("_BaseColor", new Color(1, 0.2f, 0.1f));
             }
+            var edge = GetComponent<UIDocument>().rootVisualElement.Q("source-danger");
+            if (vignette != edge)
+            {
+                if (vignette != null) vignette.generateVisualContent -= DrawWarning;
+                vignette = edge;
+                if (vignette != null) vignette.generateVisualContent += DrawWarning;
+            }
+            bool overloaded = false;
+            double urgency = 0;
             foreach (NodeSnapshot node in network.Snapshot().Nodes)
             {
                 if (node.Definition.Kind != NodeKind.Source) continue;
@@ -92,15 +107,63 @@ namespace CityFlow.Presentation.UI
                     if (i < visible) dot.sharedMaterial = FlowMaterial(node.Buffer[i].Color);
                 }
                 double age = simulation.ElapsedSeconds - view.LastGeneration;
+                if (node.IsInputStopped)
+                {
+                    overloaded = true;
+                    double progress = Math.Min(1, node.OverloadSeconds / network.Settings.OverloadGrace);
+                    urgency = Math.Max(urgency, progress);
+                    view.Pulse.enabled = !hidden;
+                    view.Pulse.loop = false;
+                    view.Pulse.transform.localScale = Vector3.one;
+                    view.Pulse.sharedMaterial = warningMaterial;
+                    view.Pulse.startColor = view.Pulse.endColor = Color.white;
+                    for (int i = 0; i < view.Pulse.positionCount; i++)
+                    {
+                        float angle = -Mathf.PI * 0.5f - (float)(1 - progress) * 2 * Mathf.PI * i / (view.Pulse.positionCount - 1);
+                        view.Pulse.SetPosition(i, new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 4.3f);
+                    }
+                    continue;
+                }
+                view.Pulse.loop = true;
                 view.Pulse.enabled = age < 0.75 && !hidden;
                 if (age < 0.75)
                 {
+                    for (int i = 0; i < view.Pulse.positionCount; i++)
+                    {
+                        float angle = i * 2 * Mathf.PI / view.Pulse.positionCount;
+                        view.Pulse.SetPosition(i, new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * 3.5f);
+                    }
                     view.Pulse.transform.localScale = Vector3.one * (1 + (float)age);
                     Color color = node.LastGeneratedColor.HasValue ? ValidationCityView.ColorFor(node.LastGeneratedColor.Value) : Color.white;
                     if (node.LastGeneratedColor.HasValue) view.Pulse.sharedMaterial = FlowMaterial(node.LastGeneratedColor.Value);
                     view.Pulse.startColor = view.Pulse.endColor = Color.Lerp(color, Color.white, 0.3f);
                 }
             }
+            if (vignette != null) vignette.style.opacity = overloaded && !network.IsGameOver ? 0.08f + (float)urgency * 0.12f : 0;
+        }
+
+        private static void DrawWarning(MeshGenerationContext context)
+        {
+            Rect bounds = context.visualElement.contentRect;
+            if (bounds.width <= 0 || bounds.height <= 0) return;
+            float size = context.visualElement.customStyle.TryGetValue(edgeSize, out float configured) ? configured : 48;
+            size = Mathf.Min(size, Mathf.Min(bounds.width, bounds.height) * 0.25f);
+            MeshWriteData mesh = context.Allocate(16, 24);
+            ushort offset = 0;
+            void Quad(Rect rect, byte a, byte b, byte c, byte d)
+            {
+                var points = new[] { new Vector2(rect.xMin, rect.yMin), new Vector2(rect.xMax, rect.yMin),
+                    new Vector2(rect.xMax, rect.yMax), new Vector2(rect.xMin, rect.yMax) };
+                var alpha = new[] { a, b, c, d };
+                for (int i = 0; i < 4; i++) mesh.SetNextVertex(new Vertex {
+                    position = new Vector3(points[i].x, points[i].y, Vertex.nearZ), tint = new Color32(255, 60, 35, alpha[i]) });
+                foreach (int index in new[] { 0, 1, 2, 2, 3, 0 }) mesh.SetNextIndex((ushort)(offset + index));
+                offset += 4;
+            }
+            Quad(new Rect(0, 0, bounds.width, size), 255, 255, 0, 0);
+            Quad(new Rect(0, bounds.height - size, bounds.width, size), 0, 0, 255, 255);
+            Quad(new Rect(0, size, size, bounds.height - 2 * size), 255, 0, 0, 255);
+            Quad(new Rect(bounds.width - size, size, size, bounds.height - 2 * size), 0, 255, 255, 0);
         }
 
         private Material FlowMaterial(FlowColor color)
@@ -119,11 +182,17 @@ namespace CityFlow.Presentation.UI
             }
             sources.Clear();
         }
-        private void OnDisable() => Clear();
+        private void OnDisable()
+        {
+            Clear();
+            if (vignette != null) vignette.generateVisualContent -= DrawWarning;
+            vignette = null;
+        }
         private void OnDestroy()
         {
             foreach (Material material in materials.Values) if (material != null) Destroy(material);
             if (pulseMaterial != null) Destroy(pulseMaterial);
+            if (warningMaterial != null) Destroy(warningMaterial);
         }
     }
 }

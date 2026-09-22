@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ValidationHud.uss" />
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:VisualElement name="source-danger" class="source-danger" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive">

@@ -253,3 +253,5 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - #16のEditModeは自己候補・Sink始点・Undoで4件のRedを確認後、16/16成功。輸送中Line、編集済みLine、別操作開始後をUndoで消さないことを検証。
 - 説明トーストとCtrl+ZのPlayMode追加2件はUI未実装で2件のRedを確認。
 - #16のNodeConnectionTestsは **10/10成功**（Sink説明・Pause中Ctrl+Z・既存Node 360操作）。コンパイルError/Warning 0、Console Error 0。
+- #14のホバーなし警告は新テストでRedを確認。80%枠、満杯時の秒数・円弧・画面端警告、Pause固定、対応Sinkへの出力後の解除を確認する。
+- #14はSourceStatusTests **4/4成功**。接続追加で再生成されるラベルを取得し直したうえで、Buffer 10→7、猶予・円弧・画面端警告の解除を確認した。コンパイルError/Warning 0。

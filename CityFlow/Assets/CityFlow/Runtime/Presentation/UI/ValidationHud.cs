@@ -129,6 +129,12 @@ namespace CityFlow.Presentation.UI
                     int capacity = node.BufferCapacity.Value;
                     marker.text += $"  {node.Buffer.Count}/{capacity}";
                     RefreshBufferGauge(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node, capacity);
+                    bool source = node.Definition.Kind == NodeKind.Source;
+                    bool overload = source && node.IsInputStopped;
+                    marker.EnableInClassList("source-warning", source && node.Buffer.Count >= capacity * 0.8);
+                    marker.EnableInClassList("source-overload", overload);
+                    marker.EnableInClassList("source-flash", overload && (int)(simulation.ElapsedSeconds * 2) % 2 == 0);
+                    if (overload) marker.text += $"\n{Math.Max(0, network.Settings.OverloadGrace - node.OverloadSeconds):0.0}s TO GAME OVER";
                 }
             }
             foreach (LineSnapshot line in snapshot.Lines)
