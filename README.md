@@ -124,7 +124,7 @@ BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する
 
 ## Overview操作
 
-WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Nodeの左クリックで360モードへ入り、Lineの左クリックで選択する。Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
+WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Source／Relayの左クリックで360モードへ入り、Lineの左クリックで選択する。Sinkは始点にならず、クリック時に理由を短く表示する。Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
 
 ## Ground経路Preview
 
@@ -170,6 +170,8 @@ Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確�
 
 FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。表示だけでなく実際の移動速度を下げているため、Lineの回転と容量回復も遅くなる。最終的な速度・生成量・猶予の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) の比較プレイで決める。
 
+
+作成直後の空Lineは6秒以内なら **Undo / Ctrl+Z（MacはCmd+Zも可）** で取り消せる。FLOWが入ったLineや、編集・削除予約の巻き戻しには使わない。
 
 ## FLOWの送り先とBufferの基本設定
 

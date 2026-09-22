@@ -33,9 +33,23 @@ namespace CityFlow.Application.Connections
             this.network = network; this.preview = preview; NearLimit = nearLimit; MidLimit = midLimit;
             previewSubscription = preview.Changed.Subscribe(_ => changed.OnNext(Unit.Default));
         }
+        private LineRoute? undoRoute;
+        public bool CanUndoLastConnection => !network.IsGameOver && !IsActive && undoRoute != null &&
+            network.Snapshot().Lines.Any(line => line.Id == LastCreatedLineId && line.Status == LineStatus.Running &&
+                line.InFlight.Count == 0 && ReferenceEquals(line.Route, undoRoute));
+        public bool UndoLastConnection()
+        {
+            if (!CanUndoLastConnection || !LastCreatedLineId.HasValue) return false;
+            if (!network.RequestDeletion(LastCreatedLineId.Value)) return false;
+            DismissUndo(); LastCreatedLineId = null; changed.OnNext(Unit.Default);
+            return true;
+        }
+        public void DismissUndo() => undoRoute = null;
+
         public bool Begin(string sourceId)
         {
-            if (network.IsGameOver || IsActive || !network.NodeDefinitions.Any(n => n.Id == sourceId)) return false;
+            if (network.IsGameOver || IsActive || !network.NodeDefinitions.Any(n => n.Id == sourceId && n.MaxOutgoing > 0)) return false;
+            DismissUndo();
             preview.Cancel(); SourceId = sourceId; Filter = DistanceBand.All; LastCreatedLineId = null;
             changed.OnNext(Unit.Default); return true;
         }
@@ -44,6 +58,7 @@ namespace CityFlow.Application.Connections
             if (network.IsGameOver || IsActive) return false;
             var line=network.Snapshot().Lines.FirstOrDefault(l=>l.Id==lineId);
             if (line == null || line.Status != LineStatus.Running) return false;
+            DismissUndo();
             SourceId=line.SourceId; LastCreatedLineId=null;
             if (!preview.BeginLineEdit(lineId)) { SourceId=null; return false; }
             changed.OnNext(Unit.Default); return true;
@@ -55,7 +70,7 @@ namespace CityFlow.Application.Connections
             if (SourceId == null) return Array.Empty<ConnectionCandidate>();
             var nodes = network.Snapshot().Nodes;
             NodeSnapshot source = nodes.Single(n => n.Definition.Id == SourceId);
-            return nodes.Select(node =>
+            return nodes.Where(node => node.Definition.Id != SourceId).Select(node =>
             {
                 Vector3 delta = node.Definition.Position - source.Definition.Position;
                 float distance = new Vector2(delta.x,delta.z).magnitude;
@@ -72,9 +87,14 @@ namespace CityFlow.Application.Connections
         {
             if (network.IsGameOver || SourceId == null || preview.Current == null || preview.Current.SourceId != SourceId)
                 return ConnectionFailure.InvalidRoute;
+            bool editing = preview.EditingLineId.HasValue;
             ConnectionFailure failure = preview.TryConfirm(out int? lineId);
             if (failure == ConnectionFailure.None)
-            { LastCreatedLineId = lineId; SourceId = null; changed.OnNext(Unit.Default); }
+            {
+                LastCreatedLineId = lineId;
+                undoRoute = editing ? null : network.Snapshot().Lines.FirstOrDefault(line => line.Id == lineId)?.Route;
+                SourceId = null; changed.OnNext(Unit.Default);
+            }
             return failure;
         }
         public void Cancel()

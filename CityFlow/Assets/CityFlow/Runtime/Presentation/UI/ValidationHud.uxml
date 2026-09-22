@@ -8,6 +8,10 @@
             <ui:Button name="pause-toggle" text="Pause [Esc]" />
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
+        <ui:VisualElement name="connection-toast" class="panel connection-toast interactive">
+            <ui:Label name="connection-notice" class="detail-text" />
+            <ui:Button name="undo-connection" text="Undo [Ctrl+Z / ⌘Z]" />
+        </ui:VisualElement>
         <ui:VisualElement class="panel summary-panel">
             <ui:VisualElement class="metrics">
                 <ui:VisualElement class="metric">

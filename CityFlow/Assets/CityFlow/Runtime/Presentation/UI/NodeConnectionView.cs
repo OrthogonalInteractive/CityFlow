@@ -38,6 +38,7 @@ namespace CityFlow.Presentation.UI
             Unbind();
             if (document == null || session == null || controller == null) return;
             root = document.rootVisualElement;
+            ButtonAction("undo-connection", controller.UndoConnection);
             ButtonAction("connect-cancel",session.Cancel);
             ButtonAction("connect-confirm",() => session.Confirm());
             ButtonAction("connect-review",controller.ToggleOverview);
@@ -69,6 +70,11 @@ namespace CityFlow.Presentation.UI
             hud.EnableInClassList("connection-active",session.IsActive);
             hud.EnableInClassList("node-360",controller.IsNode360);
             hud.EnableInClassList("route-editing",controller.IsEditing);
+            bool undoAvailable = controller.CanUndo;
+            root.Q("connection-toast").style.display = !session.IsActive && (undoAvailable || controller.Notice.Length > 0)
+                ? DisplayStyle.Flex : DisplayStyle.None;
+            root.Q<Label>("connection-notice").text = undoAvailable ? "Line connected." : controller.Notice;
+            root.Q("undo-connection").style.display = undoAvailable ? DisplayStyle.Flex : DisplayStyle.None;
             root.Q<Button>("route-edit").SetEnabled(preview.Current != null);
             root.Q<Label>("connect-selection").text = session.IsActive ? $"FROM {session.SourceId} / SELECT A TARGET" :
                 overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Click a Node to start wiring";

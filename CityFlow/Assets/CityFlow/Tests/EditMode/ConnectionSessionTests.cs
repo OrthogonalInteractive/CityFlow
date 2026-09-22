@@ -46,11 +46,11 @@ namespace CityFlow.Tests.EditMode
         {
             var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A");
-            var candidates=s.Candidates(); Assert.That(candidates.Count,Is.EqualTo(4));
+            var candidates=s.Candidates(); Assert.That(candidates.Count,Is.EqualTo(3));
             var b=candidates.Single(x=>x.Node.Definition.Id=="B"); Assert.That(b.Distance,Is.EqualTo(30));
             Assert.That(b.Node.Definition.SinkColor,Is.EqualTo(FlowColor.Red)); Assert.That(b.SourceOutgoingUsed,Is.Zero);
             Assert.That(b.SourceOutgoingLimit,Is.EqualTo(3)); Assert.That(b.Node.IncomingUsed,Is.Zero);
-            s.SetFilter(DistanceBand.Near); Assert.That(s.Candidates().Select(x=>x.Node.Definition.Id),Is.EquivalentTo(new[]{"A","B"}));
+            s.SetFilter(DistanceBand.Near); Assert.That(s.Candidates().Select(x=>x.Node.Definition.Id),Is.EquivalentTo(new[]{"B"}));
             s.SelectTarget("B"); var before=p.Current;
             s.SetFilter(DistanceBand.Mid); Assert.That(s.Candidates().Single().Node.Definition.Id,Is.EqualTo("C"));
             s.SetFilter(DistanceBand.Far); Assert.That(s.Candidates().Single().Node.Definition.Id,Is.EqualTo("D"));
@@ -116,6 +116,59 @@ namespace CityFlow.Tests.EditMode
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("B");
             Assert.That(s.Begin("C"),Is.False); s.SelectTarget("missing");
             Assert.That(s.SourceId,Is.EqualTo("A")); Assert.That(p.Current?.DestinationId,Is.EqualTo("B"));
+        }
+        [Test] public void SinkCannotStartConnectionAndOwnNodeIsNeverACandidate()
+        {
+            var stage = Stage(); var n = Network(stage);
+            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            Assert.That(s.Begin("B"), Is.False);
+            Assert.That(s.IsActive, Is.False); Assert.That(p.Current, Is.Null);
+            Assert.That(s.Begin("A"), Is.True);
+            Assert.That(s.Candidates().Any(c => c.Node.Definition.Id == "A"), Is.False);
+        }
+        [Test] public void UndoNewEmptyLineReleasesBothSlotsOnlyOnce()
+        {
+            var stage = Stage(); var n = Network(stage);
+            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            s.Begin("A"); s.SelectTarget("B"); s.Confirm();
+            Assert.That(s.CanUndoLastConnection, Is.True);
+            Assert.That(s.UndoLastConnection(), Is.True);
+            Assert.That(n.Snapshot().Lines, Is.Empty);
+            Assert.That(n.Snapshot().Nodes.All(node => node.IncomingUsed + node.OutgoingUsed == 0), Is.True);
+            Assert.That(s.UndoLastConnection(), Is.False);
+        }
+        [Test] public void UndoDoesNotDeleteOccupiedLineOrUndoAnEdit()
+        {
+            var stage = Stage(); var n = Network(stage);
+            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            s.Begin("A"); s.SelectTarget("B"); s.Confirm();
+            int id = s.LastCreatedLineId.GetValueOrDefault();
+            n.GenerateFlow("A", FlowColor.Red);
+            n.RouteWaitingFlows(new CityFlow.Infrastructure.Configuration.SystemRandomSource(1));
+            Assert.That(s.CanUndoLastConnection, Is.False);
+            Assert.That(s.UndoLastConnection(), Is.False);
+            Assert.That(n.Snapshot().Lines.Single().InFlight.Count, Is.EqualTo(1));
+            n.AdvanceInFlight(10);
+            s.BeginLineEdit(id); s.Confirm();
+            Assert.That(s.CanUndoLastConnection, Is.False);
+            Assert.That(s.UndoLastConnection(), Is.False);
+            Assert.That(n.Snapshot().Lines.Single().Id, Is.EqualTo(id));
+        }
+        [Test] public void DismissingUndoOrStartingAnotherConnectionInvalidatesThePreviousUndo()
+        {
+            var stage = Stage(); var n = Network(stage);
+            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            s.Begin("A"); s.SelectTarget("B"); s.Confirm();
+            Assert.That(s.CanUndoLastConnection, Is.True); s.DismissUndo();
+            Assert.That(s.UndoLastConnection(), Is.False);
+            s.Begin("A"); s.SelectTarget("C"); s.Confirm();
+            Assert.That(s.CanUndoLastConnection, Is.True); s.Begin("C"); s.Cancel();
+            Assert.That(s.UndoLastConnection(), Is.False);
+            Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(2));
         }
         [Test] public void BandThresholdsMustBeFinitePositiveAndOrdered()
         {

@@ -185,8 +185,51 @@ namespace CityFlow.Tests.PlayMode
             s.SelectTarget("R1"); yield return null;
             Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("different Nodes"));
             s.Cancel(); overview.Select(OverviewTarget.Node("S1")); c.BeginSelected(); s.SelectTarget("R2"); yield return null;
-            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("Source OUT slots are full"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("FROM OUT slots are full"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);
+        }
+        [UnityTest] public IEnumerator SinkClickStaysInOverviewAndExplainsWhyItCannotStartALine()
+        {
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            var before = Camera.main.transform.position;
+            overview.Select(OverviewTarget.Node("RED")); Controller().BeginSelected();
+            yield return null; yield return null;
+            Assert.That(Controller().IsNode360, Is.False);
+            Assert.That(Camera.main.transform.position, Is.EqualTo(before));
+            var label = Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q<Label>("connection-notice");
+            Assert.That(label, Is.Not.Null);
+            Assert.That(label.text, Does.Contain("RED").And.Contain("cannot start"));
+        }
+        [UnityTest] public IEnumerator NewConnectionCanBeUndoneWithControlZWhilePaused()
+        {
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            scope.Container.Resolve<FlowSimulation>().SetPaused(true);
+            int count = network.Snapshot().Lines.Count;
+            Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Node("R1"));
+            Controller().BeginSelected(); Controller().ConfirmTarget("BLUE");
+            yield return null; yield return null;
+            var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            var undo = root.Q<Button>("undo-connection");
+            Assert.That(undo, Is.Not.Null); Assert.That(undo.resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
+            var old = InputSystem.settings.editorInputBehaviorInPlayMode;
+            var background = InputSystem.settings.backgroundBehavior;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.LeftCtrl, Key.Z));
+                yield return null; yield return null;
+                Assert.That(network.Snapshot().Lines.Count, Is.EqualTo(count));
+                Assert.That(scope.Container.Resolve<ConnectionSession>().CanUndoLastConnection, Is.False);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+                InputSystem.settings.editorInputBehaviorInPlayMode = old;
+                InputSystem.settings.backgroundBehavior = background;
+            }
         }
         [UnityTest] public IEnumerator KeyboardCanBeginLookConfirmAndCancelWithoutFocusDependentInput()
         {

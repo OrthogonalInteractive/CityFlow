@@ -33,6 +33,7 @@ Label { margin: 0; padding: 0; }
 .load { flex-grow: 1; -unity-text-align: middle-right; }
 .full { color: rgb(255, 197, 91); }
 .node-labels { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.connection-toast { display: none; position: absolute; left: 24px; bottom: 80px; width: 300px; }
 .node-label {
     position: absolute;
     width: 156px; height: 30px;

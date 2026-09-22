@@ -12,8 +12,8 @@ namespace CityFlow.Presentation.UI
         {
             ConnectionFailure.None => "Slots available / route unchecked",
             ConnectionFailure.DuplicateDirection => "This direction already exists",
-            ConnectionFailure.OutgoingLimit => "Source OUT slots are full",
-            ConnectionFailure.IncomingLimit => "Destination IN slots are full",
+            ConnectionFailure.OutgoingLimit => "FROM OUT slots are full",
+            ConnectionFailure.IncomingLimit => "TO IN slots are full",
             ConnectionFailure.SelfConnection => "Choose two different Nodes",
             ConnectionFailure.LineUnavailable => "Line removed or another change is pending",
             ConnectionFailure.InvalidRoute => "A valid Ground route is required",
@@ -28,8 +28,8 @@ namespace CityFlow.Presentation.UI
                 status = preview.Geometry.IsValid ? "Route preview ready / not connected" : "No valid route / see Preview reason";
             return $"{definition.Id} / {definition.Kind.ToString().ToUpperInvariant()}{color}\n" +
                 $"GROUND DISTANCE {candidate.Distance:0.0} m / {candidate.Band.ToString().ToUpperInvariant()}\n" +
-                $"SOURCE OUT {candidate.SourceOutgoingUsed}/{candidate.SourceOutgoingLimit}  →  TARGET IN {node.IncomingUsed}/{definition.MaxIncoming}\n" +
-                $"TARGET OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n{status}";
+                $"FROM OUT {candidate.SourceOutgoingUsed}/{candidate.SourceOutgoingLimit}  →  TO IN {node.IncomingUsed}/{definition.MaxIncoming}\n" +
+                $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n{status}";
         }
     }
 }

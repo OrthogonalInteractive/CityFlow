@@ -246,3 +246,10 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - SourceのRed／Blue混在・空き枠・11/10の超過Buffer・UIDocument再生成、Relayの満杯5/5・色の保持・対応Sink追加後の3/5への減少を検証。Pause中も描画し、各枠は入力透過、Sinkにはゲージなし。
 - 全体の確認は **EditMode 122/122成功、PlayMode 39/39成功**。コンパイルError／Warning 0、Unity Console Error 0。Nodeラベルのカメラ追従、ホバー非重複、Wave追加、0 Lineからの全色ネットワーク進行も成功。
 - uloop実画面では撮影用にR2へBlue 4個＋Yellow 1個、S2へ4色4個を配置し、色付き枠と5/5・4/10を確認: `docs/screenshots/v01-buffer-colors-full.png`。対応するYELLOW・BLUEを追加して再開し、1tickでYellow 1個・Blue 3個が出発、R2がBlue 1個の1/5へ更新: `docs/screenshots/v01-buffer-colors-recovery.png`。撮影時は自動tickを止め、公開APIで配置・出発を行った制御検証であり、ユーザーのセッションを保存・復元したものではない。
+
+## 2026-09-22 UX改善（進行中）
+
+- §18の追跡表: `docs/V01-Acceptance.md`。危険表示 #14、Line状態 #15、配線誤操作 #16、HUD整理 #17、保留事項 #18。
+- #16のEditModeは自己候補・Sink始点・Undoで4件のRedを確認後、16/16成功。輸送中Line、編集済みLine、別操作開始後をUndoで消さないことを検証。
+- 説明トーストとCtrl+ZのPlayMode追加2件はUI未実装で2件のRedを確認。
+- #16のNodeConnectionTestsは **10/10成功**（Sink説明・Pause中Ctrl+Z・既存Node 360操作）。コンパイルError/Warning 0、Console Error 0。

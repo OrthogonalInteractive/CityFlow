@@ -31,11 +31,20 @@ namespace CityFlow.Presentation.Connections
         public bool IsNode360 { get; private set; }
         public bool IsEditing { get; private set; }
         public string? AttentionId { get; private set; }
+        private int? offeredUndoId;
+        private float undoUntil, noticeUntil;
+        private string notice = "";
+        public bool CanUndo => session?.CanUndoLastConnection == true && Time.unscaledTime < undoUntil;
+        public string Notice => Time.unscaledTime < noticeUntil ? notice : "";
         public void Initialize(ConnectionSession connection, OverviewController input, StageDefinition definition, Camera camera, ValidationCityView view)
         {
             session = connection; overview = input; stage = definition; sceneCamera = camera;
             cityView = view;
             actions = new InputActionMap("Connection");
+            var undo = actions.AddAction("Undo", InputActionType.Button);
+            undo.AddCompositeBinding("ButtonWithOneModifier").With("Modifier", "<Keyboard>/ctrl").With("Button", "<Keyboard>/z");
+            undo.AddCompositeBinding("ButtonWithOneModifier").With("Modifier", "<Keyboard>/meta").With("Button", "<Keyboard>/z");
+            undo.performed += _ => UndoConnection();
             actions.AddAction("Begin",InputActionType.Button,"<Keyboard>/c").performed += _ => BeginSelected();
             actions.AddAction("Confirm",InputActionType.Button,"<Keyboard>/enter").performed += _ => { if (session.IsActive) session.Confirm(); };
             actions.AddAction("Cancel",InputActionType.Button,"<Keyboard>/backspace").performed += _ => { if (session.IsActive) session.Cancel(); };
@@ -76,6 +85,11 @@ namespace CityFlow.Presentation.Connections
         private void Synchronize()
         {
             if (session == null || overview == null || sceneCamera == null || stage == null) return;
+            if (session.CanUndoLastConnection && offeredUndoId != session.LastCreatedLineId)
+            {
+                offeredUndoId = session.LastCreatedLineId;
+                undoUntil = Time.unscaledTime + 6;
+            }
             if (session.IsActive && !bookmark.HasValue)
             {
                 bookmark = overview.CaptureView(); overviewWasEnabled = overview.enabled;
@@ -98,6 +112,7 @@ namespace CityFlow.Presentation.Connections
         }
         private void Update()
         {
+            if (offeredUndoId.HasValue && (!CanUndo || session?.IsActive == true)) session?.DismissUndo();
             if (!IsNode360 || lookInput == null || deltaInput == null || dragInput == null || pointerInput == null) return;
             Look(lookInput.ReadValue<Vector2>() * (70 * Time.unscaledDeltaTime));
             if (dragInput.IsPressed() && overview != null && overview.IsPointerBlocked?.Invoke(pointerInput.ReadValue<Vector2>()) != true)
@@ -109,7 +124,23 @@ namespace CityFlow.Presentation.Connections
             }
         }
         public void BeginSelected()
-        { if (overview != null && overview.Selected.NodeId != null) session?.Begin(overview.Selected.NodeId); }
+        {
+            if (overview?.Selected.NodeId == null || session == null) return;
+            var node = session.Nodes.FirstOrDefault(n => n.Id == overview.Selected.NodeId);
+            if (node != null && node.MaxOutgoing == 0)
+            {
+                notice = $"{node.Id} cannot start a Line. Connect into this Sink.";
+                noticeUntil = Time.unscaledTime + 4;
+                return;
+            }
+            session.Begin(overview.Selected.NodeId);
+        }
+        public void UndoConnection()
+        {
+            if (!CanUndo || session?.UndoLastConnection() != true) return;
+            notice = "Connection undone.";
+            noticeUntil = Time.unscaledTime + 3;
+        }
         public void Look(Vector2 delta)
         {
             if (!IsNode360) return;
