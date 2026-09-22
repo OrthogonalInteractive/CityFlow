@@ -65,6 +65,7 @@ namespace CityFlow.Tests.PlayMode
             var end = arc.GetPosition(arc.positionCount - 1); string text = label.text;
             simulation.Tick(10); yield return null; yield return null;
             Assert.That(label.text, Is.EqualTo(text)); Assert.That(arc.GetPosition(arc.positionCount - 1), Is.EqualTo(end));
+            Assert.That(root.Q<Label>("context-hint").text, Does.Contain("Paused").And.Contain("resume").And.Not.Contain("Esc to pause"));
             var source = network.NodeDefinitions.Single(n => n.Id == "S1").Position;
             var red = network.NodeDefinitions.Single(n => n.Id == "RED").Position;
             Assert.That(network.TryConnect("S1", "RED", new[] { source, red }).Succeeded, Is.True);

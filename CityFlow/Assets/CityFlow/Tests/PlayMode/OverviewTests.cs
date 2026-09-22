@@ -80,6 +80,8 @@ namespace CityFlow.Tests.PlayMode
             var c = Controller(); int changes = 0; bool completed = false;
             using var subscription = c.SelectionChanged.Subscribe(_=>changes++, _=>completed=true);
             c.Select(OverviewTarget.Node("R1")); Assert.That(changes, Is.EqualTo(1));
+            var source = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>().NodeDefinitions.Single(n => n.Id == "S1");
+            c.Hover(Camera.main.WorldToScreenPoint(source.Position + Vector3.up * 1.4f));
             Vector3 before = Camera.main.transform.position;
             // Editor focus must not determine whether a synthetic test event reaches gameplay.
 #if UNITY_EDITOR
@@ -96,6 +98,7 @@ namespace CityFlow.Tests.PlayMode
                 yield return null;
                 yield return null;
                 Assert.That(Camera.main.transform.position, Is.Not.EqualTo(before));
+                Assert.That(c.Selected.NodeId, Is.EqualTo("S1"), "F should focus the hovered Node without starting a connection.");
             }
             finally
             {
