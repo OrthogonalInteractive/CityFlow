@@ -10,6 +10,7 @@ namespace CityFlow.Domain.FlowNetwork
         public void RouteWaitingFlows(IRandomSource random)
         {
             if (random == null) throw new ArgumentNullException(nameof(random));
+            InvalidateSnapshot();
             foreach (var definition in NodeDefinitions)
             {
                 NodeState node = nodes[definition.Id];
@@ -38,6 +39,7 @@ namespace CityFlow.Domain.FlowNetwork
             if (double.IsNaN(deltaSeconds) || double.IsInfinity(deltaSeconds) || deltaSeconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
             if (deltaSeconds == 0) return;
+            InvalidateSnapshot();
             foreach (LineState line in lines)
             {
                 // Equal capacity slots span the actual route; following spacing also applies before a blockage.

@@ -12,12 +12,14 @@ namespace CityFlow.Domain.FlowNetwork
         {
             LineState? line=lines.FirstOrDefault(l=>l.Id==lineId);
             if (line == null || line.Status != LineStatus.Running) return false;
+            InvalidateSnapshot();
             line.Status=LineStatus.DeletePending; CompleteDrainedLines(); return true;
         }
         public bool CancelPending(int lineId)
         {
             LineState? line=lines.FirstOrDefault(l=>l.Id==lineId);
             if (line == null || line.Status == LineStatus.Running) return false;
+            InvalidateSnapshot();
             line.Status=LineStatus.Running; line.PendingRoute=null; return true;
         }
         public bool RequestRouteChange(int lineId, IReadOnlyList<Vector3> points)
@@ -28,6 +30,7 @@ namespace CityFlow.Domain.FlowNetwork
             try { route=new LineRoute(points); } catch(ArgumentException) { return false; }
             if (route.Points[0] != line.Source.Definition.Position || route.Points[route.Points.Count-1] != line.Destination.Definition.Position ||
                 !stage.IsRouteWalkable(route,Settings.Clearance)) return false;
+            InvalidateSnapshot();
             line.PendingRoute=route; line.Status=LineStatus.RouteChangePending; CompleteDrainedLines(); return true;
         }
         private void CompleteDrainedLines()

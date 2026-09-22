@@ -47,6 +47,10 @@ namespace CityFlow.Domain.FlowNetwork
         private int nextLineId = 1;
         private long nextFlowId = 1;
         private long deliveredCount = 0;
+        private NetworkSnapshot? cachedSnapshot;
+        private IReadOnlyList<NodeDefinition>? cachedDefinitions;
+        // Invalidate on commands as well as ticks so paused editing is immediately observable.
+        private void InvalidateSnapshot() => cachedSnapshot = null;
         public bool IsGameOver { get; private set; }
         public string? GameOverSourceId { get; private set; }
         public void EvaluateOverload(double deltaSeconds)
@@ -54,6 +58,7 @@ namespace CityFlow.Domain.FlowNetwork
             if (double.IsNaN(deltaSeconds) || double.IsInfinity(deltaSeconds) || deltaSeconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
             if (IsGameOver || deltaSeconds == 0) return;
+            InvalidateSnapshot();
             foreach (NodeState node in nodes.Values)
             {
                 if (node.Definition.Kind != NodeKind.Source) continue;
@@ -64,7 +69,7 @@ namespace CityFlow.Domain.FlowNetwork
             }
         }
         public NetworkSettings Settings { get; }
-        public IReadOnlyList<NodeDefinition> NodeDefinitions => Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
+        public IReadOnlyList<NodeDefinition> NodeDefinitions => cachedDefinitions ??= Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
         {
             this.stage = stage ?? throw new ArgumentNullException(nameof(stage));
@@ -79,6 +84,11 @@ namespace CityFlow.Domain.FlowNetwork
         public bool TryAddNodes(IReadOnlyList<NodeDefinition> additions)
         {
             try { ValidateAdditionalNodes(additions); } catch(ArgumentException) { return false; }
+            if (additions.Count > 0)
+            {
+                InvalidateSnapshot();
+                cachedDefinitions = null;
+            }
             foreach(NodeDefinition definition in additions) nodes.Add(definition.Id,new NodeState(definition));
             return true;
         }
@@ -109,6 +119,7 @@ namespace CityFlow.Domain.FlowNetwork
                 route.Points[route.Points.Count - 1] != destination.Definition.Position ||
                 !stage.IsRouteWalkable(route, Settings.Clearance))
                 return new ConnectionResult(ConnectionFailure.InvalidRoute);
+            InvalidateSnapshot();
             var created = new LineState(nextLineId++, source, destination, route);
             lines.Add(created); source.Outgoing.Add(created); destination.Incoming.Add(created);
             return new ConnectionResult(ConnectionFailure.None, created.Id);
@@ -119,13 +130,14 @@ namespace CityFlow.Domain.FlowNetwork
                 throw new ArgumentException("Only an existing Source may generate FLOW.", nameof(sourceId));
             if (!nodes.Values.Any(n => n.Definition.SinkColor == color))
                 throw new ArgumentException("Generated colors require an existing Sink.", nameof(color));
+            InvalidateSnapshot();
             var flow = new Flow(nextFlowId++, color);
             // Specification 5.2 proposal: Source generation retains overflow instead of dropping FLOW.
             source.Buffer.Add(flow);
             source.GeneratedCount++; source.LastGeneratedColor = color;
             return flow;
         }
-        public NetworkSnapshot Snapshot() => new NetworkSnapshot(NodeDefinitions.Select(definition =>
+        public NetworkSnapshot Snapshot() => cachedSnapshot ??= new NetworkSnapshot(NodeDefinitions.Select(definition =>
         {
             NodeState node = nodes[definition.Id];
             return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.BufferCapacity(definition.Kind), node.OverloadSeconds,
