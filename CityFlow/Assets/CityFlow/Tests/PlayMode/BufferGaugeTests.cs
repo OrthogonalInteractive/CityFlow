@@ -27,7 +27,9 @@ namespace CityFlow.Tests.PlayMode
         private static void AssertGauge(VisualElement root, string id, int capacity, NodeKind kind, params FlowColor[] colors)
         {
             var label = root.Q<Label>($"node-label-{id}");
+            Assert.That(label.resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
             Assert.That(label.text, Does.Contain($"{colors.Length}/{capacity}"));
+            Assert.That(label.text, Does.Not.Contain(id).And.Not.Contain(kind.ToString().ToUpperInvariant()));
             var gauge = label.Q(className: "node-gauge");
             Assert.That(gauge, Is.Not.Null);
             var slots = gauge.Children().ToArray();
@@ -45,6 +47,28 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(label.ClassListContains(kind == NodeKind.Source ? "source-overload" : "input-stopped"),
                 Is.EqualTo(colors.Length >= capacity));
             if (kind == NodeKind.Source) Assert.That(label.ClassListContains("input-stopped"), Is.False);
+        }
+
+        [UnityTest] public IEnumerator WorldGaugesAppearOnlyWhileFlowsWaitInTheBuffer()
+        {
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            foreach (var marker in root.Q("node-labels").Children())
+                Assert.That(marker.resolvedStyle.display, Is.EqualTo(DisplayStyle.None), "Empty Nodes have no standing information card.");
+
+            network.GenerateFlow("S1", FlowColor.Red);
+            yield return null; yield return null;
+            AssertGauge(root, "S1", 10, NodeKind.Source, FlowColor.Red);
+            var source = network.NodeDefinitions.Single(n => n.Id == "S1").Position;
+            var sink = network.NodeDefinitions.Single(n => n.Id == "RED").Position;
+            Assert.That(network.TryConnect("S1", "RED", new[] { source, sink }).Succeeded, Is.True);
+            network.RouteWaitingFlows(new SystemRandomSource(1));
+            yield return null; yield return null;
+            Assert.That(network.Snapshot().Lines.Single().InFlight.Count, Is.EqualTo(1));
+            Assert.That(root.Q("node-label-S1").resolvedStyle.display, Is.EqualTo(DisplayStyle.None),
+                "In-Flight FLOW must not keep an empty Buffer gauge visible.");
+            Assert.That(root.Q("node-label-RED").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
         }
 
         [UnityTest] public IEnumerator SourceGaugeShowsOrderedFlowColorsEmptyCapacityAndOverflowAfterRebinding()

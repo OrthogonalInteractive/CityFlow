@@ -67,8 +67,7 @@ namespace CityFlow.Presentation.UI
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 string id = node.Definition.Id;
-                Label label = Cell(labels, $"{id.ToUpperInvariant()} · {node.Definition.Kind.ToString().ToUpperInvariant()}",
-                    "node-label", $"node-label-{id}");
+                Label label = Cell(labels, "", "node-label", $"node-label-{id}");
                 if (node.BufferCapacity.HasValue)
                 {
                     label.AddToClassList("has-buffer");
@@ -104,7 +103,7 @@ namespace CityFlow.Presentation.UI
             if (elements == null || elements.Root != document.rootVisualElement ||
                 snapshot.Nodes.Count != nodeLabels.Count) Bind();
             Refresh(snapshot);
-            PositionNodeLabels();
+            PositionNodeLabels(snapshot);
         }
         private void Refresh(NetworkSnapshot snapshot)
         {
@@ -116,12 +115,12 @@ namespace CityFlow.Presentation.UI
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 Label marker = nodeLabels[node.Definition.Id];
-                marker.text = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}";
+                marker.text = "";
                 marker.EnableInClassList("input-stopped", node.IsInputStopped);
                 if (node.BufferCapacity.HasValue)
                 {
                     int capacity = node.BufferCapacity.Value;
-                    marker.text += $"  {node.Buffer.Count}/{capacity}";
+                    marker.text = $"{node.Buffer.Count}/{capacity}";
                     BufferGauge.Refresh(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node);
                     bool source = node.Definition.Kind == NodeKind.Source;
                     bool overload = source && node.IsBufferFull;
@@ -132,15 +131,16 @@ namespace CityFlow.Presentation.UI
                 }
             }
         }
-        private void PositionNodeLabels()
+        private void PositionNodeLabels(NetworkSnapshot snapshot)
         {
             if (elements == null || network == null || sceneCamera == null || elements.Root.panel == null) return;
             VisualElement overlay = Required<VisualElement>(elements.Root, "node-labels");
-            foreach (NodeDefinition node in network.NodeDefinitions)
+            foreach (NodeSnapshot node in snapshot.Nodes)
             {
-                Label label = nodeLabels[node.Id];
-                Vector3 screen = sceneCamera.WorldToScreenPoint(node.Position + Vector3.up * 5);
-                bool visible = screen.z > 0 && sceneCamera.pixelRect.Contains(new Vector2(screen.x, screen.y));
+                Label label = nodeLabels[node.Definition.Id];
+                Vector3 screen = sceneCamera.WorldToScreenPoint(node.Definition.Position + Vector3.up * 5);
+                bool visible = node.Buffer.Count > 0 && node.BufferCapacity.HasValue &&
+                    screen.z > 0 && sceneCamera.pixelRect.Contains(new Vector2(screen.x, screen.y));
                 label.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
                 if (!visible) continue;
                 Vector2 point = RuntimePanelUtils.ScreenToPanel(elements.Root.panel,

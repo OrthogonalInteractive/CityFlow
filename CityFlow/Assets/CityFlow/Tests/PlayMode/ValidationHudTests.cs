@@ -63,9 +63,11 @@ namespace CityFlow.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator NodeLabelsFollowTheCameraAndHideBehindIt()
+        public IEnumerator WaitingBufferGaugesFollowTheCameraAndHideBehindIt()
         {
             UIDocument document = Document();
+            Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>().GenerateFlow("S1", FlowColor.Red);
+            yield return null;
             yield return null;
             Label label = document.rootVisualElement.Q<Label>("node-label-S1");
             Assert.That(label, Is.Not.Null);

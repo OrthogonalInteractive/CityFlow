@@ -36,6 +36,7 @@ Label { margin: 0; padding: 0; }
 .node-labels { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
 .connection-toast { display: none; position: absolute; left: 24px; bottom: 80px; width: 300px; }
 .node-label {
+    display: none;
     position: absolute;
     width: 156px; height: 30px;
     translate: -50% -100%;
@@ -49,14 +50,14 @@ Label { margin: 0; padding: 0; }
 .footer { position: absolute; left: 32px; bottom: 28px; font-size: 15px; color: rgb(182, 200, 214); }
 .detail-text { white-space: normal; font-size: 14px; color: rgb(195, 212, 226); }
 .city-caption { display: none; }
-.node-label.has-buffer { height: 44px; padding-bottom: 16px; }
+.node-label.has-buffer { height: 34px; padding-bottom: 16px; font-size: 11px; }
 .node-gauge { position: absolute; left: 4px; right: 4px; bottom: 3px; height: 14px; flex-direction: row; }
 .node-buffer-slot { height: 100%; flex-grow: 1; flex-basis: 0;
     border-right-width: 1px; border-right-color: rgb(10, 17, 25); }
 .node-buffer-slot.empty { background-color: rgb(44, 53, 65); }
 .input-stopped { border-color: rgb(255, 197, 91); }
 .node-label.source-warning { border-color: rgb(255, 197, 91); }
-.node-label.source-overload { height: 64px; border-width: 2px; border-color: rgb(255, 78, 55); }
+.node-label.source-overload { height: 52px; border-width: 2px; border-color: rgb(255, 78, 55); }
 .node-label.source-flash { border-color: rgb(255, 190, 140); }
 .source-danger { position: absolute; left: 0; right: 0; top: 0; bottom: 0; opacity: 0; --edge-size: 48; }
 .readouts .panel { padding: 14px; }

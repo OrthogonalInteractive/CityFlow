@@ -139,9 +139,9 @@ Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対�
 
 UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は状態反映・入力・座標変換を担当する。ホバー詳細はHoverDetails.uxmlで見出し・主要数値・Buffer・接続・警告に分ける。接続情報はSourceがOUT・送り先、RelayがIN／OUT、SinkがIN・送り元のみ。SourceにINPUT OPEN／STOPPEDは表示しない。表示用要素はPickingMode.Ignore。UIDocument再生成時は参照・イベント・描画を結び直す。
 
-基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はラベルの残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。
+基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はゲージに添える残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。
 
-Source／Relayのゲージは待機順の1枠1 FLOWで色と頭文字を表示する。空き枠と実数／容量を維持し、警告で色を上書きしない。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
+Node名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
 
 Lineの混雑は橙＋太さ、削除予約は破線、経路切替待ちは二重線。混雑と予約が同時に成立しても線種と色を併用する。二重線の左右オフセットは装飾であり、FLOWと距離計測は中央の確定経路を使う。
 
