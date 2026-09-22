@@ -1,0 +1,212 @@
+# v0.1 検証の履歴
+
+各段階の実行結果。旧数値・旧UIを含む。最新の検証状況は [Testing.md](../Testing.md) を参照。スクリーンショットのパスはリポジトリルート基準。
+
+## Step 01 検証結果
+
+- 設定・配置のRed: 14件中13件失敗（無検証のため不正値を受理）、1件成功。
+- Green: EditMode 19/19、PlayMode 3/3成功。コンパイルError/Warningとも0。
+- Ground外、建物内・クリアランス内、異なる高さ、非有限値、不正容量、Sink色不足、Sourceの生成先不足を検証。
+- アセットから読み込んだ定義の独立性、BootstrapのVContainer、初期Node 5個・2色Sink・URP描画を確認。
+- EditorのGame Viewスクリーンショット: `docs/screenshots/issue-1-city.png`。
+
+## Step 02 検証結果
+
+- 接続・集約のRed: 11件中10件失敗、1件成功。個別失敗理由と接続成功・生成未実装を確認。
+- Green: EditMode 30/30、PlayMode 3/3成功。コンパイルError/Warningとも0、Console Error 0。
+- 両端枠の同時確保、自己接続・重複・OUT/IN不足、逆方向、全区間障害物判定、読み取り専用スナップショット、FLOW IDとBuffer所属を検証。
+- PlayModeで5本の固定配線、IN/OUT合計、生成されない初期状態を確認。
+- EditorのGame Viewスクリーンショット: `docs/screenshots/issue-2-network.png`。
+
+
+## Step 03 検証結果
+
+- Routing・輸送のRed: 21件中20件失敗、1件成功。無処理の生成・移動・出発を検出。
+- 混雑がない同時出発への不要な減速を追加テストで再現（1件失敗）し、停止列の間隔を混雑時だけ適用して修正。
+- 最終Green: EditMode **52/52**、PlayMode **4/4**成功。コンパイルError/Warning **0**、Console Error **0**。
+- 直結優先、複数同色直結、満杯直結待機、後続別色、空きLine間の乱数分岐、異色Sink中継、同色即時消化、固定容量、長距離の容量回復遅延を検証。
+- 受け取り完了までのLine所属、FIFO、満杯異色Bufferでの同色受け取り、複数Incomingの容量競合、FLOW保存と一意性を検証。
+- 0.05 s固定tickの生成→移動・受け渡し→出発を検証。30/60/144 fpsへ10秒を分割した場合と一括入力で、生成数・成功数・所属ID・移動距離が一致。
+- PlayModeでは明示的tickによる生成・移動・消化、表示粒子の位置と消滅、設定アセット不変性を検証。元のEditor高速Play設定（Domain/Scene Reload無効）へ戻した後にも再起動を確認。
+- スクリーンショット `docs/screenshots/issue-3-transport.png` はseed=1337、20秒時点で表示を固定して撮影。生成80、消化50、待機15、In-Flight15。長距離青Lineは10/10、短距離赤Lineは5/10。
+- 対象はUnity Editor内。Playerビルドは今回の検証対象外。
+
+## Step 03後：UI Toolkit移行の検証結果
+
+- Red: UIDocument未導入の状態でPlayModeのHUDテスト3件が失敗。
+- Green: EditMode **52/52**、PlayMode **7/7**成功。コンパイルError/Warning **0**、実画面確認後のConsoleログ **0**。
+- HUDの処理成功数・Buffer・In-Flight・Node/Line一覧が実際のスナップショットへ追従することを確認。
+- 表示専用要素が入力を遮らないこと、Nodeラベルのカメラ追従・投影座標・背後での非表示、UIDocument再有効化時の値の復元と行の重複防止をPlayModeで確認。
+- 既存の都市起動・生成・移動・消化・設定不変性のテストも成功。元のEditor設定へ戻してGame Viewを確認。
+- `docs/screenshots/ui-toolkit-hud.png` は移行後の20秒時点。生成80、消化50、待機15、In-Flight15で、移行前と一致。
+
+## Step 04 検証結果
+
+- Red: 新規8件がOverload判定・停止状態未実装により失敗。
+- Green: EditMode **60/60**、PlayMode **9/9**成功。コンパイルError/Warning **0**。
+- Sourceの満杯境界、5秒の連続猶予、回復時リセット、超過生成保持、Relayだけでは敗北しないこと、停止列のID・位置・容量保持と排出再開、不正時間入力、敗北後の状態保持を検証。
+- PlayModeでSource警告→Game Over表示と停止を確認。輸送速度・Routingだけを検証する既存テストは猶予を1000秒へ設定し、敗北の検証とは分離。
+- Play画面でRelay 50、Line停止10、Source 56（猶予残3.5秒）を再現。排出先追加で停止10件が受け渡され、FLOW総数の保存を確認。動的Line追加時のHUD例外も再現テスト（Red 1件）で修正。
+- スクリーンショット: `docs/screenshots/issue-4-congestion.png`。
+
+## Step 05 検証結果
+
+- Red: Overview未構成のためPlayMode 3件が失敗。
+- 表示値のEditModeテストでBuffer内訳・接続枠・実経路長・時間・容量使用率・推定Throughputを検証。
+- PlayModeでPan/Zoom/Orbit、フォーカス、全景復帰、Node/Lineホバー・選択、Input Action経由のF操作、R3の完了・破棄、操作前後の輸送状態保持を検証。
+- 仮想キーボード入力はEditorのGame Viewフォーカスに依存しない配送設定をテスト中だけ使い、finallyで元へ戻す。
+- Green: EditMode **62/62**、PlayMode **12/12**成功。ゲージの見た目調整後もHUD関連4/4成功。コンパイルError/Warning 0、実画面確認後Console Error 0。
+- uloop入力シミュレーションでもFによるフォーカスとHome復帰を確認。選択Lineの強調・詳細・Bufferゲージの画面: `docs/screenshots/issue-5-overview.png`。
+
+## Step 06 検証結果
+
+- 経路・PreviewのRed: 13件中11件失敗、2件成功。UI未構成のRed: PlayMode 2件失敗。
+- Green: EditMode **79/79**、PlayMode **14/14**成功。コンパイルError/Warning **0**。
+- 直線、左右迂回、再現性、クリアランスによる狭路可否、区間貫通、Ground高さ、領域外、不正制御点、未登録Node、I/O不足、重複接続を検証。
+- Previewの非破壊性、取消、探索失敗時の端点保持、編集APIの全区間検証・端点固定、生成経路を接続したときの距離・実移動との一致を確認。
+- PlayModeでUI Toolkitの生成/取消操作、破線描画、メトリクス、重複・衝突理由表示と既存HUD/Overviewを検証。
+- 最終スタイル調整後のUI関連PlayMode **6/6**成功。uloopのマウス入力でもGenerateを確認。R1→BLUEの迂回経路は76.48 m、移動時間3.82 s、推定2.62 FLOW/s。生成後も確定Lineは5本で接続枠を消費しない。
+- Game Viewで有効な半透明破線・矢印と、建物を横切る無効区間の赤表示・理由を確認。スクリーンショット: `docs/screenshots/issue-6-ground-preview.png`、`docs/screenshots/issue-6-invalid-route.png`。最終Consoleログ **0**。Unity Editorで検証し、Playerビルドは対象外。
+
+## Step 07 検証結果
+
+- Red: 接続セッション12件中11件失敗、1件成功。Node 360未構成のPlayMode 4件失敗を確認してから実装。
+- カメラ確認中に変更した選択の復元、始点メッシュによる視界遮蔽、生成済み候補の状態表示も各1件の回帰テストで再現して修正。
+- Green: 全EditMode **91/91**、全PlayMode **20/20**成功。候補の最終表示修正後にも全PlayMode **20/20**成功。コンパイルError/Warning **0**、実画面確認後のConsoleログ **0**。
+- 未選択→始点→終点→Preview→確定/取消、未登録Node、不正距離閾値、Near/Mid/Far境界、Ground距離、Sink色・I/O、自己接続・重複・枠不足を検証。
+- Preview後に別接続でOUT/INを埋めた場合と、空間判定が変わった場合の確定直前再検証を確認。失敗時はPreviewを保持し、成功時だけ1本のLineと両端枠を確保。
+- PlayModeで候補ボタン、遮蔽・画面外表示、距離フィルター、注目情報、Input SystemのC/矢印/Enter/Backspace、カメラ確認切替、位置・回転・ズーム・内部pivot・選択の復元、Controller無効化時の取消と再有効化を確認。
+- `WiringLab` でSource→Sinkの接続からFLOW出発・到着・描画追従まで検証。固定5本のBootstrapでは同色直結満杯時にRelayへ迂回しないため、初期Lineなしのシーンで輸送開始を確認した。
+- 実入力でもS1をクリック→C（Connectボタンのクリックも確認）→TabでBLUEへ注目→SpaceでPreview→VでOverview確認→Enterで確定。長さ100.98 m、移動時間5.05 s、推定1.98 FLOW/s。明示的tickを8秒進め、Line 1本、In-Flight 5、同色到着1、Overview復帰を確認。
+- UI Toolkitの実ポインター検証ではUnity Editor本体に加えGame Viewへフォーカスする。撮影時はSimulationDriverの自動更新を止めて状態を固定し、手動tick以外の時間進行を除いた。
+- スクリーンショット: `docs/screenshots/issue-7-node360.png`、`docs/screenshots/issue-7-review.png`、`docs/screenshots/issue-7-connected.png`。対象はUnity Editor内で、Playerビルドは検証対象外。
+
+## Step 08 検証記録
+
+- 手動制御点操作の3テストが未実装により失敗するRedを確認。実装後はEditMode **94/94**、PlayMode **22/22**成功。
+- Ground投影、端点固定、点の追加・移動・削除、距離/時間/Throughput、無効適用拒否、自動再生成、非破壊取消を検証。
+- UIの編集開始→真上カメラ→無効経路→再生成→追加→適用と、取消時のOverview復帰をPlayModeで検証。
+- uloopの実Input System操作でSpace→E→Shiftクリック→Enterを通過。S1→BLUEの5点・101.934 mのLineを確定し、編集終了を確認。Errorログ0件。
+- 画面: `docs/screenshots/issue-8-manual-route.png`。
+
+## Step 09 検証記録
+
+- 予約・排出・取消・経路切替の6ケースが未実装により失敗するRedを確認。競合予約の再検証を加え、EditMode **101/101**、PlayMode **24/24**成功。
+- 削除完了前の枠保持、終点満杯での無期限待機、取消でのID/距離/経路保存、排出後の枠解放、新経路への切替、削除後IDの非再利用を検証。各シナリオでFLOW総数と所属一意性を確認。
+- UIから予約・取消・編集適用し、状態とBuffer空き待ち表示、削除/切替後の描画・距離表示更新を検証。コンパイルエラー/警告0、Console Error0。
+- 画面: `docs/screenshots/issue-9-delete-pending.png`。
+
+## Step 10 検証記録
+
+- Pause未実装で3テストが失敗するRedを確認。実装後はEditMode **104/104**、PlayMode **25/25**成功。
+- Pause中の生成数・経過時間・Overload・FLOW位置・旧経路・tick端数の保存、再開後の残り距離からの継続、空Lineの即時削除と占有Lineの待機を確認。
+- Input SystemのEscを手動編集中に送り、Previewを保持したまま停止、Wによるカメラ移動、停止中の配線適用、Esc再開をPlayModeで検証。シーン読込後の実行時間は初期値を仮定せず差分で評価。
+- 実Esc入力の画面: `docs/screenshots/issue-10-paused-edit.png`。コンパイルエラー/警告0、Console Error0。
+
+## Step 11 検証記録
+
+- Wave/追加/新色/準備時間/結果の5テストが未実装により失敗するRedを確認。最終EditMode **112/112**、PlayMode **28/28**成功。コンパイルエラー/警告0、Consoleログ0。
+- 初期Sourceの準備15 s、追加Sourceの準備20 s、Sink追加後の色候補更新、Waveをまたぐ予約・Buffer・FLOW ID・位置の維持、Pause中のWave/準備時間停止、倍率変更時の生成位相維持を確認。
+- 0 LineからS1→RED/BLUE、Wave 2でS1/S2→GREEN等、Wave 3で各Sink→YELLOW、Wave 4でYELLOW→PURPLEとS3接続へ拡張。4 Wave・11 Node・5色・13 Lineで240 sまで生存し、100件超の配送とFLOW総数保存を確認。難度比較・採用値の最終判定はStep 12の対象。
+- 未接続の追加Sourceを放置した画面確認ではWave 3・140.4 s・処理107・原因S2でGame Over。HUDと結果が一致。Retryボタンで新スコープ・Wave 1・0 Line・結果なしに戻ることを自動/画面操作の両方で確認。
+- 追加Nodeの選択・Node 360・配線、出現通知・画面外方向を検証。画面内Nodeをパネル回避位置によって画面外と誤表示する不整合を再現テストでRedにし、画面外判定とラベル配置の分離後にGreenを確認。
+- 画面: `docs/screenshots/issue-11-zero-lines.png`、`issue-11-wave.png`、`issue-11-result.png`。
+
+## Node 360の候補表示修正
+
+- S1のNode 360で、GREENの候補マーカーがREDと重なると非表示になり、マウスでは候補の存在を把握できない問題を修正。全候補を選べる一覧がないことをPlayModeの再現テスト1件でRed確認。
+- 修正後はPlayMode **29/29**成功。Wave進行中の候補追加、GREENの表示領域とポインター到達、Near/Midフィルター、カメラ回転後の選択、確定前の非破壊性、S1→GREEN確定を検証。
+- Game View上の一覧をInput Systemのマウス入力でクリックし、S1→GREENの54.9 mの有効Preview生成を確認。コンパイルエラー/警告0、Consoleログ0。Domain/Applicationの変更はなく、今回EditModeは再実行していない。
+- 画面: `docs/screenshots/node-360-candidate-list.png`。確認用のWave 2を再作成し、ゲームPause・GREENの確定前Previewで停止。
+
+## v0.1操作改善
+
+- Nodeクリック開始・注目時Previewの新仕様でPlayMode 4件のRedを確認。
+- PlayMode全体で29件成功、マウス入力テスト1件の失敗を切り分け。複数Mouseがあると別デバイスのPointer座標を読む問題を修正し、実クリック→360、Shift＋Lineクリック→編集の1件も個別再実行で成功。
+- クリック発生元デバイスの位置を使用する。編集開始クリックで制御点が増えないこと、注目時にLineを作らず、候補クリックで確定して元のOverviewへ戻ることを確認。
+
+## v0.1 Node 360の視認性改善
+
+- 建物・屋根の半透明表示がない状態で再現テストのRedを確認。
+- 接続・Wave関連PlayMode **12/12成功**。情報パネルと3D描画領域の非重複、注目ラベルがNode本体を覆わないこと、半透明時の深度書込停止、不透明マテリアルとCamera.rectの復元を確認。
+- 材料の色を繰り返し書き換えることによる丸め変化を避け、元マテリアルを保存して透明版へ差し替える。
+- 候補一覧のスクロール後にもGREENへポインターが到達し、クリックで確定できることを確認。
+
+## v0.1 Source可視化と敗北の事前警告
+
+- Sourceの常設Buffer表示と360中の敗北警告がないことをPlayMode 2件のRedで確認。実装後は2/2成功。
+- 初回生成・待機粒子・生成リング、Pause中の表示と演出の停止、360中のモニターと都市領域の非重複を確認。50/50のSourceで残り4秒を表示し、Pauseで猶予を止め、再開後のGAME OVER表示とOverview復帰を確認。
+- FlowNetworkのEditMode 12/12成功。生成と同じtickに出発してもSourceの生成累計・直近色が観測でき、過去のスナップショットは変化しない。コンパイルエラー/警告0。
+
+## Sourceモニターの入力透過の回帰修正
+
+- 全PlayMode実行でProgressBar内部の子要素が読み取り専用HUDの入力透過条件を満たさないことを検出（32成功・1失敗）。ゲージを構成する子要素もPickingMode.Ignoreとし、修正後は全PlayMode **33/33成功**。
+- URP Unlitの生成リングには直近FLOW色の共有マテリアルを明示的に適用する。コンパイルエラー/警告0。
+
+## v0.1 FLOW速度の暫定調整
+
+- 速度20→8 m/sを設定クラスとUnityの調整アセットへ反映し、uloopでコンパイル成功（エラー/警告0）。EditMode **113/113成功**、PlayMode **33/33成功**。
+- 8 m/sでも0 Lineから13 Lineへ拡張し、4 Wave・11 Node・5色・240 sまで生存、100件超の配送とFLOW総数保存を確認。生成間隔・Wave倍率・容量・敗北猶予は変更していない。
+- 6/8/10 m/sの比較や最終採用値は未確定。議論用 [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) を作成し、統合プレイテストの #12 に接続する。
+
+## v0.1最終画面確認
+
+- 実画面でWave通知が360に残る問題と、Overviewの出現マーカーがResumeを覆う問題を発見。既存Waveテストへ再現条件を追加し、2件のRedを確認。表示条件・実レイアウトに基づく配置を修正後、全PlayMode **33/33成功**。最終コンパイルエラー/警告0、Console Error0。
+- 58 sのSource S1は43/50、生成43・残り7枠の予告警告。生成色のリングとBufferの43粒子を表示: `docs/screenshots/v01-source-buffer.png`。
+- 65 sのNode 360では50/50・Game Overまで残り4.5 s、S2準備15 sを上部に保持。GREENの注目だけで54.9 m / 6.86 sのPreviewを生成し、半透明建物・右側情報欄・Node本体から離れた注目ラベルを確認: `docs/screenshots/v01-node-360.png`。
+- 再開して69.45 sでSource S1の継続OverloadからGame Over（UIは69.5 s）。Wave 2・配送0・原因S1とRetryを確認。超過生成も55/50として保持: `docs/screenshots/v01-game-over.png`。
+
+## Relay限定Routing・Buffer基本設定の変更
+
+- 上記までの共通Buffer 50・Sink中継を、Source 10／Relay 5／SinkはBufferなしへ変更した。Routingは同色Sink直結を優先し、直結がない場合はRelay行きだけからランダムに選ぶ。同色Sinkが複数ある場合は空きLineを接続作成順で選び、直結がすべて満杯なら待つ。
+- Routingの仕様変更でEditMode 6件、種別別容量で2件、容量表示・SinkゲージでPlayMode 3件のRedを確認してから実装。Relay満杯の既存画面テストも、新容量5で受け取り待ちを作るよう更新した。
+- 最終EditMode **118/118**、PlayMode **34/34**成功。コンパイルError/Warning **0**、実画面確認後のConsole Error **0**。既存の削除予約・経路切替・Pause・FLOW総数保存も通過。
+- REDとRelay 2つが接続されていても、Blueのランダム候補はRelay 2つだけ。Relayなし／Relay行きLine満杯ではBlueがSourceに残る。Sinkでは同色FLOWを即時消化し、BufferとOutgoingを持たないことを検証。
+- 新規設定と調整アセットの双方で、Relayの6個目はLine上で保持、Sourceは9個で入力可能・10個で満杯を確認。Game Overは現行の「10個以上が連続5秒」を維持。即時敗北は未採用で、判断は [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) に記録する。
+- 0 Line開始からS1/S2/S3→RED・BLUE・R1、R1→GREEN・YELLOW・PURPLEへWaveごとに拡張し、**4 Wave・11 Node・5色・12 Lineで240 s生存**、100件超の配送を確認。SinkのBufferは常に空、Relayは5以下、生成数＝消化数＋待機数＋In-Flightを維持。
+- 制御した実画面ではR1にBlueを5個保持し、6個目のBlueをS1→R1のLine終端で停止、RedをS1→RED上で移動させた。S1 0/10、R1 5/5、SinkのBuffer欄「—」とゲージなしを確認。撮影時は自動tickを止め、撮影用の配線とFLOWを作成してPauseした。
+- 画面: `docs/screenshots/relay-only-routing-buffer-capacities.png`。Unity Editor内での検証で、Playerビルドは対象外。
+
+## 生成頻度・容量3・ホバー中心HUDの検証
+
+- 生成間隔／容量と等間隔待機でEditMode 2件、ホバー専用表示と停止Lineの色でPlayMode 2件のRedを確認。旧「同時出発したFLOWが重なったまま同時到着する」テストは、先行FLOWとの間隔を待ってから共通速度で進む仕様へ更新した。
+- 最終EditMode **120/120**、PlayMode **37/37**成功。コンパイルError/Warning **0**、Console Error **0**。PlayModeで見つけた描画オブジェクトの初期化タイミングを修正し、全件を再実行した。
+- 新規設定とアセットのLine容量3、WiringLabのS1/S3 3秒・S2 3.9秒を検証。S1は準備15秒＋生成間隔3秒で初回18秒、次は21秒に生成する。Wave倍率と敗北猶予は維持。
+- 30 m・容量3のLineで停止位置30／20／10 m、FLOW ID・所属・容量の保持、各tickの進行量0〜速度×時間差分を確認。回復後も現在位置から前進する。通常Lineの混雑色と回復時の色復元をPlayModeで確認。
+- Source／Relay／Sink／Lineのホバー、カーソルを外した時の消去、選択で固定されないこと、Pause中の情報確認、360の始点／候補への実Pointer入力、都市領域外への配置を確認。パネル削除後も接続・Preview・手動編集・削除予約・Retry・UI入力透過が通過。
+- 実画面でSourceのホバーパネルが隣のR1へ重なる問題を見つけ、再現テスト1件をRedにした。周辺Nodeを避けて左右上下から配置を選ぶ修正後、全PlayMode **37/37**を再実行して成功。停止FLOWの円盤は終点Nodeの周囲にも見える大きさにした。
+- 新しい生成間隔・容量3でも、0 LineからRelay経由の12 Lineへ拡張して4 Wave・11 Node・5色で240秒生存、100件超の配送とFLOW総数保存を確認。難度の比較・最終採用値は引き続き #12／#13。
+- 撮影用にR1へBlue 5個、S1→R1へBlue 3個、S1→REDへRed 1個、S1にBlue 4個を作り、自動tickを止めてPause。26 mのLine上でBlueが8.67／17.33／26 mに並び、Lineがオレンジになることを確認した。
+- Sourceのホバー時は生成3.00秒・Buffer 4/10・接続数・送り先を表示: `docs/screenshots/v01-hover-source.png`。ホバーを外すと詳細が消える: `docs/screenshots/v01-minimal-hud-queue.png`。360では独立Previewパネルをなくし、配線欄に実経路の情報を集約: `docs/screenshots/v01-minimal-node360.png`。
+
+## Buffer満杯後の排出確認
+
+- uloopの実データ読み取りでは、R2にBlue 5個、出口はGREEN／YELLOW。前回残っていたYellowは出力済みで、空いた枠へBlueが到着していた。異色Sinkへ送れないBlueだけが残り、単色ゲージでは入れ替わりを把握できなかった。
+- EditModeの追加2件は、実装変更前から **2/2成功**。Buffer出力が欠けているという不具合は再現しなかったため、輸送ロジックは変更していない。
+- Blue 5個で満杯のRelayへ対応Sinkを後から追加し、Pause中は保持、再開後は古い3個から出発、入力再開、全7個の配送までを固定tickで確認。FLOW ID・総数・容量も検証。
+- Sourceでも、同じtickに新規生成したFLOWより古いBuffer内FLOWが先に出発することを確認。既存の「出られない色は残して後続の別色を出力する」テストと併せて待機順を固定した。
+
+## Bufferゲージの色別表示
+
+- PlayMode追加2件は旧ゲージで **2/2失敗（Red）**、色付き枠・実数表示の実装後に **2/2成功（Green）**。
+- SourceのRed／Blue混在・空き枠・11/10の超過Buffer・UIDocument再生成、Relayの満杯5/5・色の保持・対応Sink追加後の3/5への減少を検証。Pause中も描画し、各枠は入力透過、Sinkにはゲージなし。
+- 全体の確認は **EditMode 122/122成功、PlayMode 39/39成功**。コンパイルError／Warning 0、Unity Console Error 0。Nodeラベルのカメラ追従、ホバー非重複、Wave追加、0 Lineからの全色ネットワーク進行も成功。
+- uloop実画面では撮影用にR2へBlue 4個＋Yellow 1個、S2へ4色4個を配置し、色付き枠と5/5・4/10を確認: `docs/screenshots/v01-buffer-colors-full.png`。対応するYELLOW・BLUEを追加して再開し、1tickでYellow 1個・Blue 3個が出発、R2がBlue 1個の1/5へ更新: `docs/screenshots/v01-buffer-colors-recovery.png`。撮影時は自動tickを止め、公開APIで配置・出発を行った制御検証であり、ユーザーのセッションを保存・復元したものではない。
+
+## 2026-09-22 UX改善（進行中）
+
+- §18の追跡表: `docs/V01-Acceptance.md`。危険表示 #14、Line状態 #15、配線誤操作 #16、HUD整理 #17、保留事項 #18。
+- #16のEditModeは自己候補・Sink始点・Undoで4件のRedを確認後、16/16成功。輸送中Line、編集済みLine、別操作開始後をUndoで消さないことを検証。
+- 説明トーストとCtrl+ZのPlayMode追加2件はUI未実装で2件のRedを確認。
+- #16のNodeConnectionTestsは **10/10成功**（Sink説明・Pause中Ctrl+Z・既存Node 360操作）。コンパイルError/Warning 0、Console Error 0。
+- #14のホバーなし警告は新テストでRedを確認。80%枠、満杯時の秒数・円弧・画面端警告、Pause固定、対応Sinkへの出力後の解除を確認する。
+- #14はSourceStatusTests **4/4成功**。接続追加で再生成されるラベルを取得し直したうえで、Buffer 10→7、猶予・円弧・画面端警告の解除を確認した。コンパイルError/Warning 0。
+- #15は混雑＋削除予約で破線が存在しないRedを確認後、関連PlayMode **7/7成功**。混雑した破線・二重線を橙で表示し、状態変更前後のFLOW ID・距離を維持。Node 360では停止FLOWも通常サイズになることを確認。コンパイルError/Warning 0、Console Error 0。
+
+- #17のHUD追加4件で旧表・ホバー構造・候補見出しのRed、カメラ移動後の出現マーカー重複のRedを確認。実装後4/4成功。全PlayMode初回は43/47成功し、初回ホバーの安全位置と廃止UI・時計を参照する旧テストを修正後、該当20/20成功。Console Error 0。最終全体検証は後述。
+
+- Snapshot追加4件はキャッシュ導入前2件成功・2件失敗。失敗は変更のない読み取りで別インスタンスが返るため。不変性・状態更新の既存動作は維持してキャッシュを追加する。コンパイル後uloopウォームアップが残留し、複数再試行でも回復しなかったため、保存済みEdit Modeからuloop launch --restartで復旧してRedを実行した。
+
+- Snapshot実装後は追加4/4成功。全体EditMode **130/130**、PlayMode **47/47**成功、Console Error 0。同じ1000回の読み取りでSnapshot実体が1000個から1個へ減少した。GCバイト数のAPIはこの環境で0を返しており、測定根拠には用いていない。
+- 実画面でPause中の状況ヒントが「Escで停止」となる問題を確認し、Source警告の既存テストに追加してRed。停止／再開を分け、関連PlayMode **15/15**成功。Fが選択済み対象よりホバー対象を優先してフォーカスすることも実Input System入力で検証した。
+- 最終コンパイルError/Warning 0、最終撮影後Console Error/Warning 0。4画面はdocs/screenshots/v01-ux-*.pngへ保存。WiringLabは配線0・Pause・通常SimulationDriver有効へ戻した。
