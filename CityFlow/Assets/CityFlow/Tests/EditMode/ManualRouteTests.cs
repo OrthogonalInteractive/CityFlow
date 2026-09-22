@@ -13,8 +13,8 @@ namespace CityFlow.Tests.EditMode
     {
         private static (FlowNetwork, LinePreviewService) Create()
         {
-            var nodes = new[] { new NodeDefinition("A", NodeKind.Source, Vector3.zero, 3, 3, null, 1),
-                new NodeDefinition("B", NodeKind.Sink, new Vector3(20,0,0), 3, 3, FlowColor.Red) };
+            var nodes = new NodeDefinition[] { new SourceNodeDefinition("A", Vector3.zero, maxOutgoing: 3, generationInterval: 1),
+                new SinkNodeDefinition("B", new Vector3(20,0,0), FlowColor.Red, maxIncoming: 3) };
             var stage = new StageDefinition(0,new Rect(-10,-20,50,40),Array.Empty<Bounds>(),nodes);
             var network = new FlowNetwork(stage,new NetworkSettings(10,10,10,20,0.5f));
             var preview = new LinePreviewService(network,new GroundRoutePlanner(stage,0.5f));

@@ -27,13 +27,13 @@ namespace CityFlow.Tests.EditMode
             public int NextIndex(int exclusiveMax) => index++ % exclusiveMax;
         }
         private static FlowNetwork Network(int capacity = 2, int buffer = 2, double interval = 1000) =>
-            new FlowNetwork(new StageDefinition(0, new Rect(-100, -100, 200, 200), Array.Empty<Bounds>(), new[] {
-                new NodeDefinition("S", NodeKind.Source, Vector3.zero, 8, 8, generationInterval: interval),
-                new NodeDefinition("R", NodeKind.Relay, new Vector3(10, 0, 0), 8, 8),
-                new NodeDefinition("Q", NodeKind.Relay, new Vector3(0, 0, 10), 8, 8),
-                new NodeDefinition("T", NodeKind.Sink, new Vector3(20, 0, 0), 8, 8, FlowColor.Red),
-                new NodeDefinition("U", NodeKind.Sink, new Vector3(30, 0, 0), 8, 8, FlowColor.Red),
-                new NodeDefinition("B", NodeKind.Sink, new Vector3(20, 0, 10), 8, 8, FlowColor.Blue) }),
+            new FlowNetwork(new StageDefinition(0, new Rect(-100, -100, 200, 200), Array.Empty<Bounds>(), new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, maxOutgoing: 8, generationInterval: interval),
+                new RelayNodeDefinition("R", new Vector3(10, 0, 0), maxIncoming: 8, maxOutgoing: 8),
+                new RelayNodeDefinition("Q", new Vector3(0, 0, 10), maxIncoming: 8, maxOutgoing: 8),
+                new SinkNodeDefinition("T", new Vector3(20, 0, 0), FlowColor.Red, maxIncoming: 8),
+                new SinkNodeDefinition("U", new Vector3(30, 0, 0), FlowColor.Red, maxIncoming: 8),
+                new SinkNodeDefinition("B", new Vector3(20, 0, 10), FlowColor.Blue, maxIncoming: 8) }),
                 new NetworkSettings(buffer,buffer, capacity, 10, 0, overloadGrace: 1000));
         private static int Connect(FlowNetwork network, string from, string to, params Vector3[] via)
         {
@@ -192,7 +192,7 @@ namespace CityFlow.Tests.EditMode
             Assert.That(Node(network, "B").Buffer, Is.Empty);
             Assert.That(Node(network, "B").IsInputStopped, Is.False);
             Assert.That(Node(network, "B").Definition.MaxOutgoing, Is.Zero);
-            Assert.That(network.CheckConnection("B", "R"), Is.EqualTo(ConnectionFailure.OutgoingLimit));
+            Assert.That(network.CheckConnection("B", "R"), Is.EqualTo(ConnectionFailure.OutputNotSupported));
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2));
             Assert.That(Line(network, line).InFlight, Is.Empty); AssertConserved(network);
         }

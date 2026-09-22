@@ -13,8 +13,8 @@ namespace CityFlow.Tests.EditMode
     {
         private static StageDefinition Stage(Vector3 position) => new StageDefinition(0,
             new Rect(-20, -20, 40, 40), new[] { new Bounds(new Vector3(5, 3, 5), new Vector3(4, 6, 4)) },
-            new[] { new NodeDefinition("source", NodeKind.Source, position),
-                new NodeDefinition("red", NodeKind.Sink, new Vector3(-10, 0, 10), sinkColor: FlowColor.Red) });
+            new NodeDefinition[] { new SourceNodeDefinition("source", position),
+                new SinkNodeDefinition("red", new Vector3(-10, 0, 10), FlowColor.Red) });
 
         [Test] public void ValidGroundPlacementIsAccepted() => Assert.DoesNotThrow(() => Stage(Vector3.zero).Validate(0.5f));
         [TestCase(30, 0, 0)] [TestCase(0, 1, 0)] [TestCase(5, 0, 5)] [TestCase(2.6f, 0, 5)]
@@ -38,16 +38,16 @@ namespace CityFlow.Tests.EditMode
                 Assert.Throws<ArgumentException>(() => settings.Validate()); }
             finally { UnityEngine.Object.DestroyImmediate(settings); }
         }
-        [Test] public void MissingSinkColorIsRejected()
+        [Test] public void InvalidSinkColorIsRejected()
         {
             var stage = new StageDefinition(0, new Rect(-10, -10, 20, 20), Array.Empty<Bounds>(),
-                new[] { new NodeDefinition("sink", NodeKind.Sink, Vector3.zero) });
+                new NodeDefinition[] { new SinkNodeDefinition("sink", Vector3.zero, (FlowColor)999) });
             Assert.Throws<ArgumentException>(() => stage.Validate(0));
         }
         [Test] public void SourceRequiresAnExistingSink()
         {
             var stage = new StageDefinition(0, new Rect(-10, -10, 20, 20), Array.Empty<Bounds>(),
-                new[] { new NodeDefinition("source", NodeKind.Source, Vector3.zero) });
+                new NodeDefinition[] { new SourceNodeDefinition("source", Vector3.zero) });
             Assert.Throws<ArgumentException>(() => stage.Validate(0));
         }
         [Test] public void LoadedStageDoesNotAliasEditableAssetArrays()

@@ -70,7 +70,7 @@ namespace CityFlow.Application.Connections
             if (SourceId == null) return Array.Empty<ConnectionCandidate>();
             var nodes = network.Snapshot().Nodes;
             NodeSnapshot source = nodes.Single(n => n.Definition.Id == SourceId);
-            return nodes.Where(node => node.Definition.Id != SourceId).Select(node =>
+            return nodes.Where(node => node.Definition.Id != SourceId && node.Definition.Kind != NodeKind.Source).Select(node =>
             {
                 Vector3 delta = node.Definition.Position - source.Definition.Position;
                 float distance = new Vector2(delta.x,delta.z).magnitude;
@@ -80,7 +80,8 @@ namespace CityFlow.Application.Connections
         }
         public void SelectTarget(string destinationId)
         {
-            if (preview.EditingLineId.HasValue || SourceId == null || !network.NodeDefinitions.Any(n => n.Id == destinationId)) return;
+            if (preview.EditingLineId.HasValue || SourceId == null || destinationId == SourceId ||
+                !network.NodeDefinitions.Any(n => n.Id == destinationId && n.Kind != NodeKind.Source)) return;
             preview.Generate(SourceId,destinationId);
         }
         public ConnectionFailure Confirm()

@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <Style src="NodePlacement.uss" />
+    <ui:Foldout name="placement" value="true">
+        <ui:DropdownField name="node-kind" label="Node Type" />
+        <ui:Label name="direction-description" class="direction-description" />
+        <ui:VisualElement name="placement-fields" />
+    </ui:Foldout>
+</ui:UXML>

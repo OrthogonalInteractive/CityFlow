@@ -78,6 +78,7 @@
 - Node / LineはGround上。全区間の衝突判定と描画・距離計測・移動の実経路を一致させる。
 - Lineは有向で固定容量（基本3）。Lineが長くても容量を増やさない。待機間隔は実経路長 / 容量とし、停止時にFLOWの位置を付け替えたり後退させたりしない。
 - 同色Sinkへの利用可能な直結を優先し、その直結が満杯なら待機する。直結がない場合のランダム候補はRelayだけ。異色SinkとSourceへはランダム転送しない。FLOWに大域的な経路探索をさせない。
+- SourceはOUTのみ、RelayはIN／OUT、SinkはINのみ。定義・配置は種別ごとの型で表現し、SourceのINとSinkのOUTを設定項目にしない。SourceへのLineは作成できない。
 - Sinkは同色FLOWを即時消化する終点で、Buffer・中継・Outgoing Lineを持たない。Bufferの基本設定はSource 10、Relay 5。
 - FLOWの受け渡し完了前にLineの容量を解放しない。停止中もIn-Flightを保持する。
 - 削除予約・経路切替は新規流入を止め、排出完了を待つ。FLOWの消失・瞬間移動・接続枠の先行解放を起こさない。

@@ -9,7 +9,8 @@
     "Unity.InputSystem",
     "Unity.RenderPipelines.Universal.Runtime",
     "VContainer",
-    "CityFlow.Presentation"
+    "CityFlow.Presentation",
+    "CityFlow.Editor"
   ],
   "includePlatforms": [
     "Editor"

@@ -14,9 +14,9 @@ namespace CityFlow.Tests.EditMode
     public sealed class PauseTests
     {
         private sealed class First : IRandomSource { public int Calls; public int NextIndex(int count) { Calls++; return 0; } }
-        private static StageDefinition Stage()=>new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
-            new NodeDefinition("S",NodeKind.Source,Vector3.zero),new NodeDefinition("R",NodeKind.Relay,new Vector3(10,0,0)),
-            new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red)});
+        private static StageDefinition Stage()=>new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new NodeDefinition[] {
+            new SourceNodeDefinition("S", Vector3.zero),new RelayNodeDefinition("R", new Vector3(10,0,0)),
+            new SinkNodeDefinition("T", new Vector3(20,0,0), FlowColor.Red, maxIncoming: 3)});
         [Test] public void PausePreservesGenerationMovementOverloadElapsedAndFractionalRemainder()
         {
             var n=new FlowNetwork(Stage(),new NetworkSettings(2,2,2,10,0)); var random=new First(); var s=new FlowSimulation(n,random);

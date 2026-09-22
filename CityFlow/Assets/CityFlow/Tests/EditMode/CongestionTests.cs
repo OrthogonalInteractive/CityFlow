@@ -14,10 +14,10 @@ namespace CityFlow.Tests.EditMode
     {
         private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         private static FlowNetwork Create() => new FlowNetwork(new StageDefinition(0,
-            new Rect(-50, -50, 100, 100), Array.Empty<Bounds>(), new[] {
-                new NodeDefinition("S", NodeKind.Source, Vector3.zero, 4, 4, generationInterval: 1000),
-                new NodeDefinition("R", NodeKind.Relay, new Vector3(10, 0, 0), 4, 4),
-                new NodeDefinition("T", NodeKind.Sink, new Vector3(20, 0, 0), 4, 4, FlowColor.Red) }),
+            new Rect(-50, -50, 100, 100), Array.Empty<Bounds>(), new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, maxOutgoing: 4, generationInterval: 1000),
+                new RelayNodeDefinition("R", new Vector3(10, 0, 0), maxIncoming: 4, maxOutgoing: 4),
+                new SinkNodeDefinition("T", new Vector3(20, 0, 0), FlowColor.Red, maxIncoming: 4) }),
             new NetworkSettings(2,2, 2, 10, 0));
         private static NodeSnapshot Node(FlowNetwork n, string id) => n.Snapshot().Nodes.Single(x => x.Definition.Id == id);
         private static void Fill(FlowNetwork n)
@@ -77,10 +77,10 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void BlockedQueueUsesEqualFractionsOfTheWholeRouteWithoutMovingBackwards()
         {
-            var n = new FlowNetwork(new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new[] {
-                new NodeDefinition("S",NodeKind.Source,Vector3.zero),
-                new NodeDefinition("R",NodeKind.Relay,new Vector3(30,0,0)),
-                new NodeDefinition("T",NodeKind.Sink,new Vector3(40,0,0),sinkColor:FlowColor.Red) }),
+            var n = new FlowNetwork(new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero),
+                new RelayNodeDefinition("R", new Vector3(30,0,0)),
+                new SinkNodeDefinition("T", new Vector3(40,0,0), FlowColor.Red) }),
                 new NetworkSettings(10,1,3,10,0));
             Connect(n,"S","R"); n.GenerateFlow("S",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(4);
             for(int i=0;i<3;i++) n.GenerateFlow("S",FlowColor.Red);

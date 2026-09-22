@@ -17,13 +17,13 @@ namespace CityFlow.Tests.EditMode
         private static readonly Vector3 C = new Vector3(10, 0, 5);
         private static readonly Vector3 D = new Vector3(-10, 0, 5);
         private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
-        private static FlowNetwork Network(int outgoing = 3, int incoming = 3, bool building = false) =>
+        private static FlowNetwork Network(int outgoing = 3, int incoming = 3, bool building = false, bool relayOrigin = false) =>
             new FlowNetwork(new StageDefinition(0, new Rect(-30, -30, 60, 60), building ?
                 new[] { new Bounds(new Vector3(0, 2, 0), new Vector3(4, 4, 4)) } : Array.Empty<Bounds>(),
-                new[] { new NodeDefinition("A", NodeKind.Source, A, maxOutgoing: outgoing),
-                    new NodeDefinition("B", NodeKind.Relay, B, maxIncoming: incoming),
-                    new NodeDefinition("C", NodeKind.Sink, C, sinkColor: FlowColor.Red),
-                    new NodeDefinition("D", NodeKind.Sink, D, sinkColor: FlowColor.Blue) }), new NetworkSettings(2,2, 2, 10, 0.5f));
+                new NodeDefinition[] { relayOrigin ? new RelayNodeDefinition("A", A, maxOutgoing: outgoing) : new SourceNodeDefinition("A", A, maxOutgoing: outgoing),
+                    new RelayNodeDefinition("B", B, maxIncoming: incoming),
+                    new SinkNodeDefinition("C", C, FlowColor.Red),
+                    new SinkNodeDefinition("D", D, FlowColor.Blue) }), new NetworkSettings(2,2, 2, 10, 0.5f));
 
         [Test] public void DirectedConnectionReservesBothEndsAtomically()
         {
@@ -33,6 +33,15 @@ namespace CityFlow.Tests.EditMode
             Assert.That(state.Nodes.Single(n => n.Definition.Id == "A").OutgoingUsed, Is.EqualTo(1));
             Assert.That(state.Nodes.Single(n => n.Definition.Id == "B").IncomingUsed, Is.EqualTo(1));
             Assert.That(state.Lines.Single().Capacity, Is.EqualTo(2));
+        }
+        [Test] public void SourceHasNoIncomingSlotsAndCannotBeAConnectionDestination()
+        {
+            var network = Network();
+            Assert.That(network.TryConnect("B", "A", new[] { B, A }).Succeeded, Is.False);
+            Assert.That(network.CheckConnection("B", "A"), Is.EqualTo(ConnectionFailure.InputNotSupported));
+            Assert.That(network.NodeDefinitions.Single(n => n.Id == "A").MaxIncoming, Is.Zero);
+            Assert.That(network.Snapshot().Lines, Is.Empty);
+            Assert.That(network.Snapshot().Nodes.All(n => n.IncomingUsed + n.OutgoingUsed == 0), Is.True);
         }
         [TestCase("missing", "B", ConnectionFailure.UnknownSource)]
         [TestCase("A", "missing", ConnectionFailure.UnknownDestination)]
@@ -45,7 +54,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void DuplicateDirectionIsRejectedButReverseIsIndependent()
         {
-            var network = Network();
+            var network = Network(relayOrigin: true);
             network.TryConnect("A", "B", new[] { A, B });
             Assert.That(network.TryConnect("A", "B", new[] { A, B }).Failure, Is.EqualTo(ConnectionFailure.DuplicateDirection));
             Assert.That(network.TryConnect("B", "A", new[] { B, A }).Succeeded, Is.True);

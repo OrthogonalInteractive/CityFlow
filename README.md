@@ -192,3 +192,7 @@ Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S
 基本HUDはDELIVERED・分:秒のTIME・「WAVE / NEXT」の1行。右上のDIRECTED LINES表を廃止し、Lineの詳細もホバーで確認する。ホバーは見出し、Buffer、IN/OUT、警告、接続先に分け、対象へのリーダー線を表示する。Wave通知と出現マーカーはNodeラベルを避ける。画面下の操作ヒントは準備中Source・危険・編集中などの状況に応じて変わる。**F**でホバー中のNode／Lineへフォーカスできる。
 
 候補一覧は自分自身を除き、接続可能・経路未確認・BLOCKEDに分類する。Sinkは色＋頭文字で表示する。カーソルが一覧上にある間は行を固定し、移動による誤クリックを防ぐ。ワールドの候補マーカーは重なりを避けてずらし、リーダー線で対象を示す。
+
+### Node配置の編集
+
+`WiringStage`／`ValidationStage`のNodesとWaveのAdditionsは、InspectorのNode TypeからSource／Relay／Sinkを選ぶ。SourceはOUT・生成設定、RelayはIN／OUT、SinkはIN・色だけを設定できる。種類変更はID・位置と共通の接続枠を保持し、Undoで戻せる。新規要素は必ず種類と一意のIDを設定する。

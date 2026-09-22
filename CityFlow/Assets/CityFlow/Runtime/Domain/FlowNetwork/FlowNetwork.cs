@@ -99,6 +99,8 @@ namespace CityFlow.Domain.FlowNetwork
             if (string.IsNullOrEmpty(destinationId) || !nodes.TryGetValue(destinationId, out NodeState destination))
                 return ConnectionFailure.UnknownDestination;
             if (source == destination) return ConnectionFailure.SelfConnection;
+            if (source.Definition.Kind == NodeKind.Sink) return ConnectionFailure.OutputNotSupported;
+            if (destination.Definition.Kind == NodeKind.Source) return ConnectionFailure.InputNotSupported;
             if (source.Outgoing.Any(line => line.Destination == destination))
                 return ConnectionFailure.DuplicateDirection;
             if (source.Outgoing.Count >= source.Definition.MaxOutgoing)

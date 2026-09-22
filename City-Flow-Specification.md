@@ -93,11 +93,11 @@ FLOWは小さな発光粒子で表現する。各FLOWは1色を持ち、その�
 
 ### 4.1 共通機能
 
-すべてのNodeは、3D位置とLineの接続枠を持つ。Bufferを持つのはSourceとRelayのみ。Sinkは同色FLOWを即時消化する終点で、BufferとOutgoing Lineを持たない（OUT上限0）。
+すべてのNodeは、3D位置と種別に応じたLineの接続枠を持つ。SourceはOUTのみ、RelayはIN／OUT、SinkはINのみを持つ。SourceへのIncoming LineとSinkからのOutgoing Lineは作成できない。Bufferを持つのはSourceとRelayのみ。Sinkは同色FLOWを即時消化する終点で、BufferとOutgoing Lineを持たない（OUT上限0）。
 
 | 種類 | FLOW生成 | FLOW消化 | 中継 |
 | --- | --- | --- | --- |
-| Source | 一定間隔で生成 | なし | 可能 |
+| Source | 一定間隔で生成 | なし | 不可（生成したFLOWの送出のみ） |
 | Sink | なし | 自分の色のみ即時消化 | 不可 |
 | Relay | なし | なし | 可能 |
 
@@ -107,7 +107,7 @@ OUT上限0のNodeは配線の始点にしない。クリックしてもOverview�
 
 現在存在するSink色の中からランダムに色を選び、FLOWを生成する。Sourceの色は固定しない。生成したFLOWは自分のBufferに入る。
 
-SourceはランダムRoutingの接続先には含めない。
+Sourceは自分のBufferに生成したFLOWを送出する始点であり、外部入力を受け取らない。配線の接続先候補には含めない。
 
 ### 4.3 Sink
 
@@ -117,14 +117,15 @@ SourceはランダムRoutingの接続先には含めない。
 
 Relayは生成も消化も行わない。HubはSourceまたはRelayのOutgoing構成で作る。SinkはHubにならない。
 
-現在存在するすべてのSink色へ直接Outgoing Lineを持つNodeを「完全Hub」と呼ぶ。ここに到着した各FLOWは対応色Sinkへ確実に振り分けられる。ただしLineの空き待ちは発生するため、完全Hubでも処理能力が無制限になるわけではない。
+現在存在するすべてのSink色へ直接Outgoing Lineを持つNodeを「完全Hub」と呼ぶ。ここで生成または受け取った各FLOWは対応色Sinkへ確実に振り分けられる。ただしLineの空き待ちは発生するため、完全Hubでも処理能力が無制限になるわけではない。
 
 ## 5. BufferとOverload
 
 NodeのBuffer量は、次の収支で変化する。
 
 ```text
-Source / RelayのBuffer増減 = Sourceでの生成 + Lineからの受け取り完了 − Lineへの出発
+SourceのBuffer増減 = 自身の生成 − Lineへの出発
+RelayのBuffer増減 = Lineからの受け取り完了 − Lineへの出発
 Sink = 同色FLOWを即時消化（Bufferなし）
 ```
 
@@ -144,9 +145,9 @@ SourceがFLOWを送り出せずBufferにため続けるとOverloadになる。�
 
 **補完案：** 既存案の猶予時間をSourceに限定して維持する。SourceのOverloadが連続して猶予時間以上続くとGame Overとし、`Buffer < SourceBufferCapacity`に回復すればタイマーをリセットする。初期検証用の猶予は5秒とする。
 
-**補完案：Source自身の生成と外部入力**
+**補完案：Source自身の超過生成**
 
-SourceもBufferが満杯ならLineからの受け取りを停止する。一方、Source自身の生成は止めず、猶予中の生成分は超過Bufferとして保持する。FLOWを捨てたり、生成の自動停止だけで敗北を回避したりはしない。
+SourceはINを持たず、外部入力は発生しない。Source自身の生成は止めず、猶予中の生成分は超過Bufferとして保持する。FLOWを捨てたり、生成の自動停止だけで敗北を回避したりはしない。
 
 ### 5.3 SinkはBufferを持たない
 
@@ -174,7 +175,7 @@ Nodeごとに次の値を持つ。
 
 v0.1では **1 Line＝1 Connection** とする。A → Bを作成するには、AのOUTとBのINに、それぞれ1本分の空きが必要。
 
-接続上限は設定値として調整可能にする。すべての色へ直結する完全Hubには、少なくとも現在の色数分のOUT接続枠が必要になる。
+接続上限は、SourceのOUT、RelayのIN／OUT、SinkのINのみを設定値として調整可能にする。SourceのINとSinkのOUTは設定項目を持たず、共通の接続判定では上限0として扱う。すべての色へ直結する完全Hubには、少なくとも現在の色数分のOUT接続枠が必要になる。
 
 Port UnitとLine Widthはv0.1には導入しない。
 
@@ -260,7 +261,7 @@ Line削除はいつでも予約できるが、実際の削除は**In-Flightが�
 ### 8.3 接続の形（補完案）
 
 - 自分自身へのLineと、同一の始点・終点を持つ同方向の重複Lineは作成不可とする。
-- A → BとB → Aは、別々の有向Lineとして作成でき、それぞれ接続枠と容量を使う。
+- 両端がRelayで両方向を持てる場合、A → BとB → Aは別々の有向Lineとして作成でき、それぞれ接続枠と容量を使う。
 - Line同士は交差可能とする。交差点でFLOWが合流・乗り換えすることはなく、接続はNodeでのみ成立する。
 - Nodeの位置はプレイ中に移動・削除せず、Lineの接続と経路を編集対象とする。
 
@@ -436,7 +437,7 @@ Escでゲーム時間を停止する。停止中も、カメラ操作、Node／L
 | 対象 | 通常時 | ホバー時・選択時・警告時 |
 | --- | --- | --- |
 | FLOW | 色付き発光粒子の移動 | 色と流れる方向を識別可能にする |
-| Node | 種類・Sink色・Source/RelayのBuffer使用率 | 種類、Source/RelayのBuffer数／上限・色別内訳、IN／OUT使用数、入力停止の有無 |
+| Node | 種類・Sink色・Source/RelayのBuffer使用率 | 種類、Source/RelayのBuffer数／上限・色別内訳、種別に存在するIN／OUTの使用数、Relayの入力停止の有無 |
 | Source | 生成とBufferの状態 | 生成間隔、Overload中はGame Overまでの残り猶予時間 |
 | Relay | Overload・入力停止の警告 | 受け取り待ちのIncoming Lineと、詰まりを解消するために確認すべき出力接続 |
 | Line | 方向矢印・移動／停止中FLOW | 始点→終点、長さ、停止なしの移動時間、In-Flight／上限、停止数、推定Throughput、停止理由 |

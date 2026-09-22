@@ -14,8 +14,8 @@ namespace CityFlow.Tests.EditMode
         private static readonly Vector3 A = new(-10, 0, 0), B = new(10, 0, 0), C = new(10, 0, 10);
         private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         private static FlowNetwork Network() => new(new StageDefinition(0, new Rect(-30, -30, 60, 60), Array.Empty<Bounds>(),
-            new[] { new NodeDefinition("A", NodeKind.Source, A), new NodeDefinition("B", NodeKind.Relay, B),
-                new NodeDefinition("C", NodeKind.Sink, C, sinkColor: FlowColor.Red) }), new NetworkSettings(2, 2, 2, 10, 0.5f));
+            new NodeDefinition[] { new SourceNodeDefinition("A", A), new RelayNodeDefinition("B", B),
+                new SinkNodeDefinition("C", C, FlowColor.Red) }), new NetworkSettings(2, 2, 2, 10, 0.5f));
 
         [Test] public void RepeatedReadsReuseImmutableStateAndRejectedCommandsDoNotReplaceIt()
         {
@@ -88,7 +88,7 @@ namespace CityFlow.Tests.EditMode
             var network = Network();
             var before = network.Snapshot();
             var roster = network.NodeDefinitions;
-            Assert.That(network.TryAddNodes(new[] { new NodeDefinition("D", NodeKind.Sink, new Vector3(-10, 0, 10), sinkColor: FlowColor.Blue) }), Is.True);
+            Assert.That(network.TryAddNodes(new NodeDefinition[] { new SinkNodeDefinition("D", new Vector3(-10, 0, 10), FlowColor.Blue) }), Is.True);
             Assert.That(network.Snapshot().Nodes.Count, Is.EqualTo(4));
             Assert.That(network.NodeDefinitions.Count, Is.EqualTo(4));
             Assert.That(before.Nodes.Count, Is.EqualTo(3));

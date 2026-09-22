@@ -19,10 +19,10 @@ namespace CityFlow.Tests.EditMode
                 : ScriptableObject.CreateInstance<GameplaySettings>();
             try
             {
-                var network = new FlowNetwork(new StageDefinition(0, new Rect(-30,-30,60,60), Array.Empty<Bounds>(), new[] {
-                    new NodeDefinition("S",NodeKind.Source,Vector3.zero),
-                    new NodeDefinition("R",NodeKind.Relay,new Vector3(10,0,0)),
-                    new NodeDefinition("RED",NodeKind.Sink,new Vector3(20,0,0),sinkColor:FlowColor.Red) }), settings.LoadNetworkSettings());
+                var network = new FlowNetwork(new StageDefinition(0, new Rect(-30,-30,60,60), Array.Empty<Bounds>(), new NodeDefinition[] {
+                    new SourceNodeDefinition("S", Vector3.zero),
+                    new RelayNodeDefinition("R", new Vector3(10,0,0)),
+                    new SinkNodeDefinition("RED", new Vector3(20,0,0), FlowColor.Red) }), settings.LoadNetworkSettings());
                 Assert.That(network.TryConnect("S","R",new[] { Vector3.zero,new Vector3(10,0,0) }).Succeeded,Is.True);
                 for(int i=0;i<6;i++) network.GenerateFlow("S",FlowColor.Red);
                 network.RouteWaitingFlows(new First()); network.AdvanceInFlight(10);

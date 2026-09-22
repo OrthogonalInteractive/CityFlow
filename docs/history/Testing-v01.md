@@ -210,3 +210,11 @@
 - Snapshot実装後は追加4/4成功。全体EditMode **130/130**、PlayMode **47/47**成功、Console Error 0。同じ1000回の読み取りでSnapshot実体が1000個から1個へ減少した。GCバイト数のAPIはこの環境で0を返しており、測定根拠には用いていない。
 - 実画面でPause中の状況ヒントが「Escで停止」となる問題を確認し、Source警告の既存テストに追加してRed。停止／再開を分け、関連PlayMode **15/15**成功。Fが選択済み対象よりホバー対象を優先してフォーカスすることも実Input System入力で検証した。
 - 最終コンパイルError/Warning 0、最終撮影後Console Error/Warning 0。4画面はdocs/screenshots/v01-ux-*.pngへ保存。WiringLabは配線0・Pause・通常SimulationDriver有効へ戻した。
+
+## 2026-09-22 Node方向の型分割
+
+- SourceはOUTのみ、RelayはIN／OUT、SinkはINのみを確定仕様として採用。旧Source外部入力案を廃止し、超過生成の保持・猶予5秒は維持。
+- Red: SourceへのLine作成が成功し、Relayの候補にもSourceが現れることを2テストで再現（0/2）。
+- Green: 定義・配置を3型へ分割し、全EditMode 141/141成功。配置のシリアライズ往復、初期配置とWave、生成設定の境界を含む。
+- Inspectorの追加3テストは、実Editorパネルに取り付けて種類変更・適用される項目・共通設定保持・Undo・未選択要素を検証し、3/3成功。
+- シーン統合は全PlayMode 47/47成功。コンパイルError/Warning 0、Console Error/Warning 0。

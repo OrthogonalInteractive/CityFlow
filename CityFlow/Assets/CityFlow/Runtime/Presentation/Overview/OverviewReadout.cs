@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using CityFlow.Domain.FlowNetwork;
+using CityFlow.Domain.Spatial;
 
 namespace CityFlow.Presentation.Overview
 {
@@ -22,10 +23,10 @@ namespace CityFlow.Presentation.Overview
                         colors: node.Definition.SinkColor?.ToString() ?? "");
                 string colors = string.Join("  ", node.Buffer.GroupBy(f => f.Color).OrderBy(g => g.Key).Select(g => $"{g.Key}: {g.Count()}"));
                 string activity = "", warning = node.IsInputStopped ? "INPUT STOPPED · BUFFER FULL" : "";
-                if (node.Definition.Kind == NodeKind.Source)
+                if (node.Definition is SourceNodeDefinition source)
                 {
                     string color = node.LastGeneratedColor.HasValue ? " · " + node.LastGeneratedColor.Value.ToString().ToUpperInvariant() : "";
-                    activity = $"GENERATE {node.Definition.GenerationInterval * intervalScale:0.00}s\nGENERATED {node.GeneratedCount}{color}\n{Math.Max(0, node.BufferCapacity.Value - node.Buffer.Count)} FREE";
+                    activity = $"GENERATE {source.GenerationInterval * intervalScale:0.00}s\nGENERATED {node.GeneratedCount}{color}\n{Math.Max(0, node.BufferCapacity.Value - node.Buffer.Count)} FREE";
                     warning = node.IsInputStopped ? $"{Math.Max(0, settings.OverloadGrace - node.OverloadSeconds):0.0}s TO GAME OVER" :
                         node.Buffer.Count >= node.BufferCapacity.Value * 0.8 ? "BUFFER NEARLY FULL · ADD AN EXIT" : "";
                 }

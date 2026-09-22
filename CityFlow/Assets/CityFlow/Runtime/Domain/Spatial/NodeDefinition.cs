@@ -5,23 +5,20 @@ using UnityEngine;
 
 namespace CityFlow.Domain.Spatial
 {
-    public sealed class NodeDefinition
+    public abstract class NodeDefinition
     {
         public string Id { get; }
-        public NodeKind Kind { get; }
-        public FlowColor? SinkColor { get; }
         public Vector3 Position { get; }
-        public int MaxIncoming { get; }
-        public int MaxOutgoing { get; }
-        public double GenerationInterval { get; }
-        public double GenerationDelay { get; }
+        public abstract NodeKind Kind { get; }
+        // Unsupported directions have no configurable capacity.
+        public virtual int MaxIncoming => 0;
+        public virtual int MaxOutgoing => 0;
+        public virtual FlowColor? SinkColor => null;
 
-        public NodeDefinition(string id, NodeKind kind, Vector3 position, int maxIncoming = 3,
-            int maxOutgoing = 3, FlowColor? sinkColor = null, double generationInterval = 1, double generationDelay = 0)
+        private protected NodeDefinition(string id, Vector3 position)
         {
-            Id = id; Kind = kind; Position = position; MaxIncoming = maxIncoming;
-            MaxOutgoing = kind == NodeKind.Sink ? 0 : maxOutgoing;
-            SinkColor = sinkColor; GenerationInterval = generationInterval; GenerationDelay = generationDelay;
+            Id = id;
+            Position = position;
         }
     }
 }

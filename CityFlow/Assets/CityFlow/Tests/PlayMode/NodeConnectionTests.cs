@@ -183,7 +183,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("already exists"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);
             s.SelectTarget("R1"); yield return null;
-            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("different Nodes"));
+            Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("already exists"), "Selecting self preserves the previous preview.");
             s.Cancel(); overview.Select(OverviewTarget.Node("S1")); c.BeginSelected(); s.SelectTarget("R2"); yield return null;
             Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("FROM OUT slots are full"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);

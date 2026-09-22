@@ -13,13 +13,13 @@ namespace CityFlow.Tests.EditMode
     {
         private sealed class Last : IRandomSource { public int NextIndex(int count)=>count-1; }
         private static FlowNetwork Network(double interval=1000,int capacity=1000,double grace=5)=>new FlowNetwork(
-            new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
-                new NodeDefinition("S",NodeKind.Source,Vector3.zero,3,3,generationInterval:interval),
-                new NodeDefinition("R",NodeKind.Relay,new Vector3(10,0,0)),
-                new NodeDefinition("T",NodeKind.Sink,new Vector3(20,0,0),3,3,FlowColor.Red)}),new NetworkSettings(capacity,capacity,2,1,0,grace));
-        private static WaveDefinition Wave(double at,double delay=2)=>new WaveDefinition(at,1,new[]{
-            new NodeDefinition("GREEN",NodeKind.Sink,new Vector3(-10,0,0),3,3,FlowColor.Green),
-            new NodeDefinition("NEW",NodeKind.Source,new Vector3(-20,0,0),3,3,generationInterval:0.25,generationDelay:delay)});
+            new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, maxOutgoing: 3, generationInterval: interval),
+                new RelayNodeDefinition("R", new Vector3(10,0,0)),
+                new SinkNodeDefinition("T", new Vector3(20,0,0), FlowColor.Red, maxIncoming: 3)}),new NetworkSettings(capacity,capacity,2,1,0,grace));
+        private static WaveDefinition Wave(double at,double delay=2)=>new WaveDefinition(at,1,new NodeDefinition[] {
+            new SinkNodeDefinition("GREEN", new Vector3(-10,0,0), FlowColor.Green, maxIncoming: 3),
+            new SourceNodeDefinition("NEW", new Vector3(-20,0,0), maxOutgoing: 3, generationInterval: 0.25, generationDelay: delay)});
         [Test] public void WavePreservesExistingLineBufferFlightsAndDeletionReservation()
         {
             var n=Network(); n.TryConnect("S","R",new[]{Vector3.zero,new Vector3(10,0,0)});
@@ -63,17 +63,17 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void InitialSourceAlsoReceivesConfiguredPreparationTime()
         {
-            var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
-                new NodeDefinition("S",NodeKind.Source,Vector3.zero,generationInterval:1,generationDelay:3),
-                new NodeDefinition("T",NodeKind.Sink,new Vector3(10,0,0),sinkColor:FlowColor.Red)});
+            var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, generationInterval: 1, generationDelay: 3),
+                new SinkNodeDefinition("T", new Vector3(10,0,0), FlowColor.Red)});
             var n=new FlowNetwork(stage,new NetworkSettings(20,20,2,10,0)); var sim=new FlowSimulation(n,new Last());
             sim.Tick(3.95); Assert.That(n.Snapshot().GeneratedCount,Is.Zero); sim.Tick(0.05); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(1));
         }
         [Test] public void FasterWavePreservesSourcePreparationAndRemainingGenerationPhase()
         {
-            var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new[]{
-                new NodeDefinition("S",NodeKind.Source,Vector3.zero,generationInterval:2,generationDelay:3),
-                new NodeDefinition("T",NodeKind.Sink,new Vector3(10,0,0),sinkColor:FlowColor.Red)});
+            var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, generationInterval: 2, generationDelay: 3),
+                new SinkNodeDefinition("T", new Vector3(10,0,0), FlowColor.Red)});
             var n=new FlowNetwork(stage,new NetworkSettings(20,20,2,10,0)); var sim=new FlowSimulation(n,new Last(),new[]{
                 new WaveDefinition(1,0.5,Array.Empty<NodeDefinition>()),new WaveDefinition(4.5,0.25,Array.Empty<NodeDefinition>())});
             sim.Tick(3.95); Assert.That(n.Snapshot().GeneratedCount,Is.Zero); sim.Tick(0.05); Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(1));
@@ -84,7 +84,7 @@ namespace CityFlow.Tests.EditMode
             var n=Network(); Assert.Throws<ArgumentException>(()=>new FlowSimulation(n,new Last(),new[]{Wave(2),Wave(1)}));
             Assert.Throws<ArgumentException>(()=>new FlowSimulation(n,new Last(),new[]{Wave(1),Wave(2)}));
             Assert.That(n.NodeDefinitions.Count,Is.EqualTo(3));
-            Assert.That(n.TryAddNodes(new[]{new NodeDefinition("S",NodeKind.Relay,new Vector3(2,0,0))}),Is.False);
+            Assert.That(n.TryAddNodes(new NodeDefinition[] {new RelayNodeDefinition("S", new Vector3(2,0,0))}),Is.False);
             Assert.That(n.NodeDefinitions.Count,Is.EqualTo(3));
         }
         [Test] public void AuthoredWiringAssetStartsEmptyAndValidatesAllSpawnRoutes()
@@ -92,7 +92,7 @@ namespace CityFlow.Tests.EditMode
             var stage=UnityEditor.AssetDatabase.LoadAssetAtPath<CityFlow.Infrastructure.Configuration.StageConfiguration>("Assets/CityFlow/Settings/Gameplay/WiringStage.asset");
             var settings=UnityEditor.AssetDatabase.LoadAssetAtPath<CityFlow.Infrastructure.Configuration.GameplaySettings>("Assets/CityFlow/Settings/Gameplay/ValidationGameplay.asset");
             var initial=stage.Load(settings.Clearance); var waves=stage.LoadWaves(initial,settings.Clearance);
-            Assert.That(stage.Lines,Is.Empty); Assert.That(initial.Nodes.First(n=>n.Kind==NodeKind.Source).GenerationDelay,Is.EqualTo(15));
+            Assert.That(stage.Lines,Is.Empty); Assert.That(initial.Nodes.OfType<SourceNodeDefinition>().First().GenerationDelay,Is.EqualTo(15));
             Assert.That(waves.Count,Is.EqualTo(3));
             Assert.That(initial.Nodes.Concat(waves.SelectMany(w=>w.Additions)).Where(n=>n.SinkColor.HasValue).Select(n=>n.SinkColor).Distinct().Count(),Is.EqualTo(5));
         }

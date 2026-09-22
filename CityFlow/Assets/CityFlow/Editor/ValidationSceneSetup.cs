@@ -63,9 +63,19 @@ namespace CityFlow.Editor
         private static StageConfiguration.LinePlacement Line(string source, string destination, params Vector3[] points) =>
             new StageConfiguration.LinePlacement { SourceId = source, DestinationId = destination, Points = points };
 
-        private static StageConfiguration.NodePlacement Node(string id, NodeKind kind, float x, float z,
-            FlowColor color = FlowColor.Red) => new StageConfiguration.NodePlacement {
-                Id = id, Kind = kind, SinkColor = color, Position = new Vector3(x, 0, z),
-                MaxIncoming = 3, MaxOutgoing = 3, GenerationInterval = 0.75f };
+        private static NodePlacement Node(string id, NodeKind kind, float x, float z,
+            FlowColor color = FlowColor.Red)
+        {
+            NodePlacement placement = kind switch
+            {
+                NodeKind.Source => new SourceNodePlacement { GenerationInterval = 0.75f },
+                NodeKind.Relay => new RelayNodePlacement(),
+                NodeKind.Sink => new SinkNodePlacement { SinkColor = color },
+                _ => throw new System.ArgumentOutOfRangeException(nameof(kind))
+            };
+            placement.Id = id;
+            placement.Position = new Vector3(x, 0, z);
+            return placement;
+        }
     }
 }

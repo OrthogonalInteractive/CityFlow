@@ -45,7 +45,7 @@ namespace CityFlow.Application.UseCases
                 previous=wave.StartSeconds;
             }
             network.ValidateAdditionalNodes(this.waves.SelectMany(w=>w.Additions));
-            foreach(NodeDefinition source in network.NodeDefinitions.Where(n=>n.Kind==NodeKind.Source)) RegisterSource(source);
+            foreach(SourceNodeDefinition source in network.NodeDefinitions.OfType<SourceNodeDefinition>()) RegisterSource(source);
         }
 
         public void Tick(double deltaSeconds)
@@ -73,7 +73,7 @@ namespace CityFlow.Application.UseCases
             if(Result==null && network.GameOverSourceId!=null)
                 Result=new SessionResult(Wave,ElapsedSeconds,network.Snapshot().DeliveredCount,network.GameOverSourceId);
         }
-        private void RegisterSource(NodeDefinition source)
+        private void RegisterSource(SourceNodeDefinition source)
         {
             readyAt.Add(source.Id,ElapsedSeconds+source.GenerationDelay);
             nextGeneration.Add(source.Id,readyAt[source.Id]+source.GenerationInterval*GenerationIntervalScale);
@@ -92,7 +92,7 @@ namespace CityFlow.Application.UseCases
                 GenerationIntervalScale=wave.IntervalScale;
                 if(!network.TryAddNodes(wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1).ToArray()))
                     throw new InvalidOperationException("The authored Wave could not add its validated Nodes.");
-                foreach(var source in wave.Additions.Where(n=>n.Kind==NodeKind.Source)) RegisterSource(source);
+                foreach(var source in wave.Additions.OfType<SourceNodeDefinition>()) RegisterSource(source);
                 latestAdditions=wave.Additions; LastWaveSeconds=ElapsedSeconds; waveIndex++;
             }
         }
@@ -100,7 +100,7 @@ namespace CityFlow.Application.UseCases
         {
             FlowColor[] colors = network.NodeDefinitions.Where(node => node.SinkColor.HasValue)
                 .Select(node => node.SinkColor.GetValueOrDefault()).Distinct().OrderBy(color => color).ToArray();
-            foreach (NodeDefinition source in network.NodeDefinitions.Where(n=>n.Kind==NodeKind.Source))
+            foreach (SourceNodeDefinition source in network.NodeDefinitions.OfType<SourceNodeDefinition>())
             {
                 while (nextGeneration[source.Id] <= ElapsedSeconds + 1e-9)
                 {

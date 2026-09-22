@@ -14,9 +14,9 @@ namespace CityFlow.Tests.EditMode
     public sealed class GroundRoutingTests
     {
         private static StageDefinition Stage(params Bounds[] buildings) => new StageDefinition(0,
-            new Rect(-20,-20,40,40), buildings, new[] {
-                new NodeDefinition("A", NodeKind.Source, new Vector3(-15,0,0),2,2),
-                new NodeDefinition("B", NodeKind.Sink, new Vector3(15,0,0),2,2,FlowColor.Red) });
+            new Rect(-20,-20,40,40), buildings, new NodeDefinition[] {
+                new SourceNodeDefinition("A", new Vector3(-15,0,0), maxOutgoing: 2),
+                new SinkNodeDefinition("B", new Vector3(15,0,0), FlowColor.Red, maxIncoming: 2) });
         private static LineRoute Route(GroundRouteResult result) => result.Route ?? throw new AssertionException("A valid route is required.");
         private static LinePreviewState Current(LinePreviewService preview) => preview.Current ?? throw new AssertionException("A Preview is required.");
         private static readonly Vector3 A = new Vector3(-15,0,0), B = new Vector3(15,0,0);
@@ -111,10 +111,10 @@ namespace CityFlow.Tests.EditMode
         }
         [TestCase(true)] [TestCase(false)] public void PreviewReportsFullConnectionSlotsWithoutReservingAny(bool outgoing)
         {
-            var stage = new StageDefinition(0,new Rect(-20,-20,40,40),Array.Empty<Bounds>(),new[] {
-                new NodeDefinition("A",NodeKind.Source,A,2,1),
-                new NodeDefinition("B",NodeKind.Sink,B,1,2,FlowColor.Red),
-                new NodeDefinition("C",NodeKind.Relay,new Vector3(0,0,15),2,2) });
+            var stage = new StageDefinition(0,new Rect(-20,-20,40,40),Array.Empty<Bounds>(),new NodeDefinition[] {
+                new SourceNodeDefinition("A", A, maxOutgoing: 1),
+                new SinkNodeDefinition("B", B, FlowColor.Red, maxIncoming: 1),
+                new RelayNodeDefinition("C", new Vector3(0,0,15), maxIncoming: 2, maxOutgoing: 2) });
             var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             Assert.That(n.TryConnect(outgoing ? "A" : "C",outgoing ? "C" : "B",
                 outgoing ? new[] { A,new Vector3(0,0,15) } : new[] { new Vector3(0,0,15),B }).Succeeded, Is.True);

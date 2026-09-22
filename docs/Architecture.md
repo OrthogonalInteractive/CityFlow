@@ -103,6 +103,16 @@ FlowNetwork.Snapshot()は変更のない間、同じ不変Snapshotを返す。�
 
 tick後だけの通知に限定せず、Pause中の同期コマンドの次の読み取りにも新状態を返す。Viewごとのコレクションコピーを避けるための変更であり、R3のイベントバスや別の状態の正本は追加しない。進行中はtick内でも操作ごとに失効するため、常に1tickにつき厳密に1個という契約ではない。
 
+## Nodeの定義と配置
+
+`NodeDefinition`はID・位置と共通の読み取り契約を持つ抽象型。`SourceNodeDefinition`はOUT上限・生成設定、`RelayNodeDefinition`はIN／OUT上限、`SinkNodeDefinition`はIN上限・目的色を持つ。Kindは型から決まり、SourceのINとSinkのOUTは構築引数を持たず、共通の上限照会には0を返す。生成設定はSource型にのみ存在する。
+
+配置も`NodePlacement`を基底とする3種類に分け、StageConfigurationの初期NodesとWaveのAdditionsを`SerializeReference`で保存する。UI ToolkitのPropertyDrawerで種類を選び、有効な設定項目だけを編集する。種類変更時はID・位置と両種別に共通する接続枠を保持し、Undoで元の設定へ戻せる。種類未選択の配置はLoad時に拒否する。
+
+既存のWiringStage／ValidationStageはuloop経由で旧設定を退避し、型付き配置へ移行済み。位置・有効な接続上限・Source生成値・Wave時刻／倍率・初期Line・GUIDを維持し、無効だったSource INなどの項目を除去した。旧形式アセットの自動移行はランタイムに持ち込まない。
+
+接続はSource→Relay／Sink、Relay→Relay／Sinkのみ。Sourceへの入力とSinkからの出力は、枠の満杯とは別の失敗理由で拒否する。Relay同士の逆方向Lineは引き続き独立して作成できる。
+
 ## 現行の輸送とLine操作
 
 Source／RelayはBufferから古い順に出発可否を評価し、出られない色を残して後続の別色も評価する。同色Sinkへの直結を優先し、全部満杯なら待つ。直結がなければ空いているRelay行きだけから等確率で選ぶ。同色Sinkが複数ある場合は接続作成順。Sinkは同色FLOWを即時消化し、Buffer・Outgoing Lineを持たない。
@@ -115,7 +125,7 @@ Source／RelayはBufferから古い順に出発可否を評価し、出られな
 
 v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。Ground高さ固定であり、3D探索やPLATEAUは今回扱わない。
 
-ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身は候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
+ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身とすべてのSourceを接続先候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
 
 Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対角長の25%/50%（現在37.5 m/75 m）。カメラ領域はUSSのcity-viewportから求め、建物をアルファ0.18へ切り替える。Overview復帰・手動編集・無効化時に元のカメラ、選択、不透明表示を復元する。
 

@@ -27,9 +27,9 @@ namespace CityFlow.Tests.EditMode
         }
         private static FlowNetwork Network()
         {
-            var stage = new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new[] {
-                new NodeDefinition("S", NodeKind.Source, Vector3.zero, 2,2),
-                new NodeDefinition("T", NodeKind.Sink, new Vector3(20,0,0),2,2,FlowColor.Red) });
+            var stage = new StageDefinition(0, new Rect(-50,-50,100,100), Array.Empty<Bounds>(), new NodeDefinition[] {
+                new SourceNodeDefinition("S", Vector3.zero, maxOutgoing: 2),
+                new SinkNodeDefinition("T", new Vector3(20,0,0), FlowColor.Red, maxIncoming: 2) });
             var n = new FlowNetwork(stage, new NetworkSettings(4,4,2,10,0));
             Assert.That(n.TryConnect("S","T",new[] { Vector3.zero, new Vector3(20,0,0) }).Succeeded, Is.True);
             return n;

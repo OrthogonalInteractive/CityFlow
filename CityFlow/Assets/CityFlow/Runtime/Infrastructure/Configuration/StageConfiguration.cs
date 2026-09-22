@@ -15,23 +15,6 @@ namespace CityFlow.Infrastructure.Configuration
     public sealed class StageConfiguration : ScriptableObject
     {
         [Serializable]
-        public struct NodePlacement
-        {
-            public string Id;
-            public NodeKind Kind;
-            public FlowColor SinkColor;
-            public Vector3 Position;
-            public int MaxIncoming;
-            public int MaxOutgoing;
-            [Tooltip("Provisional generation interval per Source [s].")]
-            public float GenerationInterval;
-            [Tooltip("Provisional source preparation time before its first generation interval [s].")]
-            public float GenerationDelay;
-            public NodeDefinition ToDefinition() => new NodeDefinition(Id, Kind, Position, MaxIncoming,
-                MaxOutgoing, Kind == NodeKind.Sink ? SinkColor : (FlowColor?)null, GenerationInterval, GenerationDelay);
-        }
-
-        [Serializable]
         public struct LinePlacement
         {
             public string SourceId;
@@ -45,14 +28,14 @@ namespace CityFlow.Infrastructure.Configuration
             public float StartSeconds;
             [Tooltip("Provisional multiplier of all Source generation intervals; lower means more FLOW.")]
             public float IntervalScale;
-            public NodePlacement[] Additions;
+            [SerializeReference] public NodePlacement[] Additions;
         }
         public WavePlacement[] Waves = Array.Empty<WavePlacement>();
         public IReadOnlyList<WaveDefinition> LoadWaves(StageDefinition initial, float clearance)
         {
             if(Waves==null) throw new ArgumentException("Wave schedule must be present.");
             var waves=Waves.Select(w=>new WaveDefinition(w.StartSeconds,w.IntervalScale,
-                (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n=>n.ToDefinition()))).ToArray();
+                (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n => (n ?? throw new ArgumentException("Wave Node placement must have a type.")).ToDefinition()))).ToArray();
             var known=initial.Nodes.ToList(); var planner=new GroundRoutePlanner(initial,clearance); double previous=0;
             foreach(var wave in waves)
             {
@@ -85,13 +68,13 @@ namespace CityFlow.Infrastructure.Configuration
         public float GroundHeight;
         public Rect WalkableArea = new Rect(-60, -45, 120, 90);
         public Bounds[] Buildings = Array.Empty<Bounds>();
-        public NodePlacement[] Nodes = Array.Empty<NodePlacement>();
+        [SerializeReference] public NodePlacement[] Nodes = Array.Empty<NodePlacement>();
 
         public StageDefinition Load(float clearance)
         {
             if (Buildings == null || Nodes == null || Nodes.Length == 0)
                 throw new ArgumentException("Stage arrays must be present and contain initial Nodes.");
-            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => node.ToDefinition()));
+            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => (node ?? throw new ArgumentException("Node placement must have a type.")).ToDefinition()));
             stage.Validate(clearance);
             return stage;
         }

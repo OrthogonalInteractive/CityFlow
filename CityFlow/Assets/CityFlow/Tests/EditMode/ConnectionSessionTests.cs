@@ -15,11 +15,11 @@ namespace CityFlow.Tests.EditMode
     public sealed class ConnectionSessionTests
     {
         private static StageDefinition Stage(int outgoing = 3, int incoming = 3) => new StageDefinition(0,
-            new Rect(-10,-10,120,80), Array.Empty<Bounds>(), new[] {
-                new NodeDefinition("A",NodeKind.Source,Vector3.zero,3,outgoing),
-                new NodeDefinition("B",NodeKind.Sink,new Vector3(30,0,0),incoming,3,FlowColor.Red),
-                new NodeDefinition("C",NodeKind.Relay,new Vector3(70,0,0)),
-                new NodeDefinition("D",NodeKind.Relay,new Vector3(90,0,0)) });
+            new Rect(-10,-10,120,80), Array.Empty<Bounds>(), new NodeDefinition[] {
+                new SourceNodeDefinition("A", Vector3.zero, maxOutgoing: outgoing),
+                new SinkNodeDefinition("B", new Vector3(30,0,0), FlowColor.Red, maxIncoming: incoming),
+                new RelayNodeDefinition("C", new Vector3(70,0,0)),
+                new RelayNodeDefinition("D", new Vector3(90,0,0)) });
         private static FlowNetwork Network(StageDefinition stage) => new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
         [Test] public void BeginPreviewAndConfirmCreateExactlyOneDirectedLine()
         {
@@ -33,6 +33,18 @@ namespace CityFlow.Tests.EditMode
             Assert.That(line.SourceId,Is.EqualTo("A")); Assert.That(line.DestinationId,Is.EqualTo("B"));
             Assert.That(n.Snapshot().Nodes.Single(x=>x.Definition.Id=="A").OutgoingUsed,Is.EqualTo(1));
             s.Confirm(); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(1));
+        }
+        [Test] public void SourcesAreNotTargetsAndSelectingOnePreservesTheCurrentPreview()
+        {
+            var stage = Stage(); var n = Network(stage);
+            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            Assert.That(s.Begin("C"), Is.True);
+            Assert.That(s.Candidates().Select(c => c.Node.Definition.Id), Is.EquivalentTo(new[] { "B", "D" }));
+            s.SelectTarget("B");
+            var before = p.Current;
+            s.SelectTarget("A");
+            Assert.That(p.Current, Is.SameAs(before));
         }
         [TestCase(false)] [TestCase(true)] public void CancelAtEitherStepUsesNoSlots(bool withPreview)
         {
@@ -67,12 +79,12 @@ namespace CityFlow.Tests.EditMode
             Assert.That(s.Confirm(),Is.EqualTo(failure)); Assert.That(p.Current?.ConnectionFailure,Is.EqualTo(failure));
             Assert.That(s.IsActive,Is.True); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(1));
         }
-        [Test] public void SelfAndDuplicateRemainSelectableWithReasons()
+        [Test] public void SelfIsIgnoredAndDuplicateRemainsSelectableWithAReason()
         {
             var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("A");
-            Assert.That(p.Current?.ConnectionFailure,Is.EqualTo(ConnectionFailure.SelfConnection));
-            Assert.That(s.Confirm(),Is.EqualTo(ConnectionFailure.SelfConnection));
+            Assert.That(p.Current, Is.Null);
+            Assert.That(s.Confirm(), Is.EqualTo(ConnectionFailure.InvalidRoute));
             s.SelectTarget("B"); n.TryConnect("A","B",new[]{Vector3.zero,new Vector3(30,0,0)});
             Assert.That(s.Confirm(),Is.EqualTo(ConnectionFailure.DuplicateDirection));
             Assert.That(s.Candidates().Single(x=>x.Node.Definition.Id=="B").Failure,Is.EqualTo(ConnectionFailure.DuplicateDirection));
