@@ -16,6 +16,7 @@ namespace CityFlow.Presentation.Rendering
         private readonly List<Material> materials = new List<Material>();
         private StageDefinition? stage;
         private readonly List<Renderer> buildings = new();
+        private readonly List<Renderer> scenery = new();
         private readonly Dictionary<Renderer,Material> opaqueBuildings = new();
         private readonly Dictionary<Material,Material> transparentMaterials = new();
         private bool transparentBuildings;
@@ -27,9 +28,13 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<int, LineRoute> drawnRoutes = new();
         private readonly Dictionary<int, LineStatus> drawnStatuses = new();
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
-        private MaterialPropertyBlock? arrowTint;
         private OverviewTarget selected;
-        public void SetSelection(OverviewTarget target) => selected = target;
+        public ConnectionFocus Focus { get; } = new();
+        public void SetSelection(OverviewTarget target)
+        {
+            selected = target;
+            if (network != null) Focus.Refresh(network.Snapshot(), target.NodeId);
+        }
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => nodeViews.Count;
 
@@ -37,7 +42,6 @@ namespace CityFlow.Presentation.Rendering
         {
             stage = definition;
             network = flowNetwork;
-            arrowTint = new MaterialPropertyBlock();
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
             sceneCamera.transform.position = new Vector3(25, 190, -120);
@@ -67,6 +71,7 @@ namespace CityFlow.Presentation.Rendering
                 buildings.Add(Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>());
             }
             foreach(Renderer renderer in buildings) opaqueBuildings.Add(renderer,renderer.sharedMaterial);
+            scenery.AddRange(GetComponentsInChildren<MeshRenderer>());
             CreateLines(flowNetwork.Snapshot());
             CreateNodes();
         }
@@ -137,10 +142,14 @@ namespace CityFlow.Presentation.Rendering
 
         private void LateUpdate()
         {
-            if (network == null || arrowTint == null) return;
+            if (network == null) return;
             NetworkSnapshot snapshot = network.Snapshot();
+            Focus.Refresh(snapshot, selected.NodeId);
             CreateNodes();
             CreateLines(snapshot);
+            foreach (var renderer in scenery) Focus.Apply(renderer, false);
+            foreach (var node in nodeViews)
+                foreach (var part in node.Value) Focus.Apply(part.GetComponent<Renderer>(), Focus.IncludesNode(node.Key));
             foreach (LineSnapshot line in snapshot.Lines)
             {
                 var destination=network.NodeDefinitions.Single(n=>n.Id==line.DestinationId);
@@ -155,12 +164,10 @@ namespace CityFlow.Presentation.Rendering
                     (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
                 foreach (LineRenderer renderer in lineViews[line.Id])
                 {
-                    arrowTint.Clear();
-                    if (stopped && renderer != lineViews[line.Id][0]) arrowTint.SetColor("_BaseColor",warning);
-                    renderer.SetPropertyBlock(arrowTint);
+                    Focus.Apply(renderer, Focus.IncludesLine(line.Id));
                     renderer.widthMultiplier = (highlight ? 1.0f : stopped ? 0.8f : 0.45f) *
                         (renderer.name.StartsWith("Route change rail", StringComparison.Ordinal) ? 0.65f : 1);
-                    renderer.startColor = renderer.endColor = !selected.IsEmpty && !highlight ? new Color(0.35f,0.35f,0.35f) : Color.white;
+                    renderer.startColor = renderer.endColor = Color.white;
                 }
             }
             var active = new HashSet<long>();
@@ -187,6 +194,7 @@ namespace CityFlow.Presentation.Rendering
                     // Preserve the FLOW color and keep close-up particles at their normal size.
                     particle.transform.localScale = flight.IsStopped && !transparentBuildings ? new Vector3(1.5f, 0.45f, 1.5f) : Vector3.one * 1.15f;
                     particle.transform.position = line.Route.PositionAt(flight.Distance) + Vector3.up * 0.9f;
+                    Focus.Apply(particle.GetComponent<Renderer>(), Focus.IncludesLine(line.Id));
                 }
             foreach (long id in particles.Keys.Where(id => !active.Contains(id)).ToArray())
             { Destroy(particles[id]); particles.Remove(id); }

@@ -143,6 +143,8 @@ UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は
 
 Node名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
 
+OverviewのNodeホバー／Fフォーカスは、`ConnectionFocus`がSnapshotから直接つながる入出力Lineとその両端だけを取り出して表示する。対象外の建物・Ground・Node・Line・FLOW・Source演出をMaterialPropertyBlockで暗くし、共有Materialや衝突判定を変更しない。ワールドゲージの減光はUSSのopacityを使い、基本HUD・ホバー詳細・画面端警告は維持する。接続の追加・削除・排出待ちをSnapshotに追従し、Node 360／経路編集では解除する。ホバー解除で通常表示、FフォーカスはHome／空白選択で解除する。
+
 Lineの混雑は橙＋太さ、削除予約は破線、経路切替待ちは二重線。混雑と予約が同時に成立しても線種と色を併用する。二重線の左右オフセットは装飾であり、FLOWと距離計測は中央の確定経路を使う。
 
 OverlayLayoutが画面端・Node・操作欄・他マーカーを避け、OverlayLeaderで対象との対応を示す。余白・安全距離・Viewport比率はUSSへ置く。候補一覧は接続可能／経路未確認／BLOCKEDの順にし、一覧をホバー中は行位置を固定する。重複だけを理由に候補マーカーを非表示にしない。極端に狭い画面では全要素の非重複を保証しないが、一覧で全候補を操作できる。

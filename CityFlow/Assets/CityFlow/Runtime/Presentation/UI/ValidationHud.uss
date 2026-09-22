@@ -51,6 +51,7 @@ Label { margin: 0; padding: 0; }
 .detail-text { white-space: normal; font-size: 14px; color: rgb(195, 212, 226); }
 .city-caption { display: none; }
 .node-label.has-buffer { height: 34px; padding-bottom: 16px; font-size: 11px; }
+.node-label.unfocused { opacity: 0.22; }
 .node-gauge { position: absolute; left: 4px; right: 4px; bottom: 3px; height: 14px; flex-direction: row; }
 .node-buffer-slot { height: 100%; flex-grow: 1; flex-basis: 0;
     border-right-width: 1px; border-right-color: rgb(10, 17, 25); }

@@ -36,11 +36,14 @@ namespace CityFlow.Presentation.UI
         private FlowSimulation? simulation;
         private Camera? sceneCamera;
         private Elements? elements;
+        private ConnectionFocus? focus;
         private CityFlow.Presentation.Overview.OverviewController? overview;
         private readonly Dictionary<string, Label> nodeLabels = new();
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera, CityFlow.Presentation.Overview.OverviewController input)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera,
+            CityFlow.Presentation.Overview.OverviewController input, ConnectionFocus connectionFocus)
         {
+            focus = connectionFocus;
             overview = input;
             stage = definition; network = flowNetwork; simulation = flowSimulation; sceneCamera = camera;
             document = GetComponent<UIDocument>();
@@ -116,6 +119,7 @@ namespace CityFlow.Presentation.UI
             {
                 Label marker = nodeLabels[node.Definition.Id];
                 marker.text = "";
+                marker.EnableInClassList("unfocused", focus?.IncludesNode(node.Definition.Id) == false);
                 marker.EnableInClassList("input-stopped", node.IsInputStopped);
                 if (node.BufferCapacity.HasValue)
                 {

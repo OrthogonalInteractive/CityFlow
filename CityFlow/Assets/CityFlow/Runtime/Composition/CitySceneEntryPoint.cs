@@ -57,14 +57,14 @@ namespace CityFlow.Composition
             var connectionController = city.AddComponent<NodeConnectionController>();
             connectionController.Initialize(connection, overview, stage, camera, view, document);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation, connectionController, camera);
-            hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera, overview);
+            hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera, overview, view.Focus);
             hud.AddComponent<GroundPreviewView>().Initialize(preview);
             hud.AddComponent<NodeConnectionView>().Initialize(connection, preview, overview, connectionController, camera, network);
             hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);
             hud.AddComponent<PauseView>().Initialize(simulation);
             hud.AddComponent<GameSessionView>().Initialize(simulation, network, connection, overview, connectionController, camera);
-            hud.AddComponent<SourceStatusView>().Initialize(network, simulation, connection, connectionController);
+            hud.AddComponent<SourceStatusView>().Initialize(network, simulation, connection, connectionController, view.Focus);
             hud.SetActive(true);
         }
         public void Dispose() { if (city != null) UnityEngine.Object.Destroy(city); }

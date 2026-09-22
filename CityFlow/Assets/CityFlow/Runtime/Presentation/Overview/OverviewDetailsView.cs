@@ -49,9 +49,9 @@ namespace CityFlow.Presentation.Overview
             if (controller == null || city == null) return;
             selectionSubscription = controller.SelectionChanged.Subscribe(target =>
             {
-                if (city != null) city.SetSelection(target);
+                if (city != null) city.SetSelection(target.LineId.HasValue ? target : controller.Focused);
             });
-            city.SetSelection(controller.Selected);
+            city.SetSelection(controller.Focused);
         }
         private void OnDisable()
         {
@@ -60,6 +60,7 @@ namespace CityFlow.Presentation.Overview
             leader?.Dispose();
             leader = null;
             boundRoot = null;
+            if (city != null) city.SetSelection(default);
         }
         private void LateUpdate()
         {
@@ -82,7 +83,13 @@ namespace CityFlow.Presentation.Overview
                 target = controller.enabled ? controller.Hovered : controller.Pick(screen);
             bool visible = !target.IsEmpty && !connection.IsEditing && simulation.Result == null;
             panel.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
-            if (city != null) city.SetSelection(target.IsEmpty ? controller.Selected : target);
+            if (city != null)
+            {
+                var emphasis = visible ? target : !controller.Focused.IsEmpty ? controller.Focused :
+                    controller.Selected.LineId.HasValue ? controller.Selected : default;
+                if (connection.IsNode360 || connection.IsEditing || simulation.Result != null) emphasis = default;
+                city.SetSelection(emphasis);
+            }
             if (!visible) { leader?.Hide(); return; }
 
             var snapshot = network.Snapshot();

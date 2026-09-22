@@ -13,6 +13,7 @@
 - Unity **6.4 / 6000.4.7f1**、URP、Input System、Cinemachine 3、VFX Graph、Shader Graph。
 - ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
 - Node名・種別の常設ラベルは表示しない。Source／Relayは待機FLOWがある間だけBufferゲージを表示し、1枠1 FLOWで待機順の色と頭文字（R/B/Y/G/P）を示す。空き枠と実数／容量を残し、満杯警告でFLOW色を上書きしない。SinkにはBufferゲージを表示しない。
+- OverviewでNodeをホバー／Fフォーカスした時は、対象と直接つながる入出力Line・相手Nodeを明るく残す。それ以外の建物・地面・Node・Line・FLOW・ゲージを暗くする。接続を再帰的にたどらず、状態や当たり判定を変更しない。Node 360と経路編集中は通常の候補表示・半透明表示を使う。
 - 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・DIRECTED LINES表・独立Ground Previewパネルを復活させない。基本HUDはDELIVERED・TIME・Waveの1行、危険時はSourceのワールド警告と状況ヒントを使う。
 - UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。Viewport比率・余白・安全距離はUSSに置き、座標変換と重なり回避は共通化する。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。

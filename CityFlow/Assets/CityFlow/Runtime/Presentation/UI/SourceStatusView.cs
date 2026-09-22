@@ -42,6 +42,7 @@ namespace CityFlow.Presentation.UI
         private FlowSimulation? simulation;
         private ConnectionSession? connection;
         private NodeConnectionController? cameraController;
+        private ConnectionFocus? focus;
         private readonly Dictionary<string, SourceView> sources = new();
         private readonly Dictionary<FlowColor, Material> materials = new();
         private Material? pulseMaterial;
@@ -49,8 +50,10 @@ namespace CityFlow.Presentation.UI
         private VisualElement? vignette;
         private static readonly CustomStyleProperty<float> edgeSize = new("--edge-size");
 
-        public void Initialize(FlowNetwork state, FlowSimulation clock, ConnectionSession wiring, NodeConnectionController controller)
+        public void Initialize(FlowNetwork state, FlowSimulation clock, ConnectionSession wiring,
+            NodeConnectionController controller, ConnectionFocus connectionFocus)
         {
+            focus = connectionFocus;
             network = state; simulation = clock; connection = wiring; cameraController = controller;
         }
 
@@ -104,7 +107,11 @@ namespace CityFlow.Presentation.UI
                 for (int i = 0; i < view.Dots.Count; i++)
                 {
                     Renderer dot = view.Dots[i]; dot.gameObject.SetActive(i < visible && !hidden);
-                    if (i < visible) dot.sharedMaterial = FlowMaterial(node.Buffer[i].Color);
+                    if (i < visible)
+                    {
+                        dot.sharedMaterial = FlowMaterial(node.Buffer[i].Color);
+                        focus?.Apply(dot, focus.IncludesNode(id));
+                    }
                 }
                 double age = simulation.ElapsedSeconds - view.LastGeneration;
                 if (node.IsBufferFull)
@@ -117,6 +124,7 @@ namespace CityFlow.Presentation.UI
                     view.Pulse.transform.localScale = Vector3.one;
                     view.Pulse.sharedMaterial = warningMaterial;
                     view.Pulse.startColor = view.Pulse.endColor = Color.white;
+                    focus?.Apply(view.Pulse, focus.IncludesNode(id));
                     for (int i = 0; i < view.Pulse.positionCount; i++)
                     {
                         float angle = -Mathf.PI * 0.5f - (float)(1 - progress) * 2 * Mathf.PI * i / (view.Pulse.positionCount - 1);
@@ -137,6 +145,7 @@ namespace CityFlow.Presentation.UI
                     Color color = node.LastGeneratedColor.HasValue ? ValidationCityView.ColorFor(node.LastGeneratedColor.Value) : Color.white;
                     if (node.LastGeneratedColor.HasValue) view.Pulse.sharedMaterial = FlowMaterial(node.LastGeneratedColor.Value);
                     view.Pulse.startColor = view.Pulse.endColor = Color.Lerp(color, Color.white, 0.3f);
+                    focus?.Apply(view.Pulse, focus.IncludesNode(id));
                 }
             }
             if (vignette != null) vignette.style.opacity = overloaded && !network.IsGameOver ? 0.08f + (float)urgency * 0.12f : 0;

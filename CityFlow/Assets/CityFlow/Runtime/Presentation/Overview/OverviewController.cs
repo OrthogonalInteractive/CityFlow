@@ -24,6 +24,7 @@ namespace CityFlow.Presentation.Overview
         public Observable<(OverviewTarget Target, bool Edit)> Clicked => clicked;
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
         public OverviewTarget Selected { get; private set; }
+        public OverviewTarget Focused { get; private set; }
         public OverviewTarget Hovered { get; private set; }
         public Vector2 HoverScreenPosition { get; private set; }
         public bool EditingRoute { get; set; }
@@ -61,7 +62,11 @@ namespace CityFlow.Presentation.Overview
             ResetView();
         }
         private void OnEnable() => actions?.Enable();
-        private void OnDisable() => actions?.Disable();
+        private void OnDisable()
+        {
+            actions?.Disable();
+            Focused = default;
+        }
         private void Update()
         {
             if (sceneCamera == null || actions == null || panInput == null || pointerInput == null ||
@@ -81,6 +86,7 @@ namespace CityFlow.Presentation.Overview
         }
         public void Select(OverviewTarget target)
         {
+            if (!Focused.Equals(target)) Focused = default;
             if (Selected.Equals(target)) return;
             Selected = target; selectionChanged.OnNext(target);
         }
@@ -133,12 +139,18 @@ namespace CityFlow.Presentation.Overview
             if (EditingRoute) return;
             if (network == null || sceneCamera == null) return;
             foreach (NodeDefinition node in network.NodeDefinitions)
-                if (node.Id == Selected.NodeId) { pivot = node.Position; sceneCamera.orthographicSize = 24; ApplyPose(); return; }
+                if (node.Id == Selected.NodeId)
+                {
+                    Focused = Selected;
+                    pivot = node.Position; sceneCamera.orthographicSize = 24; ApplyPose(); return;
+                }
             foreach (LineSnapshot line in network.Snapshot().Lines)
                 if (line.Id == Selected.LineId) { pivot = line.Route.PositionAt(line.Route.Length*0.5f); ApplyPose(); return; }
         }
         public void ResetView()
         {
+            Focused = default;
+            Hovered = default;
             if (stage == null || sceneCamera == null) return;
             pivot = new Vector3(stage.WalkableArea.center.x, stage.GroundHeight, stage.WalkableArea.center.y);
             yaw = EditingRoute ? 0 : -10; pitch = EditingRoute ? 90 : 60;

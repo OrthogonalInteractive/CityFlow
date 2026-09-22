@@ -58,6 +58,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-22の接続フォーカス・条件付きゲージは、最終全PlayMode **53/53**成功。直接接続だけの強調、孤立Node、接続削除への追従、F／Home／空白選択での保持・解除、Node 360への復帰、無関係なFLOW・Source演出・ゲージの減光を確認した。コンパイル・撮影後ConsoleともError/Warning **0**。[画面付きの対応報告](Connection-Focus-2026-09-22.md) を参照。
+
 2026-09-22の障害物デザイン変更は、全PlayMode **49/49**、シェーダーの最終調整後の関連PlayMode **3/3**成功。コンパイル・撮影後ConsoleともError/Warning **0**。6棟の描画／Colliderと設定Boundsの一致、Node 360の透過／復帰、迂回配線を確認した。[画面付きの対応報告](Obstacle-Design-2026-09-22.md) を参照。
 
 2026-09-22のNode方向の型分割・設定移行・表示変更は、全EditMode **146/146**、全PlayMode **48/48**成功。最終コンパイルError/Warning **0**。配置の種類変更・Undo・初期配置／Waveの移行と、SourceのOUT専用・SinkのIN専用表示を確認した。[画面付きの対応報告](Node-Directions-2026-09-22.md) を参照。
