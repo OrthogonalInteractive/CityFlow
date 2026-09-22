@@ -24,6 +24,7 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
         private readonly Dictionary<int, LineRoute> drawnRoutes = new();
+        private readonly Dictionary<int, LineStatus> drawnStatuses = new();
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
         private MaterialPropertyBlock? arrowTint;
         private OverviewTarget selected;
@@ -71,8 +72,8 @@ namespace CityFlow.Presentation.Rendering
             foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 if(nodeViews.ContainsKey(node.Id)) continue;
-                Color color = node.Kind == NodeKind.Source ? new Color(1, 0.76f, 0.32f) :
-                    node.SinkColor.HasValue ? ColorFor(node.SinkColor.Value) : new Color(0.40f, 0.90f, 0.73f);
+                Color color = node.Kind == NodeKind.Source ? new Color(0.85f, 0.85f, 0.85f) :
+                    node.SinkColor.HasValue ? ColorFor(node.SinkColor.Value) : new Color(0.72f, 0.72f, 0.72f);
                 var marker = GameObject.CreatePrimitive(node.Kind == NodeKind.Sink ? PrimitiveType.Cylinder :
                     node.Kind == NodeKind.Source ? PrimitiveType.Cube : PrimitiveType.Sphere);
                 marker.name = node.Id + " / " + node.Kind;
@@ -91,22 +92,35 @@ namespace CityFlow.Presentation.Rendering
             foreach(int id in lineViews.Keys.ToArray())
             {
                 LineSnapshot? current=snapshot.Lines.FirstOrDefault(l=>l.Id==id);
-                if (current != null && ReferenceEquals(current.Route,drawnRoutes[id])) continue;
+                if (current != null && ReferenceEquals(current.Route,drawnRoutes[id]) && current.Status == drawnStatuses[id]) continue;
                 Material material=lineViews[id][0].sharedMaterial;
                 foreach(var renderer in lineViews[id]) Destroy(renderer.gameObject);
-                materials.Remove(material); Destroy(material); lineViews.Remove(id); drawnRoutes.Remove(id);
+                materials.Remove(material); Destroy(material); lineViews.Remove(id); drawnRoutes.Remove(id); drawnStatuses.Remove(id);
             }
             foreach (LineSnapshot line in snapshot.Lines)
             {
                 if (lineViews.ContainsKey(line.Id)) continue;
                 var renderers = new List<LineRenderer>();
-                lineViews.Add(line.Id, renderers); drawnRoutes.Add(line.Id,line.Route);
+                lineViews.Add(line.Id, renderers); drawnRoutes.Add(line.Id,line.Route); drawnStatuses.Add(line.Id, line.Status);
                 NodeDefinition destination = snapshot.Nodes.Single(node => node.Definition.Id == line.DestinationId).Definition;
-                Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f, 0.65f, 0.55f);
+                Color color = destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.72f, 0.72f, 0.72f);
                 var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
                 material.SetColor("_BaseColor", color); materials.Add(material);
                 renderers.Add(Stroke($"Line {line.Id}: {line.SourceId} -> {line.DestinationId}",
                     line.Route.Points.Select(p => p + Vector3.up * 0.2f).ToArray(), material, 0.5f));
+                if (line.Status == LineStatus.DeletePending)
+                {
+                    renderers[0].enabled = false;
+                    for (double distance = 0; distance < line.Route.Length; distance += 4)
+                        renderers.Add(Stroke("Deletion dash " + line.Id,
+                            PathBetween(line.Route, distance, Math.Min(line.Route.Length, distance + 2.4)), material, 0.5f));
+                }
+                else if (line.Status == LineStatus.RouteChangePending)
+                {
+                    renderers[0].enabled = false;
+                    foreach (float side in new[] { -0.55f, 0.55f })
+                        renderers.Add(Stroke("Route change rail " + line.Id, OffsetPath(line.Route, side), material, 0.35f));
+                }
                 for (int i = 1; i < line.Route.Points.Count; i++)
                 {
                     Vector3 direction = (line.Route.Points[i] - line.Route.Points[i - 1]).normalized;
@@ -128,10 +142,10 @@ namespace CityFlow.Presentation.Rendering
                 var destination=network.NodeDefinitions.Single(n=>n.Id==line.DestinationId);
                 bool stopped=line.InFlight.Any(f=>f.IsStopped);
                 Color warning=new Color(1,0.38f,0.10f);
-                Color tint=line.Status==LineStatus.DeletePending ? new Color(1,0.62f,0.18f) :
+                Color tint=stopped ? warning :
+                    line.Status==LineStatus.DeletePending ? new Color(0.85f,0.85f,0.85f) :
                     line.Status==LineStatus.RouteChangePending ? new Color(0.8f,0.5f,1) :
-                    stopped ? warning :
-                    destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.3f,0.65f,0.55f);
+                    destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.72f, 0.72f, 0.72f);
                 lineViews[line.Id][0].sharedMaterial.SetColor("_BaseColor",tint);
                 bool highlight = selected.LineId == line.Id || (selected.NodeId != null &&
                     (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
@@ -140,7 +154,8 @@ namespace CityFlow.Presentation.Rendering
                     arrowTint.Clear();
                     if (stopped && renderer != lineViews[line.Id][0]) arrowTint.SetColor("_BaseColor",warning);
                     renderer.SetPropertyBlock(arrowTint);
-                    renderer.widthMultiplier = highlight ? 1.0f : 0.45f;
+                    renderer.widthMultiplier = (highlight ? 1.0f : stopped ? 0.8f : 0.45f) *
+                        (renderer.name.StartsWith("Route change rail", StringComparison.Ordinal) ? 0.65f : 1);
                     renderer.startColor = renderer.endColor = !selected.IsEmpty && !highlight ? new Color(0.35f,0.35f,0.35f) : Color.white;
                 }
             }
@@ -165,12 +180,38 @@ namespace CityFlow.Presentation.Rendering
                         particle.GetComponent<Renderer>().sharedMaterial = material;
                         particles.Add(flight.Flow.Id, particle);
                     }
-                    // The stop disc extends around a terminal Node so its final capacity slot stays visible.
-                    particle.transform.localScale = flight.IsStopped ? new Vector3(4.6f, 0.35f, 4.6f) : Vector3.one * 1.15f;
+                    // Preserve the FLOW color and keep close-up particles at their normal size.
+                    particle.transform.localScale = flight.IsStopped && !transparentBuildings ? new Vector3(1.5f, 0.45f, 1.5f) : Vector3.one * 1.15f;
                     particle.transform.position = line.Route.PositionAt(flight.Distance) + Vector3.up * 0.9f;
                 }
             foreach (long id in particles.Keys.Where(id => !active.Contains(id)).ToArray())
             { Destroy(particles[id]); particles.Remove(id); }
+        }
+
+        private static Vector3[] PathBetween(LineRoute route, double from, double to)
+        {
+            var points = new List<Vector3> { route.PositionAt(from) + Vector3.up * 0.2f };
+            double distance = 0;
+            for (int i = 1; i < route.Points.Count; i++)
+            {
+                distance += Vector3.Distance(route.Points[i - 1], route.Points[i]);
+                if (distance > from && distance < to) points.Add(route.Points[i] + Vector3.up * 0.2f);
+            }
+            points.Add(route.PositionAt(to) + Vector3.up * 0.2f);
+            return points.ToArray();
+        }
+        private static Vector3[] OffsetPath(LineRoute route, float offset)
+        {
+            // The two decorative rails straddle the unchanged transport centerline.
+            var points = new Vector3[route.Points.Count];
+            for (int i = 0; i < points.Length; i++)
+            {
+                Vector3 incoming = i > 0 ? (route.Points[i] - route.Points[i - 1]).normalized : Vector3.zero;
+                Vector3 outgoing = i + 1 < points.Length ? (route.Points[i + 1] - route.Points[i]).normalized : Vector3.zero;
+                Vector3 side = Vector3.Cross(Vector3.up, (incoming + outgoing).normalized);
+                points[i] = route.Points[i] + side * offset + Vector3.up * 0.2f;
+            }
+            return points;
         }
 
         public static Color ColorFor(FlowColor color) => color switch

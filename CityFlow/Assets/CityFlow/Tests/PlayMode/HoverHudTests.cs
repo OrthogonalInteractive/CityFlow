@@ -86,6 +86,34 @@ namespace CityFlow.Tests.PlayMode
             network.RouteWaitingFlows(random); network.AdvanceInFlight(20); yield return null;
             Assert.That(line.sharedMaterial.GetColor("_BaseColor"),Is.EqualTo(normal));
         }
+        [UnityTest] public IEnumerator BlockedPendingLineUsesDashedDeletionAndDoubleRouteChangeStrokes()
+        {
+            var network = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>();
+            var source = network.NodeDefinitions.Single(n => n.Id == "S1").Position;
+            var relay = network.NodeDefinitions.Single(n => n.Id == "R1").Position;
+            var created = network.TryConnect("S1", "R1", new[] { source, relay });
+            int id = created.LineId.GetValueOrDefault(); Assert.That(created.Succeeded, Is.True);
+            var random = new SystemRandomSource(1);
+            for (int i = 0; i < 5; i++) { network.GenerateFlow("S1", FlowColor.Red); network.RouteWaitingFlows(random); network.AdvanceInFlight(20); }
+            for (int i = 0; i < 3; i++) network.GenerateFlow("S1", FlowColor.Red);
+            network.RouteWaitingFlows(random); network.AdvanceInFlight(20);
+            var before = network.Snapshot().Lines.Single();
+            network.RequestDeletion(id); yield return null; yield return null;
+            var dashes = Object.FindObjectsByType<LineRenderer>().Where(l => l.name == "Deletion dash " + id).ToArray();
+            Assert.That(dashes.Length, Is.GreaterThan(1));
+            Assert.That(dashes.All(l => l.enabled && l.sharedMaterial.GetColor("_BaseColor") == new Color(1, 0.38f, 0.10f)), Is.True);
+            network.CancelPending(id);
+            Assert.That(network.RequestRouteChange(id, new[] { source, (source + relay) * 0.5f + Vector3.back, relay }), Is.True);
+            yield return null; yield return null;
+            Assert.That(Object.FindObjectsByType<LineRenderer>().Count(l => l.name == "Route change rail " + id), Is.EqualTo(2));
+            Assert.That(network.Snapshot().Lines.Single().InFlight.Select(f => (f.Flow.Id, f.Distance)),
+                Is.EqualTo(before.InFlight.Select(f => (f.Flow.Id, f.Distance))));
+            var controller = Object.FindAnyObjectByType<NodeConnectionController>();
+            Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Node("S1")); controller.BeginSelected();
+            yield return null; yield return null;
+            foreach (var flight in before.InFlight)
+                Assert.That(GameObject.Find($"FLOW {flight.Flow.Id} / {flight.Flow.Color}").transform.localScale, Is.EqualTo(Vector3.one * 1.15f));
+        }
         [UnityTest] public IEnumerator Node360ShowsSourceAndCandidateDetailsOnlyUnderThePointer()
         {
             var overview=Object.FindAnyObjectByType<OverviewController>();

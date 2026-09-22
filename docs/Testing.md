@@ -255,3 +255,4 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - #16のNodeConnectionTestsは **10/10成功**（Sink説明・Pause中Ctrl+Z・既存Node 360操作）。コンパイルError/Warning 0、Console Error 0。
 - #14のホバーなし警告は新テストでRedを確認。80%枠、満杯時の秒数・円弧・画面端警告、Pause固定、対応Sinkへの出力後の解除を確認する。
 - #14はSourceStatusTests **4/4成功**。接続追加で再生成されるラベルを取得し直したうえで、Buffer 10→7、猶予・円弧・画面端警告の解除を確認した。コンパイルError/Warning 0。
+- #15は混雑＋削除予約で破線が存在しないRedを確認後、関連PlayMode **7/7成功**。混雑した破線・二重線を橙で表示し、状態変更前後のFLOW ID・距離を維持。Node 360では停止FLOWも通常サイズになることを確認。コンパイルError/Warning 0、Console Error 0。
