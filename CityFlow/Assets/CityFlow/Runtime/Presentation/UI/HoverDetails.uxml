@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement class="hover-content" picking-mode="Ignore">
+        <ui:Label name="hover-title" class="hover-title" picking-mode="Ignore" />
+        <ui:Label name="hover-primary" class="hover-primary" picking-mode="Ignore" />
+        <ui:VisualElement name="hover-buffer" class="hover-buffer" picking-mode="Ignore" />
+        <ui:Label name="hover-colors" class="detail-text" picking-mode="Ignore" />
+        <ui:Label name="hover-metrics" class="detail-text hover-section" picking-mode="Ignore" />
+        <ui:Label name="hover-status" class="detail-text" picking-mode="Ignore" />
+        <ui:Label name="hover-warning" class="hover-warning-text" picking-mode="Ignore" />
+        <ui:Label name="hover-activity" class="detail-text hover-section" picking-mode="Ignore" />
+        <ui:Label name="hover-connections" class="detail-text hover-section" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

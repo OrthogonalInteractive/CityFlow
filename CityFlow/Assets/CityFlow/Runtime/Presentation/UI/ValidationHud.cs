@@ -20,11 +20,13 @@ namespace CityFlow.Presentation.UI
             public VisualElement Root { get; }
             public Label Delivered { get; }
             public Label Elapsed { get; }
+            public Label Wave { get; }
             public Elements(VisualElement root)
             {
                 Root = root;
                 Delivered = Required<Label>(root, "delivered-value");
                 Elapsed = Required<Label>(root, "elapsed-value");
+                Wave = Required<Label>(root, "wave-value");
             }
         }
 
@@ -35,7 +37,6 @@ namespace CityFlow.Presentation.UI
         private Camera? sceneCamera;
         private Elements? elements;
         private CityFlow.Presentation.Overview.OverviewController? overview;
-        private readonly Dictionary<int, Label> lineLoads = new();
         private readonly Dictionary<string, Label> nodeLabels = new();
 
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera, CityFlow.Presentation.Overview.OverviewController input)
@@ -50,7 +51,7 @@ namespace CityFlow.Presentation.UI
         {
             if (overview != null) overview.IsPointerBlocked = null;
             elements = null;
-            lineLoads.Clear(); nodeLabels.Clear();
+            nodeLabels.Clear();
         }
         private void Bind()
         {
@@ -59,10 +60,9 @@ namespace CityFlow.Presentation.UI
             if (root == null) return;
             elements = new Elements(root);
             if (overview != null) overview.IsPointerBlocked = PointerBlocked;
-            VisualElement lines = Required<VisualElement>(root, "line-rows");
             VisualElement labels = Required<VisualElement>(root, "node-labels");
-            lines.Clear(); labels.Clear();
-            lineLoads.Clear(); nodeLabels.Clear();
+            labels.Clear();
+            nodeLabels.Clear();
             NetworkSnapshot snapshot = network.Snapshot();
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
@@ -76,14 +76,6 @@ namespace CityFlow.Presentation.UI
                     gauge.AddToClassList("node-gauge"); label.Add(gauge);
                 }
                 nodeLabels.Add(id, label);
-            }
-            foreach (LineSnapshot line in snapshot.Lines)
-            {
-                var row = new VisualElement(); row.AddToClassList("table-row"); lines.Add(row);
-                Cell(row, $"{line.SourceId}>{line.DestinationId}", "line-name");
-                Cell(row, $"{line.Route.Length:0}m", "length", $"line-length-{line.Id}");
-                Cell(row, $"{line.Route.Length / network.Settings.FlowSpeed:0.0}s", "duration", $"line-time-{line.Id}");
-                lineLoads.Add(line.Id, Cell(row, "", "load", $"line-load-{line.Id}"));
             }
             // This read-only HUD must not block future world selection or wiring gestures.
             root.pickingMode = PickingMode.Ignore;
@@ -110,15 +102,17 @@ namespace CityFlow.Presentation.UI
             // UIDocument recreates its visual tree when disabled and enabled again.
             NetworkSnapshot snapshot = network.Snapshot();
             if (elements == null || elements.Root != document.rootVisualElement ||
-                snapshot.Lines.Count != lineLoads.Count || snapshot.Lines.Any(l=>!lineLoads.ContainsKey(l.Id)) || snapshot.Nodes.Count != nodeLabels.Count) Bind();
+                snapshot.Nodes.Count != nodeLabels.Count) Bind();
             Refresh(snapshot);
             PositionNodeLabels();
         }
         private void Refresh(NetworkSnapshot snapshot)
         {
             if (elements == null || stage == null || network == null || simulation == null) return;
-            elements.Delivered.text = snapshot.DeliveredCount.ToString("0000");
-            elements.Elapsed.text = $"{simulation.ElapsedSeconds:0.0} s";
+            elements.Delivered.text = snapshot.DeliveredCount.ToString();
+            elements.Elapsed.text = HudClock.Format(simulation.ElapsedSeconds);
+            elements.Wave.text = $"WAVE {simulation.Wave}" + (simulation.NextWaveSeconds.HasValue ?
+                $" · NEXT {Math.Ceiling(Math.Max(0, simulation.NextWaveSeconds.Value - simulation.ElapsedSeconds))}s" : "");
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 Label marker = nodeLabels[node.Definition.Id];
@@ -128,7 +122,7 @@ namespace CityFlow.Presentation.UI
                 {
                     int capacity = node.BufferCapacity.Value;
                     marker.text += $"  {node.Buffer.Count}/{capacity}";
-                    RefreshBufferGauge(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node, capacity);
+                    BufferGauge.Refresh(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node);
                     bool source = node.Definition.Kind == NodeKind.Source;
                     bool overload = source && node.IsInputStopped;
                     marker.EnableInClassList("source-warning", source && node.Buffer.Count >= capacity * 0.8);
@@ -136,33 +130,6 @@ namespace CityFlow.Presentation.UI
                     marker.EnableInClassList("source-flash", overload && (int)(simulation.ElapsedSeconds * 2) % 2 == 0);
                     if (overload) marker.text += $"\n{Math.Max(0, network.Settings.OverloadGrace - node.OverloadSeconds):0.0}s TO GAME OVER";
                 }
-            }
-            foreach (LineSnapshot line in snapshot.Lines)
-            {
-                Label load = lineLoads[line.Id];
-                load.text = $"{line.InFlight.Count}/{line.Capacity}";
-                elements.Root.Q<Label>($"line-length-{line.Id}").text=$"{line.Route.Length:0}m";
-                elements.Root.Q<Label>($"line-time-{line.Id}").text=$"{line.Route.Length/network.Settings.FlowSpeed:0.0}s";
-                load.EnableInClassList("full", line.InFlight.Count >= line.Capacity);
-            }
-        }
-        private static void RefreshBufferGauge(VisualElement gauge, NodeSnapshot node, int capacity)
-        {
-            // One slot per waiting FLOW, oldest first. Overflow stays visible instead of hiding newer colors.
-            int slots = Math.Max(capacity, node.Buffer.Count);
-            while (gauge.childCount > slots) gauge.RemoveAt(gauge.childCount - 1);
-            while (gauge.childCount < slots)
-            {
-                var slot = new VisualElement { pickingMode = PickingMode.Ignore };
-                slot.AddToClassList("node-buffer-slot"); gauge.Add(slot);
-            }
-            for (int index = 0; index < slots; index++)
-            {
-                VisualElement slot = gauge[index];
-                bool empty = index >= node.Buffer.Count;
-                slot.EnableInClassList("empty", empty);
-                slot.style.backgroundColor = empty ? new StyleColor(StyleKeyword.Null) :
-                    new StyleColor(ValidationCityView.ColorFor(node.Buffer[index].Color));
             }
         }
         private void PositionNodeLabels()

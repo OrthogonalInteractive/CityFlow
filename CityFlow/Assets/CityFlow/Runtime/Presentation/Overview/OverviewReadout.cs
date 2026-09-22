@@ -8,33 +8,46 @@ namespace CityFlow.Presentation.Overview
 {
     public static class OverviewReadout
     {
-        public static string Describe(OverviewTarget target, NetworkSnapshot state, NetworkSettings settings, double intervalScale = 1)
+        public static string Describe(OverviewTarget target, NetworkSnapshot state, NetworkSettings settings, double intervalScale = 1) =>
+            Read(target, state, settings, intervalScale).ToString();
+
+        public static OverviewDetailText Read(OverviewTarget target, NetworkSnapshot state, NetworkSettings settings, double intervalScale = 1)
         {
-            NodeSnapshot? node = state.Nodes.FirstOrDefault(n=>n.Definition.Id == target.NodeId);
+            NodeSnapshot? node = state.Nodes.FirstOrDefault(n => n.Definition.Id == target.NodeId);
             if (node != null)
             {
+                string title = $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}";
                 if (!node.BufferCapacity.HasValue)
-                    return $"{node.Definition.Id} · SINK · {node.Definition.SinkColor}\nCONSUME MATCHING FLOW ON ARRIVAL\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming}";
-                string colors = string.Join("  ", node.Buffer.GroupBy(f=>f.Color).OrderBy(g=>g.Key).Select(g=>$"{g.Key}: {g.Count()}"));
-                string sink = node.Definition.SinkColor.HasValue ? $" · {node.Definition.SinkColor} SINK" : "";
-                string source = "";
-                if(node.Definition.Kind == NodeKind.Source)
+                    return new OverviewDetailText(title, "CONSUME MATCHING FLOW ON ARRIVAL", $"IN {node.IncomingUsed}/{node.Definition.MaxIncoming}",
+                        colors: node.Definition.SinkColor?.ToString() ?? "");
+                string colors = string.Join("  ", node.Buffer.GroupBy(f => f.Color).OrderBy(g => g.Key).Select(g => $"{g.Key}: {g.Count()}"));
+                string activity = "", warning = node.IsInputStopped ? "INPUT STOPPED · BUFFER FULL" : "";
+                if (node.Definition.Kind == NodeKind.Source)
                 {
-                    int free=node.BufferCapacity.Value-node.Buffer.Count;
-                    string warning=node.IsInputStopped ? $"{Math.Max(0,settings.OverloadGrace-node.OverloadSeconds):0.0}s TO GAME OVER" :
-                        $"{(node.Buffer.Count>=node.BufferCapacity.Value*0.8f ? "WARNING · " : "")}{free} FREE";
-                    string color=node.LastGeneratedColor.HasValue ? " · "+node.LastGeneratedColor.Value.ToString().ToUpperInvariant() : "";
-                    source=$"\nGENERATE {node.Definition.GenerationInterval*intervalScale:0.00}s\nGENERATED {node.GeneratedCount}{color}\n{warning}";
+                    string color = node.LastGeneratedColor.HasValue ? " · " + node.LastGeneratedColor.Value.ToString().ToUpperInvariant() : "";
+                    activity = $"GENERATE {node.Definition.GenerationInterval * intervalScale:0.00}s\nGENERATED {node.GeneratedCount}{color}\n{Math.Max(0, node.BufferCapacity.Value - node.Buffer.Count)} FREE";
+                    warning = node.IsInputStopped ? $"{Math.Max(0, settings.OverloadGrace - node.OverloadSeconds):0.0}s TO GAME OVER" :
+                        node.Buffer.Count >= node.BufferCapacity.Value * 0.8 ? "BUFFER NEARLY FULL · ADD AN EXIT" : "";
                 }
-                string incoming = string.Join(", ", state.Lines.Where(l=>l.DestinationId==node.Definition.Id && l.InFlight.Any(f=>f.IsStopped)).Select(l=>l.SourceId));
-                string outgoing = string.Join(", ", state.Lines.Where(l=>l.SourceId==node.Definition.Id).Select(l=>l.DestinationId));
-                return $"{node.Definition.Id} · {node.Definition.Kind.ToString().ToUpperInvariant()}{sink}\nBUFFER {node.Buffer.Count}/{node.BufferCapacity.Value} ({100d*node.Buffer.Count/node.BufferCapacity.Value:0}%)\n{(colors.Length==0 ? "No waiting FLOW" : colors)}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · OUT {node.OutgoingUsed}/{node.Definition.MaxOutgoing}\nINPUT {(node.IsInputStopped ? "STOPPED" : "OPEN")}{source}\nWAITING FROM {(incoming.Length==0 ? "—" : incoming)}\nOUTPUT TO {(outgoing.Length==0 ? "—" : outgoing)}";
+                string incoming = string.Join(", ", state.Lines.Where(l => l.DestinationId == node.Definition.Id && l.InFlight.Any(f => f.IsStopped)).Select(l => l.SourceId));
+                string outgoing = string.Join(", ", state.Lines.Where(l => l.SourceId == node.Definition.Id).Select(l => l.DestinationId));
+                return new OverviewDetailText(title,
+                    $"BUFFER {node.Buffer.Count}/{node.BufferCapacity.Value} ({100d * node.Buffer.Count / node.BufferCapacity.Value:0}%)",
+                    $"IN {node.IncomingUsed}/{node.Definition.MaxIncoming} · OUT {node.OutgoingUsed}/{node.Definition.MaxOutgoing}",
+                    colors.Length == 0 ? "No waiting FLOW" : colors, $"INPUT {(node.IsInputStopped ? "STOPPED" : "OPEN")}",
+                    $"INCOMING BLOCKED: {(incoming.Length == 0 ? "None" : incoming)}\nCONNECTED TO: {(outgoing.Length == 0 ? "None" : outgoing)}", activity, warning);
             }
-            LineSnapshot? line = state.Lines.FirstOrDefault(l=>l.Id == target.LineId);
-            if (line == null) return "Hover a Node or Line for details.\nClick to select · F to focus · Home for city view.";
-            int stopped = line.InFlight.Count(f=>f.IsStopped);
+            LineSnapshot? line = state.Lines.FirstOrDefault(l => l.Id == target.LineId);
+            if (line == null) return new OverviewDetailText("Hover a Node or Line for details.");
+            int stopped = line.InFlight.Count(f => f.IsStopped);
             double travel = line.Route.Length / settings.FlowSpeed;
-            return $"{line.SourceId} → {line.DestinationId}\n{line.Status.ToString().ToUpperInvariant()}\nLENGTH {line.Route.Length:0.0} m · TRAVEL {travel:0.00} s\nIN-FLIGHT {line.InFlight.Count}/{line.Capacity} ({100d*line.InFlight.Count/line.Capacity:0}%)\nMOVING {line.InFlight.Count-stopped} · STOPPED {stopped}\nTHROUGHPUT {line.Capacity/travel:0.00} FLOW/s (unblocked)\n{(stopped>0 ? $"WAITING · {line.DestinationId} Buffer space" : line.InFlight.Count==line.Capacity ? "FULL · waiting for capacity release" : "RUNNING")}";
+            string status = line.Status == LineStatus.DeletePending ? "DELETION PENDING · DASHED" :
+                line.Status == LineStatus.RouteChangePending ? "ROUTE CHANGE PENDING · DOUBLE LINE" : "RUNNING";
+            return new OverviewDetailText($"{line.SourceId} → {line.DestinationId}",
+                $"IN-FLIGHT {line.InFlight.Count}/{line.Capacity} ({100d * line.InFlight.Count / line.Capacity:0}%)",
+                $"LENGTH {line.Route.Length:0.0} m · TRAVEL {travel:0.00} s\nMOVING {line.InFlight.Count - stopped} · STOPPED {stopped}",
+                status: status, activity: $"THROUGHPUT {line.Capacity / travel:0.00} FLOW/s (unblocked)",
+                warning: stopped > 0 ? $"WAITING · {line.DestinationId} Buffer space" : line.InFlight.Count == line.Capacity ? "FULL · waiting for capacity release" : "");
         }
     }
 }

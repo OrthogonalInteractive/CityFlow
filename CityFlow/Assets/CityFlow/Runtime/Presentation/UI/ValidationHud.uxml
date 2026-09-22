@@ -1,44 +1,35 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ValidationHud.uss" />
+    <ui:Template name="HoverDetails" src="HoverDetails.uxml" />
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:VisualElement name="city-viewport" class="city-viewport" picking-mode="Ignore" />
         <ui:VisualElement name="source-danger" class="source-danger" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
-        <ui:VisualElement class="session-controls interactive">
+        <ui:VisualElement class="session-controls interactive layout-obstacle">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
             <ui:Button name="pause-toggle" text="Pause [Esc]" />
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
-        <ui:VisualElement name="connection-toast" class="panel connection-toast interactive">
+        <ui:VisualElement name="connection-toast" class="panel connection-toast interactive layout-obstacle">
             <ui:Label name="connection-notice" class="detail-text" />
             <ui:Button name="undo-connection" text="Undo [Ctrl+Z / ⌘Z]" />
         </ui:VisualElement>
-        <ui:VisualElement class="panel summary-panel">
+        <ui:VisualElement class="panel summary-panel layout-obstacle">
             <ui:VisualElement class="metrics">
                 <ui:VisualElement class="metric">
                     <ui:Label text="DELIVERED" class="metric-caption" />
-                    <ui:Label name="delivered-value" text="0000" class="metric-value" />
+                    <ui:Label name="delivered-value" text="0" class="metric-value" />
                 </ui:VisualElement>
                 <ui:VisualElement class="metric">
                     <ui:Label text="TIME" class="metric-caption" />
-                    <ui:Label name="elapsed-value" text="0.0 s" class="metric-value" />
+                    <ui:Label name="elapsed-value" text="0:00" class="metric-value" />
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:Label name="wave-value" text="WAVE 1" class="wave-readout" />
         </ui:VisualElement>
-        <ui:ScrollView class="readouts interactive" mode="Vertical">
-            <ui:VisualElement class="panel line-panel">
-                <ui:Label text="DIRECTED LINES" class="section-title" />
-                <ui:VisualElement class="table-row table-header">
-                    <ui:Label text="LINE" class="line-name" />
-                    <ui:Label text="LENGTH" class="length" />
-                    <ui:Label text="TIME" class="duration" />
-                    <ui:Label text="LOAD" class="load" />
-                </ui:VisualElement>
-                <ui:VisualElement name="line-rows" />
-            </ui:VisualElement>
-        </ui:ScrollView>
         <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
-        <ui:VisualElement name="route-editor" class="panel route-editor interactive">
+        <ui:VisualElement name="route-editor" class="panel route-editor interactive layout-obstacle">
             <ui:Label text="GROUND / MANUAL ROUTE" class="section-title" />
             <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag numbered handles: move on Ground&#10;Select a handle + Delete: remove&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
             <ui:Label name="edit-route-feedback" class="detail-text route-feedback" />
@@ -50,7 +41,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="connection-workspace" class="connection-workspace" picking-mode="Ignore">
-            <ui:VisualElement name="connection-panel" class="panel connection-panel interactive">
+            <ui:VisualElement name="connection-panel" class="panel connection-panel interactive layout-obstacle">
                 <ui:Label name="connect-mode" text="OVERVIEW / CONNECTION" class="section-title" />
                 <ui:Label name="connect-selection" class="detail-text" />
                 <ui:VisualElement name="line-actions">
@@ -77,25 +68,24 @@
                     <ui:Button name="route-edit" text="Edit Ground route [E]" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive">
+            <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive layout-obstacle">
                 <ui:Label text="CONNECTION TARGETS" class="section-title" />
                 <ui:Label name="candidate-list-count" class="band-hint" />
                 <ui:ScrollView name="connection-candidates" mode="Vertical" horizontal-scroller-visibility="Hidden" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label text="WASD / MIDDLE DRAG · PAN    WHEEL · ZOOM    RIGHT DRAG · ORBIT    CLICK NODE · CONNECT    SHIFT + LINE · EDIT    F · FOCUS    HOME · CITY" class="footer overview-footer" />
-        <ui:Label text="RIGHT DRAG / ARROWS · LOOK    TAB · NEXT CANDIDATE    CLICK · CONNECT    V · REVIEW    ENTER · CONFIRM    BACKSPACE · CANCEL" class="footer connection-only" />
-        <ui:VisualElement name="node-tooltip" class="panel hover-panel" picking-mode="Ignore">
-            <ui:Label name="hover-detail" class="detail-text" picking-mode="Ignore" />
+        <ui:Label name="context-hint" class="context-hint layout-obstacle" picking-mode="Ignore" />
+        <ui:VisualElement name="node-tooltip" class="panel hover-panel layout-obstacle" picking-mode="Ignore">
+            <ui:Instance template="HoverDetails" />
         </ui:VisualElement>
-        <ui:Label name="wave-notice" class="wave-notice" picking-mode="Ignore" />
+        <ui:Label name="wave-notice" class="wave-notice layout-obstacle" picking-mode="Ignore" />
         <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="result-overlay" class="result-overlay interactive">
             <ui:VisualElement class="panel result-panel">
                 <ui:Label name="result-title" text="GAME OVER" class="title" />
                 <ui:Label name="result-detail" class="result-detail" />
                 <ui:Label text="Keep the Source moving.&#10;Use Pause to plan and reconnect your network." class="detail-text" />
-                <ui:Button name="retry-session" text="Retry / start with 0 Lines" />
+                <ui:Button name="retry-session" text="Retry" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label text="FIXED VALIDATION CITY    ·    STRAIGHT / DETOUR / NARROW PASSAGE" class="city-caption" />

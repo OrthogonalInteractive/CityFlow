@@ -30,13 +30,13 @@ namespace CityFlow.Tests.PlayMode
             var overview=Object.FindAnyObjectByType<OverviewController>();
             overview.Hover(Camera.main.WorldToScreenPoint(network.NodeDefinitions.Single(n=>n.Id=="S1").Position+Vector3.up*1.4f));
             yield return null;
-            var detail=root.Q<Label>("hover-detail");
-            Assert.That(detail.text,Does.Contain("BUFFER 1/10").And.Contain("GENERATED 1"));
+
+            Assert.That(HudAssertions.TooltipText(root),Does.Contain("BUFFER 1/10").And.Contain("GENERATED 1"));
             Assert.That(root.Q("source-monitor"),Is.Null);
             Assert.That(GameObject.Find("Source buffer S1").transform.Cast<Transform>().Count(t=>t.gameObject.activeSelf),Is.EqualTo(1));
             var pulse=GameObject.Find("Source generation S1"); Assert.That(pulse.GetComponent<LineRenderer>().enabled,Is.True);
             sim.SetPaused(true); var scale=pulse.transform.localScale; sim.Tick(10); yield return null; yield return null;
-            Assert.That(detail.text,Does.Contain("BUFFER 1/10")); Assert.That(pulse.transform.localScale,Is.EqualTo(scale));
+            Assert.That(HudAssertions.TooltipText(root),Does.Contain("BUFFER 1/10")); Assert.That(pulse.transform.localScale,Is.EqualTo(scale));
             Assert.That(network.Snapshot().GeneratedCount,Is.EqualTo(1));
         }
         [UnityTest] public IEnumerator SourceUrgencyIsVisibleWithoutHoverAndFreezesUntilRecovery()
@@ -96,11 +96,11 @@ namespace CityFlow.Tests.PlayMode
             overview.Hover(Camera.main.WorldToScreenPoint(network.NodeDefinitions.Single(n=>n.Id=="S1").Position+Vector3.up*1.4f));
             sim.Tick(1); yield return null; yield return null;
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            var warning=root.Q<Label>("hover-detail"); Assert.That(warning,Is.Not.Null);
-            Assert.That(warning.text,Does.Contain("4.0s").And.Contain("GAME OVER"));
-            Assert.That(warning.text,Does.Contain("BUFFER 10/10"));
+            Assert.That(root.Q("hover-warning"),Is.Not.Null);
+            Assert.That(HudAssertions.TooltipText(root),Does.Contain("4.0s").And.Contain("GAME OVER"));
+            Assert.That(HudAssertions.TooltipText(root),Does.Contain("BUFFER 10/10"));
             sim.SetPaused(true); sim.Tick(20); yield return null;
-            Assert.That(warning.text,Does.Contain("4.0s")); Assert.That(network.IsGameOver,Is.False);
+            Assert.That(HudAssertions.TooltipText(root),Does.Contain("4.0s")); Assert.That(network.IsGameOver,Is.False);
             overview.Select(OverviewTarget.Node("S1")); Object.FindAnyObjectByType<NodeConnectionController>().BeginSelected();
             sim.SetPaused(false); sim.Tick(4); yield return null; yield return null;
             Assert.That(network.IsGameOver,Is.True); Assert.That(root.Q("result-overlay").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));

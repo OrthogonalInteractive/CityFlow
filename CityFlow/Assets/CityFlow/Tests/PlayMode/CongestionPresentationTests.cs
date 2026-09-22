@@ -32,8 +32,8 @@ namespace CityFlow.Tests.PlayMode
             overview.Hover(Camera.main.WorldToScreenPoint(network.NodeDefinitions.Single(n=>n.Id=="S1").Position+Vector3.up*1.4f));
             simulation.Tick(4.9);
             yield return null;
-            var label = Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q<Label>("hover-detail");
-            Assert.That(label.text, Does.Contain("S1").And.Contain("TO GAME OVER"));
+            var tooltipRoot = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            Assert.That(HudAssertions.TooltipText(tooltipRoot), Does.Contain("S1").And.Contain("TO GAME OVER"));
             Assert.That(network.IsGameOver, Is.False);
             simulation.Tick(0.1);
             yield return null;

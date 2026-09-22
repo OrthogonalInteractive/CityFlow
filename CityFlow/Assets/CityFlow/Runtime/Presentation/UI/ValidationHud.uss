@@ -1,4 +1,5 @@
 .hud {
+    --overlay-gap: 12; --node-clearance: 24; --hover-width: 320; --notice-bottom: 88;
     position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
     color: rgb(235, 241, 249);
@@ -48,14 +49,14 @@ Label { margin: 0; padding: 0; }
 .footer { position: absolute; left: 32px; bottom: 28px; font-size: 15px; color: rgb(182, 200, 214); }
 .detail-text { white-space: normal; font-size: 14px; color: rgb(195, 212, 226); }
 .city-caption { display: none; }
-.node-label.has-buffer { height: 38px; padding-bottom: 10px; }
-.node-gauge { position: absolute; left: 4px; right: 4px; bottom: 3px; height: 8px; flex-direction: row; }
+.node-label.has-buffer { height: 44px; padding-bottom: 16px; }
+.node-gauge { position: absolute; left: 4px; right: 4px; bottom: 3px; height: 14px; flex-direction: row; }
 .node-buffer-slot { height: 100%; flex-grow: 1; flex-basis: 0;
     border-right-width: 1px; border-right-color: rgb(10, 17, 25); }
 .node-buffer-slot.empty { background-color: rgb(44, 53, 65); }
 .input-stopped { border-color: rgb(255, 197, 91); }
 .node-label.source-warning { border-color: rgb(255, 197, 91); }
-.node-label.source-overload { height: 56px; border-width: 2px; border-color: rgb(255, 78, 55); }
+.node-label.source-overload { height: 64px; border-width: 2px; border-color: rgb(255, 78, 55); }
 .node-label.source-flash { border-color: rgb(255, 190, 140); }
 .source-danger { position: absolute; left: 0; right: 0; top: 0; bottom: 0; opacity: 0; --edge-size: 48; }
 .readouts .panel { padding: 14px; }
@@ -123,7 +124,7 @@ Label { margin: 0; padding: 0; }
 .session-controls.paused Label { color: rgb(255,207,107); }
 
 .readouts { max-height: 45%; }
-.wave-notice { position: absolute; left: 50%; top: 125px; translate: -50% 0; width: 340px;
+.wave-notice { position: absolute; width: 340px;
     font-size: 14px; -unity-text-align: middle-center; white-space: normal; padding: 12px;
     color: rgb(255,219,132); background-color: rgba(5,9,15,0.95); }
 .arrival-marker { position: absolute; width: 160px; height: 48px; white-space: normal;
@@ -167,3 +168,20 @@ Label { margin: 0; padding: 0; }
 .hover-panel { display: none; position: absolute; width: 320px; padding: 16px; }
 .hover-panel .detail-text { font-size: 13px; white-space: normal; }
 .hover-warning { border-color: rgb(255,195,72); background-color: rgb(38,25,17); }
+
+.city-viewport { position: absolute; left: 0; top: 0; width: 72%; height: 94%; }
+.overlay-leader { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.wave-readout { font-size: 13px; color: rgb(180,198,213); margin-top: 6px; }
+.context-hint { position: absolute; left: 24px; right: 24px; bottom: 20px;
+    font-size: 14px; color: rgb(207,222,235); white-space: normal; }
+.node-360 .context-hint { right: 28%; font-size: 12px; bottom: 12px; }
+.node-buffer-slot { font-size: 9px; -unity-font-style: bold; -unity-text-align: middle-center; color: rgb(8,15,22); }
+.hover-title { font-size: 16px; -unity-font-style: bold; margin-bottom: 8px; }
+.hover-primary { font-size: 19px; -unity-font-style: bold; margin-bottom: 6px; white-space: normal; }
+.hover-buffer { height: 16px; flex-direction: row; margin-bottom: 6px; }
+.hover-section { margin-top: 8px; }
+.hover-warning-text { color: rgb(255,194,98); white-space: normal; font-size: 14px; margin-top: 8px; -unity-font-style: bold; }
+.candidate-group-title { color: rgb(176,194,209); font-size: 11px; margin: 8px 0 5px 0; }
+.candidate-list-panel Button.candidate-option { padding-left: 32px; }
+.candidate-swatch { position: absolute; left: 6px; top: 12px; width: 18px; height: 18px;
+    font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center; color: rgb(8,15,22); border-radius: 3px; }

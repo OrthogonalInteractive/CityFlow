@@ -71,7 +71,7 @@ namespace CityFlow.Tests.PlayMode
             var line=n.Snapshot().Lines.Single(); Assert.That(line.Status,Is.EqualTo(LineStatus.Running));
             Assert.That(line.Route.Points,Is.EqualTo(edited)); Assert.That(n.Snapshot().DeliveredCount,Is.EqualTo(1));
             Assert.That(GameObject.Find($"Line {id}: S1 -> BLUE").GetComponent<LineRenderer>().positionCount,Is.EqualTo(edited.Length));
-            Assert.That(root.Q<Label>($"line-length-{id}").text,Is.EqualTo($"{line.Route.Length:0}m"));
+            Assert.That(OverviewReadout.Describe(OverviewTarget.Line(id),n.Snapshot(),n.Settings),Does.Contain($"LENGTH {line.Route.Length:0.0} m"));
         }
     }
 }

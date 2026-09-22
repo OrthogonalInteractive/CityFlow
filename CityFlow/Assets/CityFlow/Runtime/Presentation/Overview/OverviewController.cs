@@ -50,7 +50,11 @@ namespace CityFlow.Presentation.Overview
                     clicked.OnNext((target,Keyboard.current?.shiftKey.isPressed == true));
                 }
             };
-            actions.AddAction("Focus", InputActionType.Button, "<Keyboard>/f").performed += _ => FocusSelection();
+            actions.AddAction("Focus", InputActionType.Button, "<Keyboard>/f").performed += _ =>
+            {
+                if (!Hovered.IsEmpty) Select(Hovered);
+                FocusSelection();
+            };
             actions.AddAction("Home", InputActionType.Button, "<Keyboard>/home").performed += _ => ResetView();
             if (isActiveAndEnabled) actions.Enable();
             lastPointer = pointerInput.ReadValue<Vector2>();

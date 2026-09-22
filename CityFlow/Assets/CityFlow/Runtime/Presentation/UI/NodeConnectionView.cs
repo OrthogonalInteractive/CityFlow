@@ -8,15 +8,21 @@ using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Connections;
 using CityFlow.Presentation.Overview;
+using CityFlow.Presentation.Rendering;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 
 namespace CityFlow.Presentation.UI
 {
     [RequireComponent(typeof(UIDocument))]
     public sealed class NodeConnectionView : MonoBehaviour
     {
+        private FlowNetwork? network;
         private ConnectionSession? session;
+        private readonly Dictionary<string, OverlayLeader> leaders = new();
+        private readonly List<Label> groupLabels = new();
+        private string listOrder = "";
         private LinePreviewService? preview;
         private OverviewController? overview;
         private NodeConnectionController? controller;
@@ -27,8 +33,9 @@ namespace CityFlow.Presentation.UI
         private readonly Dictionary<string,Button> candidateOptions = new();
         private readonly List<(Button button,Action handler)> handlers = new();
         public void Initialize(ConnectionSession connection, LinePreviewService linePreview, OverviewController input,
-            NodeConnectionController cameraController, Camera camera)
+            NodeConnectionController cameraController, Camera camera, FlowNetwork state)
         {
+            network = state;
             session = connection; preview = linePreview; overview = input; controller = cameraController;
             sceneCamera = camera; document = GetComponent<UIDocument>(); if (isActiveAndEnabled) Bind();
         }
@@ -36,7 +43,7 @@ namespace CityFlow.Presentation.UI
         private void Bind()
         {
             Unbind();
-            if (document == null || session == null || controller == null) return;
+            if (document == null || network == null || session == null || controller == null) return;
             root = document.rootVisualElement;
             ButtonAction("undo-connection", controller.UndoConnection);
             ButtonAction("connect-cancel",session.Cancel);
@@ -59,11 +66,14 @@ namespace CityFlow.Presentation.UI
             handlers.Clear();
             foreach (var marker in markers.Values) marker.RemoveFromHierarchy();
             foreach (var option in candidateOptions.Values) option.RemoveFromHierarchy();
+            foreach (var leader in leaders.Values) leader.Dispose();
+            foreach (var label in groupLabels) label.RemoveFromHierarchy();
+            leaders.Clear(); groupLabels.Clear(); listOrder = "";
             markers.Clear(); candidateOptions.Clear(); root = null;
         }
         private void LateUpdate()
         {
-            if (document == null || session == null || preview == null || overview == null || controller == null || sceneCamera == null) return;
+            if (document == null || network == null || session == null || preview == null || overview == null || controller == null || sceneCamera == null) return;
             if (root != document.rootVisualElement) Bind();
             if (root == null) return;
             VisualElement hud = root.Q("validation-hud");
@@ -89,6 +99,7 @@ namespace CityFlow.Presentation.UI
             foreach (DistanceBand band in Enum.GetValues(typeof(DistanceBand)))
                 root.Q<Button>("band-"+band.ToString().ToLowerInvariant()).EnableInClassList("chosen",session.Filter == band);
             foreach (Button marker in markers.Values) marker.style.display = DisplayStyle.None;
+            foreach (var leader in leaders.Values) leader.Hide();
             foreach (Button option in candidateOptions.Values) option.style.display = DisplayStyle.None;
             if (!session.IsActive) return;
             var candidates = session.Candidates();
@@ -98,78 +109,91 @@ namespace CityFlow.Presentation.UI
             root.Q<Label>("connection-count").text = $"{candidates.Count} CANDIDATES / {session.Filter.ToString().ToUpperInvariant()}";
             if (!controller.IsNode360) return;
             RenderCandidateList(candidates,state);
-            float width = root.layout.width, height = root.layout.height;
-            if (width <= 0 || height <= 0) return;
-            Rect cameraRect=sceneCamera.rect;
-            var viewport=new Rect(cameraRect.x*width,(1-cameraRect.yMax)*height,cameraRect.width*width,cameraRect.height*height);
-            var safe=new Rect(viewport.x+104,viewport.y+40,Mathf.Max(1,viewport.width-208),Mathf.Max(1,viewport.height-80));
-            var occupied = new List<Rect>();
-            foreach (var candidate in candidates.OrderBy(c => c.Node.Definition.Id == controller.AttentionId ? 0 :
-                         c.Node.Definition.Id == state?.DestinationId ? 1 : 2).ThenBy(c => c.Distance))
+            if (root.layout.width <= 0 || root.layout.height <= 0) return;
+            var viewport = OverlayLayout.Viewport(root, sceneCamera);
+            var occupied = OverlayLayout.Obstacles(root, sceneCamera, network.Snapshot(), includeMarkers: false);
+            foreach (var candidate in candidates.OrderBy(c => c.Distance).ThenBy(c => c.Node.Definition.Id))
             {
                 string id = candidate.Node.Definition.Id;
-                if (!markers.TryGetValue(id,out Button marker))
+                if (!markers.TryGetValue(id, out Button marker))
                 {
-                    marker = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-"+id };
+                    marker = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-" + id };
                     marker.userData = OverviewTarget.Node(id);
-                    marker.AddToClassList("candidate-marker"); marker.AddToClassList("interactive");
+                    marker.AddToClassList("candidate-marker");
+                    marker.AddToClassList("interactive");
                     marker.RegisterCallback<PointerEnterEvent>(_ => controller.SetAttention(id));
-                    root.Q("connection-markers").Add(marker); markers.Add(id,marker);
+                    root.Q("connection-markers").Add(marker);
+                    markers.Add(id, marker);
+                    leaders.Add(id, new OverlayLeader(root.Q("connection-markers"), "candidate-leader-" + id));
                 }
-                Vector3 projected = sceneCamera.WorldToViewportPoint(candidate.Node.Definition.Position + Vector3.up*1.4f);
-                Vector2 point = new Vector2(viewport.x+projected.x*viewport.width,viewport.y+(1-projected.y)*viewport.height);
-                bool outside = projected.z <= 0 || projected.x < 0 || projected.x > 1 || projected.y < 0 || projected.y > 1;
-                Vector2 direction = point - viewport.center;
-                if (projected.z <= 0) direction = -direction;
-                if (direction.sqrMagnitude < 0.001f) direction = Vector2.right;
-                if (outside)
-                {
-                    float scale = Mathf.Min(safe.width*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.x)),
-                        safe.height*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.y)));
-                    point = safe.center + direction*scale;
-                }
-                else
-                {
-                    // Leave the actual Node visible below (or above) its label.
-                    point.y += point.y-60>=safe.yMin ? -60 : 60;
-                    point.x=Mathf.Clamp(point.x,safe.xMin,safe.xMax);
-                    point.y=Mathf.Clamp(point.y,safe.yMin,safe.yMax);
-                }
-                string arrow = Mathf.Abs(direction.x) > Mathf.Abs(direction.y) ? direction.x > 0 ? ">" : "<" : direction.y > 0 ? "v" : "^";
+                var definition = candidate.Node.Definition;
+                Vector3 world = definition.Position + Vector3.up * 1.4f;
+                Vector3 projected = sceneCamera.WorldToScreenPoint(world);
+                bool outside = projected.z <= 0 || !sceneCamera.pixelRect.Contains(projected);
                 bool occluded = controller.IsOccluded(id);
-                string visibility = (outside ? arrow+" OFFSCREEN " : "") + (occluded ? "OCCLUDED" : "");
-                string kind = candidate.Node.Definition.Kind.ToString().ToUpperInvariant() +
-                    (candidate.Node.Definition.SinkColor.HasValue ? " "+candidate.Node.Definition.SinkColor.Value.ToString().ToUpperInvariant() : "");
-                string status = candidate.Failure != ConnectionFailure.None ? "BLOCKED / INSPECT" : state?.DestinationId == id ?
-                    state.Geometry.IsValid ? "PREVIEW READY" : "ROUTE INVALID / INSPECT" : "SLOTS OPEN / ROUTE ?";
-                marker.text = $"{id} / {kind} / {candidate.Distance:0} m\n{visibility}\n{status}";
-                marker.EnableInClassList("chosen",id == controller.AttentionId);
-                marker.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);
-                marker.EnableInClassList("occluded",occluded);
-                var bounds = new Rect(point.x-100,point.y-34,200,68);
-                marker.style.left = bounds.x; marker.style.top = bounds.y;
-                bool overlaps = occupied.Any(rect => rect.Overlaps(bounds));
-                marker.style.display = overlaps ? DisplayStyle.None : DisplayStyle.Flex;
-                if (!overlaps) occupied.Add(bounds);
+                string visibility = (outside ? "OFFSCREEN " : "") + (occluded ? "OCCLUDED" : "");
+                string kind = definition.Kind.ToString().ToUpperInvariant();
+                marker.text = $"{id} / {kind} / {candidate.Distance:0} m\n{visibility}\n{Status(candidate, state)}";
+                marker.EnableInClassList("chosen", id == controller.AttentionId);
+                marker.EnableInClassList("blocked", Group(candidate, state) == 2);
+                marker.EnableInClassList("occluded", occluded);
+                marker.style.display = DisplayStyle.Flex;
+                Vector2 anchor = OverlayLayout.Anchor(root, sceneCamera, world);
+                Rect bounds = OverlayLayout.Place(marker, root, anchor + Vector2.one * 24, occupied, viewport);
+                occupied.Add(bounds);
+                leaders[id].Show(root, anchor, bounds);
             }
-            if (controller.AttentionId != null && markers.TryGetValue(controller.AttentionId,out Button focused)) focused.BringToFront();
         }
+        private static int Group(ConnectionCandidate candidate, LinePreviewState? state) =>
+            candidate.Failure != ConnectionFailure.None || (state?.DestinationId == candidate.Node.Definition.Id && !state.CanConfirm)
+                ? 2 : state?.DestinationId == candidate.Node.Definition.Id && state.CanConfirm ? 0 : 1;
+
+        private static string Status(ConnectionCandidate candidate, LinePreviewState? state) =>
+            Group(candidate, state) == 0 ? "PREVIEW READY" : Group(candidate, state) == 2 ? "BLOCKED / INSPECT" : "ROUTE UNCHECKED";
+
         private void RenderCandidateList(IReadOnlyList<ConnectionCandidate> candidates,LinePreviewState? state)
         {
             if (root == null || session == null || controller == null) return;
             var list = root.Q<ScrollView>("connection-candidates");
-            // Keep rows in roster order so hovering, turning, and filtering cannot move click targets.
-            foreach (var node in session.Nodes)
+            foreach (var candidate in candidates)
             {
+                var node = candidate.Node.Definition;
                 string id = node.Id;
                 if (candidateOptions.ContainsKey(id)) continue;
-                var option = new Button(() => controller.ConfirmTarget(id))
-                    { name = "candidate-option-"+id };
+                var option = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-option-" + id };
                 option.userData = OverviewTarget.Node(id);
                 option.AddToClassList("candidate-option");
                 option.RegisterCallback<PointerEnterEvent>(_ => controller.FocusTarget(id));
-                option.style.display = DisplayStyle.None;
-                list.Add(option); candidateOptions.Add(id,option);
+                var swatch = new Label(node.SinkColor.HasValue ? node.SinkColor.Value.ToString().Substring(0, 1) : "•")
+                    { pickingMode = PickingMode.Ignore };
+                swatch.AddToClassList("candidate-swatch");
+                swatch.style.backgroundColor = node.SinkColor.HasValue ? ValidationCityView.ColorFor(node.SinkColor.Value) : new Color(0.72f, 0.75f, 0.78f);
+                option.Add(swatch);
+                list.Add(option);
+                candidateOptions.Add(id, option);
+            }
+            var ordered = candidates.OrderBy(c => Group(c, state)).ThenBy(c => c.Distance).ThenBy(c => c.Node.Definition.Id).ToArray();
+            string order = string.Join("|", ordered.Select(c => Group(c, state) + ":" + c.Node.Definition.Id));
+            Vector2 mouse = Mouse.current?.position.ReadValue() ?? new Vector2(-100, -100);
+            Vector2 point = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(mouse.x, Screen.height - mouse.y));
+            // Keep click targets stable while the pointer is inside the list.
+            if (listOrder.Length == 0 || (order != listOrder && !list.worldBound.Contains(point)))
+            {
+                foreach (var label in groupLabels) label.RemoveFromHierarchy();
+                groupLabels.Clear();
+                int previous = -1;
+                foreach (var candidate in ordered)
+                {
+                    int group = Group(candidate, state);
+                    if (group != previous)
+                    {
+                        var label = new Label(group == 0 ? "READY TO CONNECT" : group == 1 ? "ROUTE UNCHECKED" : "BLOCKED");
+                        label.AddToClassList("candidate-group-title");
+                        list.Add(label); groupLabels.Add(label); previous = group;
+                    }
+                    list.Add(candidateOptions[candidate.Node.Definition.Id]);
+                }
+                listOrder = order;
             }
             root.Q<Label>("candidate-list-count").text = $"{candidates.Count} NODES / {session.Filter.ToString().ToUpperInvariant()} · CLICK TO CONNECT";
             foreach (var candidate in candidates)
@@ -177,8 +201,7 @@ namespace CityFlow.Presentation.UI
                 var node = candidate.Node;
                 string id = node.Definition.Id;
                 var option = candidateOptions[id];
-                string status = candidate.Failure != ConnectionFailure.None ? "BLOCKED / INSPECT" :
-                    state?.DestinationId == id ? state.Geometry.IsValid ? "PREVIEW READY" : "ROUTE INVALID" : "SLOTS OPEN / ROUTE ?";
+                string status = Status(candidate, state);
                 option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
                 option.EnableInClassList("chosen",id == controller.AttentionId);
                 option.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);

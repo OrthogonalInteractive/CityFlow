@@ -45,7 +45,7 @@ namespace CityFlow.Tests.PlayMode
                 Vector2 screen=Camera.main.WorldToScreenPoint(node.Position+Vector3.up*1.4f);
                 overview.Hover(screen); yield return null; yield return null;
                 Assert.That(tooltip.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
-                string detail=root.Q<Label>("hover-detail").text;
+                string detail=HudAssertions.TooltipText(root);
                 Assert.That(detail,Does.Contain(id).And.Contain("IN "));
                 Assert.That(tooltip.worldBound.xMin,Is.GreaterThanOrEqualTo(0));
                 Assert.That(tooltip.worldBound.xMax,Is.LessThanOrEqualTo(root.worldBound.xMax));
@@ -134,7 +134,7 @@ namespace CityFlow.Tests.PlayMode
                     Vector2 screen=new Vector2(panel.x/root.layout.width*Screen.width,(1-panel.y/root.layout.height)*Screen.height);
                     InputSystem.QueueStateEvent(mouse,new MouseState { position=screen }); yield return null; yield return null;
                     Assert.That(root.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
-                    Assert.That(root.Q<Label>("hover-detail").text,Does.Contain(pair.Item2).And.Contain("BUFFER"));
+                    Assert.That(HudAssertions.TooltipText(root),Does.Contain(pair.Item2).And.Contain("BUFFER"));
                     Assert.That(root.Q("node-tooltip").worldBound.xMin,Is.GreaterThanOrEqualTo(root.layout.width*0.72f));
                 }
                 InputSystem.QueueStateEvent(mouse,new MouseState { position=new Vector2(-100,-100) }); yield return null; yield return null;

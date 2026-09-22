@@ -101,8 +101,8 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(result.Wave,Is.EqualTo(1)); var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             Assert.That(root.Q("result-overlay").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
             string text=root.Q<Label>("result-detail").text;
-            Assert.That(text,Does.Contain($"WAVE {result.Wave}").And.Contain($"{result.SurvivalSeconds:0.0} s").And.Contain($"DELIVERED {result.Delivered}").And.Contain("S1"));
-            Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo($"{result.SurvivalSeconds:0.0} s"));
+            Assert.That(text,Does.Contain($"WAVE {result.Wave}").And.Contain(CityFlow.Presentation.UI.HudClock.Format(result.SurvivalSeconds)).And.Contain($"DELIVERED {result.Delivered}").And.Contain("S1"));
+            Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo(CityFlow.Presentation.UI.HudClock.Format(result.SurvivalSeconds)));
             var oldScope=scope.GetEntityId(); var button=root.Q<Button>("retry-session"); button.Focus();
             using(var e=NavigationSubmitEvent.GetPooled()) button.SendEvent(e);
             CityFlowLifetimeScope? next=null;

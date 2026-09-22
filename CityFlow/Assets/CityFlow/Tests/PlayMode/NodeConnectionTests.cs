@@ -113,7 +113,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(s.IsActive,Is.False); Assert.That(camera.orthographic,Is.True); Assert.That(overview.enabled,Is.True);
             Assert.That(camera.transform.position,Is.EqualTo(before)); Assert.That(camera.transform.rotation,Is.EqualTo(rotation));
             Assert.That(camera.orthographicSize,Is.EqualTo(size)); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(count+1));
-            Assert.That(root.Q("line-rows").childCount,Is.EqualTo(6));
+            Assert.That(root.Q("line-rows"),Is.Null);
         }
         [UnityTest] public IEnumerator CameraReviewAndDistanceFiltersRetainPreviewAndCancelRestoresOriginalPose()
         {
@@ -141,7 +141,7 @@ namespace CityFlow.Tests.PlayMode
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             Assert.That(n.Snapshot().Lines,Is.Empty);
             var c=Controller(); Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Node("S1"));
-            c.BeginSelected(); c.FocusTarget("BLUE"); yield return null;
+            c.BeginSelected(); c.FocusTarget("BLUE"); yield return null; yield return null; yield return null;
             Assert.That(GameObject.Find("S1 / Source"),Is.Null,"The source's own mesh must not cover the Node 360 view.");
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             var p=scope.Container.Resolve<LinePreviewService>().Current ?? throw new AssertionException("Missing Source Preview");

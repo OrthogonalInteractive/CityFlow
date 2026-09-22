@@ -9,6 +9,7 @@ using CityFlow.Presentation.Rendering;
 using R3;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 namespace CityFlow.Presentation.Connections
 {
@@ -19,6 +20,7 @@ namespace CityFlow.Presentation.Connections
         private StageDefinition? stage;
         private Camera? sceneCamera;
         private ValidationCityView? cityView;
+        private UIDocument? document;
         private IDisposable? subscription, clickSubscription;
         private int enteredFrame;
         public int EditingStartedFrame { get; private set; } = -1;
@@ -36,10 +38,11 @@ namespace CityFlow.Presentation.Connections
         private string notice = "";
         public bool CanUndo => session?.CanUndoLastConnection == true && Time.unscaledTime < undoUntil;
         public string Notice => Time.unscaledTime < noticeUntil ? notice : "";
-        public void Initialize(ConnectionSession connection, OverviewController input, StageDefinition definition, Camera camera, ValidationCityView view)
+        public void Initialize(ConnectionSession connection, OverviewController input, StageDefinition definition, Camera camera, ValidationCityView view, UIDocument hud)
         {
             session = connection; overview = input; stage = definition; sceneCamera = camera;
             cityView = view;
+            document = hud;
             actions = new InputActionMap("Connection");
             var undo = actions.AddAction("Undo", InputActionType.Button);
             undo.AddCompositeBinding("ButtonWithOneModifier").With("Modifier", "<Keyboard>/ctrl").With("Button", "<Keyboard>/z");
@@ -171,7 +174,17 @@ namespace CityFlow.Presentation.Connections
         {
             if (sceneCamera == null || stage == null || session?.SourceId == null) return;
             Vector3 position = session.Nodes.Single(n => n.Id == session.SourceId).Position + Vector3.up * 3.2f;
-            sceneCamera.rect=new Rect(0,0.06f,0.72f,0.94f);
+            if (document != null)
+            {
+                var root = document.rootVisualElement;
+                var viewport = root.Q("city-viewport");
+                if (viewport != null && root.layout.width > 0 && viewport.layout.width > 0)
+                {
+                    Rect bounds = viewport.layout;
+                    sceneCamera.rect = new Rect(bounds.x / root.layout.width, 1 - bounds.yMax / root.layout.height,
+                        bounds.width / root.layout.width, bounds.height / root.layout.height);
+                }
+            }
             sceneCamera.orthographic = false; sceneCamera.fieldOfView = 70; sceneCamera.nearClipPlane = 0.1f;
             sceneCamera.transform.SetPositionAndRotation(position,Quaternion.Euler(pitch,yaw,0));
             if (cityView != null) cityView.SetHiddenNode(session.SourceId);

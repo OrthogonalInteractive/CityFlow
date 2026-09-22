@@ -43,11 +43,10 @@ namespace CityFlow.Tests.PlayMode
             yield return null;
             VisualElement root = document.rootVisualElement;
             NetworkSnapshot state = network.Snapshot();
-            Assert.That(root.Q<Label>("delivered-value").text, Is.EqualTo(state.DeliveredCount.ToString("0000")));
-            Assert.That(root.Q<Label>("line-load-2").text, Is.EqualTo($"{state.Lines[1].InFlight.Count}/{state.Lines[1].Capacity}"));
+            Assert.That(root.Q<Label>("delivered-value").text, Is.EqualTo(state.DeliveredCount.ToString()));
             Assert.That(root.Q("node-rows"),Is.Null);
-            Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo($"{scope.Container.Resolve<FlowSimulation>().ElapsedSeconds:0.0} s"));
-            Assert.That(root.Q("line-rows").childCount, Is.EqualTo(5));
+            Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo(CityFlow.Presentation.UI.HudClock.Format(scope.Container.Resolve<FlowSimulation>().ElapsedSeconds)));
+            Assert.That(root.Q("line-rows"), Is.Null);
             Assert.That(root.Query().ToList().Where(element=>!root.Query(className:"interactive").ToList().Any(panel=>element==panel || panel.Contains(element))).All(element => element.pickingMode == PickingMode.Ignore), Is.True,
                 "Read-only overlays must leave world interaction available.");
         }
@@ -60,7 +59,7 @@ namespace CityFlow.Tests.PlayMode
                 new Vector3(-38,0,-20), new Vector3(-38,0,22) }).Succeeded, Is.True);
             yield return null;
             yield return null;
-            Assert.That(Document().rootVisualElement.Q("line-rows").childCount, Is.EqualTo(6));
+            Assert.That(Document().rootVisualElement.Q("node-labels").childCount, Is.EqualTo(5));
         }
 
         [UnityTest]
@@ -105,7 +104,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(Object.FindObjectsByType<UIDocument>().Length, Is.EqualTo(1));
             Assert.That(document.rootVisualElement.Q("node-labels").childCount, Is.EqualTo(5));
             Assert.That(document.rootVisualElement.Q<Label>("delivered-value").text,
-                Is.EqualTo(scope.Container.Resolve<FlowNetwork>().Snapshot().DeliveredCount.ToString("0000")));
+                Is.EqualTo(scope.Container.Resolve<FlowNetwork>().Snapshot().DeliveredCount.ToString()));
         }
     }
 }

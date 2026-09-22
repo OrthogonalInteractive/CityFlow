@@ -12,9 +12,9 @@
 
 - Unity **6.4 / 6000.4.7f1**、URP、Input System、Cinemachine 3、VFX Graph、Shader Graph。
 - ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
-- Source／RelayのBufferゲージは1枠1 FLOWで待機順の色を表示する。空き枠と実数／容量を残し、満杯警告でFLOW色を上書きしない。SinkにはBufferゲージを表示しない。
-- 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・独立Ground Previewパネルを復活させない。
-- UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
+- Source／RelayのBufferゲージは1枠1 FLOWで待機順の色と頭文字（R/B/Y/G/P）を表示する。空き枠と実数／容量を残し、満杯警告でFLOW色を上書きしない。SinkにはBufferゲージを表示しない。
+- 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・DIRECTED LINES表・独立Ground Previewパネルを復活させない。基本HUDはDELIVERED・TIME・Waveの1行、危険時はSourceのワールド警告と状況ヒントを使う。
+- UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。Viewport比率・余白・安全距離はUSSに置き、座標変換と重なり回避は共通化する。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。
 - Unity Editorの起動・コンパイル・テスト・Play Mode制御・ログ取得・シーン／アセット操作は、すべて **uloop CLI** を通して行う。Unity実行ファイルの直接起動、`-batchmode`、Editorの手動操作を自動化手段として使わない。
 - リポジトリルートから `uloop --project-path CityFlow <command>` を基本形とする。利用可能なコマンドは `uloop --project-path CityFlow list` で確認し、ツール構成変更後は `uloop --project-path CityFlow sync` を実行する。

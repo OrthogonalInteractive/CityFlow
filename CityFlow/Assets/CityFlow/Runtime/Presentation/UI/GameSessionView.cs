@@ -1,4 +1,5 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+
 namespace CityFlow.Presentation.UI
 {
     [RequireComponent(typeof(UIDocument))]
@@ -26,24 +28,36 @@ namespace CityFlow.Presentation.UI
         private VisualElement? root;
         private Button? retry;
         private bool retrying;
-        private int initialLineCount;
-        private readonly Dictionary<string,Button> markers=new();
-        public void Initialize(FlowSimulation clock,FlowNetwork state,ConnectionSession wiring,OverviewController input,
-            NodeConnectionController cameraController,Camera camera)
+        private readonly Dictionary<string, Button> markers = new();
+        private readonly Dictionary<string, OverlayLeader> leaders = new();
+
+        public void Initialize(FlowSimulation clock, FlowNetwork state, ConnectionSession wiring, OverviewController input,
+            NodeConnectionController cameraController, Camera camera)
         {
-            initialLineCount=state.Snapshot().Lines.Count; simulation=clock; network=state; connection=wiring; overview=input; connectionCamera=cameraController; sceneCamera=camera;
-            document=GetComponent<UIDocument>(); if(isActiveAndEnabled) Bind();
+            simulation = clock;
+            network = state;
+            connection = wiring;
+            overview = input;
+            connectionCamera = cameraController;
+            sceneCamera = camera;
+            document = GetComponent<UIDocument>();
+            if (isActiveAndEnabled) Bind();
         }
-        private void OnEnable()=>Bind();
+        private void OnEnable() => Bind();
         private void Bind()
         {
-            Unbind(); if(document==null) return; root=document.rootVisualElement;
-            retry=root.Q<Button>("retry-session"); retry.text=$"Retry / {initialLineCount} initial Lines"; retry.clicked+=Retry;
+            Unbind();
+            if (document == null) return;
+            root = document.rootVisualElement;
+            retry = root.Q<Button>("retry-session");
+            retry.text = "Retry";
+            retry.clicked += Retry;
         }
         private void Retry()
         {
-            if(retrying || simulation?.Result==null) return;
-            retrying=true; retry?.SetEnabled(false);
+            if (retrying || simulation?.Result == null) return;
+            retrying = true;
+            retry?.SetEnabled(false);
             // The scene owns cancellation; expected destruction is handled inside the task.
             RetryAsync().Forget();
         }
@@ -52,70 +66,98 @@ namespace CityFlow.Presentation.UI
             try
             {
                 await SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex)
-                    .ToUniTask(cancellationToken:this.GetCancellationTokenOnDestroy());
+                    .ToUniTask(cancellationToken: this.GetCancellationTokenOnDestroy());
             }
-            catch(OperationCanceledException) { }
-            catch(Exception error) { retrying=false; if(retry!=null) retry.SetEnabled(true); Debug.LogException(error); }
+            catch (OperationCanceledException) { }
+            catch (Exception error)
+            {
+                retrying = false;
+                if (retry != null) retry.SetEnabled(true);
+                Debug.LogException(error);
+            }
         }
         private void LateUpdate()
         {
-            if(document==null||simulation==null||network==null||overview==null||connectionCamera==null||sceneCamera==null) return;
-            if(root!=document.rootVisualElement) Bind(); if(root==null) return;
-            SessionResult? result=simulation.Result;
-            root.Q("result-overlay").style.display=result!=null ? DisplayStyle.Flex : DisplayStyle.None;
-            if(result!=null)
+            if (document == null || simulation == null || network == null || overview == null || connectionCamera == null || sceneCamera == null) return;
+            if (root != document.rootVisualElement) Bind();
+            if (root == null) return;
+            SessionResult? result = simulation.Result;
+            root.Q("result-overlay").style.display = result != null ? DisplayStyle.Flex : DisplayStyle.None;
+            if (result != null)
             {
-                if(connection?.IsActive==true) connection.Cancel();
-                root.Q<Label>("result-detail").text=$"WAVE {result.Wave}\nSURVIVED {result.SurvivalSeconds:0.0} s\nDELIVERED {result.Delivered}\nCAUSE / SOURCE {result.SourceId}";
+                if (connection?.IsActive == true) connection.Cancel();
+                root.Q<Label>("result-detail").text = $"WAVE {result.Wave}\nSURVIVED {HudClock.Format(result.SurvivalSeconds)}\nDELIVERED {result.Delivered}\nCAUSE / SOURCE {result.SourceId}";
             }
-            bool recent=simulation.Wave>1 && simulation.ElapsedSeconds-simulation.LastWaveSeconds<12 && result==null;
-            Label notice=root.Q<Label>("wave-notice");
-            bool intro=initialLineCount==0 && simulation.Wave==1 && simulation.ElapsedSeconds<15 && result==null;
-            notice.style.display=(recent||intro) && !connectionCamera.IsNode360 ? DisplayStyle.Flex : DisplayStyle.None;
-            notice.text=recent ? $"WAVE {simulation.Wave} / NEW NODES\n"+string.Join(" · ",simulation.LatestAdditions.Select(n=>n.Id)) :
-                "Start with 0 Lines\nClick S1 / Hover a target / Click to connect\nEsc pauses while you plan.";
-            foreach(var marker in markers.Values) marker.style.display=DisplayStyle.None;
-            if(!recent || connectionCamera.IsEditing || connectionCamera.IsNode360) return;
-            float width=root.layout.width,height=root.layout.height; if(width<=0||height<=0) return;
-            float markerTop=Mathf.Max(200,root.Q(className:"session-controls").worldBound.yMax+36);
-            markerTop=Mathf.Max(markerTop,notice.worldBound.yMax+36);
-            var safe=new Rect(Mathf.Min(width*0.32f,480),markerTop,Mathf.Max(180,width-860),Mathf.Max(120,height-markerTop-240));
-            int index=0;
-            foreach(var node in simulation.LatestAdditions)
+            var state = network.Snapshot();
+            root.Q<Label>("context-hint").text = result == null ? Hint(state) : "Retry to build a new network.";
+            bool recent = simulation.Wave > 1 && simulation.ElapsedSeconds - simulation.LastWaveSeconds < 12 && result == null;
+            bool show = recent && !connectionCamera.IsEditing && !connectionCamera.IsNode360;
+            var notice = root.Q<Label>("wave-notice");
+            notice.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            notice.text = $"WAVE {simulation.Wave} / NEW NODES\n" + string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id));
+            foreach (var marker in markers.Values) marker.style.display = DisplayStyle.None;
+            foreach (var leader in leaders.Values) leader.Hide();
+            if (!show || root.layout.width <= 0 || root.layout.height <= 0) return;
+
+            var obstacles = OverlayLayout.Obstacles(root, sceneCamera, state, notice, includeMarkers: false);
+            float bottom = OverlayLayout.Value(root.Q("validation-hud"), "--notice-bottom", 88);
+            Rect noticeBounds = OverlayLayout.Place(notice, root,
+                new Vector2((root.layout.width - notice.resolvedStyle.width) * 0.5f, root.layout.height - bottom - notice.resolvedStyle.height), obstacles);
+            obstacles.Add(noticeBounds);
+            foreach (var node in simulation.LatestAdditions)
             {
-                string id=node.Id;
-                if(!markers.TryGetValue(id,out Button marker))
+                string id = node.Id;
+                if (!markers.TryGetValue(id, out Button marker))
                 {
-                    marker=new Button(()=>
+                    marker = new Button(() =>
                     {
-                        if(connectionCamera.IsNode360) connectionCamera.FocusTarget(id);
-                        else { overview.Select(OverviewTarget.Node(id)); overview.FocusSelection(); }
-                    }) { name="arrival-"+id };
-                    marker.AddToClassList("arrival-marker"); marker.AddToClassList("interactive");
-                    root.Q("arrival-markers").Add(marker); markers.Add(id,marker);
+                        overview.Select(OverviewTarget.Node(id));
+                        overview.FocusSelection();
+                    }) { name = "arrival-" + id };
+                    marker.AddToClassList("arrival-marker");
+                    marker.AddToClassList("interactive");
+                    root.Q("arrival-markers").Add(marker);
+                    markers.Add(id, marker);
+                    leaders.Add(id, new OverlayLeader(root.Q("arrival-markers"), "arrival-leader-" + id));
                 }
-                Vector3 projected=sceneCamera.WorldToViewportPoint(node.Position+Vector3.up*3);
-                Vector2 point=new Vector2(projected.x*width,(1-projected.y)*height);
-                bool outside=projected.z<=0||projected.x<0||projected.x>1||projected.y<0||projected.y>1;
-                bool displaced=outside||!safe.Contains(point);
-                Vector2 direction=point-safe.center; if(projected.z<=0) direction=-direction;
-                string arrow=Mathf.Abs(direction.x)>Mathf.Abs(direction.y) ? direction.x>0 ? ">" : "<" : direction.y>0 ? "v" : "^";
-                if(displaced)
-                {
-                    if(direction.sqrMagnitude<0.001f) direction=Vector2.right;
-                    float scale=Mathf.Min(safe.width*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.x)),safe.height*0.5f/Mathf.Max(0.001f,Mathf.Abs(direction.y)));
-                    point=safe.center+direction*scale;
-                }
-                point.y=Mathf.Clamp(point.y+index*52,safe.yMin,safe.yMax); index++;
-                marker.text=$"NEW {id} / {node.Kind.ToString().ToUpperInvariant()}\n"+(outside ? arrow+" OFFSCREEN / FOCUS" : "CLICK TO FOCUS");
-                marker.style.left=point.x-80; marker.style.top=point.y-24; marker.style.display=DisplayStyle.Flex;
+                Vector3 world = node.Position + Vector3.up * 1.4f;
+                Vector3 screen = sceneCamera.WorldToScreenPoint(world);
+                bool outside = screen.z <= 0 || !sceneCamera.pixelRect.Contains(screen);
+                marker.text = $"NEW {id} / {node.Kind.ToString().ToUpperInvariant()}\n" + (outside ? "OFFSCREEN / CLICK TO FOCUS" : "CLICK TO FOCUS");
+                marker.style.display = DisplayStyle.Flex;
+                Vector2 anchor = OverlayLayout.Anchor(root, sceneCamera, world);
+                Rect placed = OverlayLayout.Place(marker, root, anchor + Vector2.one * 24, obstacles);
+                obstacles.Add(placed);
+                leaders[id].Show(root, anchor, placed);
             }
+        }
+        private string Hint(NetworkSnapshot state)
+        {
+            if (simulation == null || network == null || connectionCamera == null) return "";
+            var source = state.Nodes.Where(n => n.Definition.Kind == NodeKind.Source && n.BufferCapacity.HasValue)
+                .OrderByDescending(n => n.IsInputStopped).ThenByDescending(n => n.OverloadSeconds)
+                .ThenByDescending(n => (double)n.Buffer.Count / n.BufferCapacity.GetValueOrDefault(1)).FirstOrDefault();
+            if (source?.IsInputStopped == true)
+                return $"{source.Definition.Id}: {Math.Max(0, network.Settings.OverloadGrace - source.OverloadSeconds):0.0}s TO GAME OVER · Esc to pause and connect matching Sinks";
+            if (source != null && source.Buffer.Count >= source.BufferCapacity * 0.8)
+                return $"{source.Definition.Id} Buffer nearly full · Esc to pause and add an exit";
+            if (connectionCamera.IsEditing) return "Shift + click: add point · Drag: move · Enter: apply · Backspace: cancel · Esc: pause";
+            if (connectionCamera.IsNode360) return "Hover: preview · Click: connect · E: edit route · Right drag: look · Backspace: cancel";
+            var preparing = state.Nodes.FirstOrDefault(n => simulation.SourceStartRemaining(n.Definition.Id) > 0);
+            if (preparing != null) return $"{preparing.Definition.Id} starts in {Math.Ceiling(simulation.SourceStartRemaining(preparing.Definition.Id)):0}s · Click to connect";
+            if (state.Lines.Count == 0) return "Click S1, then a matching Sink to connect · Esc to pause while planning";
+            return "Hover: inspect · Click Node: connect · Shift + click Line: edit · F: focus hovered item · Esc: pause";
         }
         private void Unbind()
         {
-            if(retry!=null) retry.clicked-=Retry; retry=null;
-            foreach(var marker in markers.Values) marker.RemoveFromHierarchy(); markers.Clear(); root=null;
+            if (retry != null) retry.clicked -= Retry;
+            retry = null;
+            foreach (var marker in markers.Values) marker.RemoveFromHierarchy();
+            foreach (var leader in leaders.Values) leader.Dispose();
+            markers.Clear();
+            leaders.Clear();
+            root = null;
         }
-        private void OnDisable()=>Unbind();
+        private void OnDisable() => Unbind();
     }
 }
