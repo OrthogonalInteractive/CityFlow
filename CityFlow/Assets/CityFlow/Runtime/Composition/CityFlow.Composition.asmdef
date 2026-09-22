@@ -6,7 +6,8 @@
     "CityFlow.Application",
     "CityFlow.Infrastructure",
     "CityFlow.Presentation",
-    "VContainer"
+    "VContainer",
+    "Unity.RenderPipelines.Core.Runtime"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

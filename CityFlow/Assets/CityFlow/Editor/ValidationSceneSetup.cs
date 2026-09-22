@@ -42,6 +42,7 @@ namespace CityFlow.Editor
             var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
             scope.SetConfiguration(settings, stage);
             ValidationHudSetup.Configure(scope);
+            ObstacleAppearanceSetup.Configure(scope);
             EditorUtility.SetDirty(scope);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();

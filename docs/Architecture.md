@@ -133,6 +133,10 @@ Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対�
 
 ## 現行のUIと表示
 
+テスト用建物はStageDefinitionのBoundsから1棟1個のCubeを生成する。暗いガラス調の面、アンバーの発光枠、細い外壁格子は`AmberObstacle.shader`で面上に描き、装飾用の屋根やColliderを追加しない。レンダラーとBoxColliderの範囲を経路判定のBoundsに一致させる。
+
+色・枠幅・パネル寸法は`Art/Materials/AmberObstacle.mat`、Bloomは`Settings/Rendering/ObstacleGlow.asset`で調整する（ともに`Assets/CityFlow`配下）。シーンのCityFlowLifetimeScopeから渡し、ランタイムでShader.Findしない。Node 360では既存のマテリアル複製でアルファ0.18・Depth Write無効にし、Overviewへ戻ると共有マテリアルへ復帰する。
+
 UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は状態反映・入力・座標変換を担当する。ホバー詳細はHoverDetails.uxmlで見出し・主要数値・Buffer・接続・警告に分ける。接続情報はSourceがOUT・送り先、RelayがIN／OUT、SinkがIN・送り元のみ。SourceにINPUT OPEN／STOPPEDは表示しない。表示用要素はPickingMode.Ignore。UIDocument再生成時は参照・イベント・描画を結び直す。
 
 基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はラベルの残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。

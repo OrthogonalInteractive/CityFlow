@@ -8,6 +8,7 @@ using CityFlow.Application.Connections;
 using CityFlow.Infrastructure.Routing;
 using CityFlow.Infrastructure.Configuration;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using VContainer;
 using VContainer.Unity;
@@ -17,12 +18,19 @@ namespace CityFlow.Composition
     [DisallowMultipleComponent]
     public sealed class CityFlowLifetimeScope : LifetimeScope
     {
+        [SerializeField] private Material? obstacleSurface;
+        [SerializeField] private VolumeProfile? obstacleGlow;
         [SerializeField] private GameplaySettings? gameplaySettings;
         [SerializeField] private StageConfiguration? stageConfiguration;
 
         [SerializeField] private VisualTreeAsset? hudLayout;
         [SerializeField] private PanelSettings? hudPanelSettings;
 
+        public void SetObstacleAppearance(Material surface, VolumeProfile glow)
+        {
+            obstacleSurface = surface;
+            obstacleGlow = glow;
+        }
         public void SetHudConfiguration(VisualTreeAsset layout, PanelSettings panelSettings)
         { hudLayout = layout; hudPanelSettings = panelSettings; }
 
@@ -36,6 +44,10 @@ namespace CityFlow.Composition
                 throw new InvalidOperationException("Bootstrap requires gameplay and stage configuration assets.");
             if (hudLayout == null || hudPanelSettings == null)
                 throw new InvalidOperationException("Bootstrap requires UI Toolkit layout and panel settings assets.");
+            if (obstacleSurface == null || obstacleGlow == null)
+                throw new InvalidOperationException("The city requires an obstacle surface material and glow profile.");
+            builder.RegisterInstance(obstacleSurface);
+            builder.RegisterInstance(obstacleGlow);
             builder.RegisterInstance(hudLayout);
             builder.RegisterInstance(hudPanelSettings);
             gameplaySettings.Validate();

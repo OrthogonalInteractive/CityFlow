@@ -17,6 +17,28 @@ namespace CityFlow.Tests.PlayMode
     public sealed class ValidationCityTests
     {
         [UnityTest]
+        public IEnumerator ObstacleSurfacesAndCollidersMatchTheAuthoredRoutingVolumes()
+        {
+            yield return SceneManager.LoadSceneAsync("WiringLab", LoadSceneMode.Single);
+            yield return null;
+            var stage = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<StageDefinition>();
+            var colliders = Object.FindObjectsByType<BoxCollider>()
+                .Where(c => c.name == "Building" || c.name == "Roof").ToArray();
+            // Runtime primitives are positioned after creation; sync before querying physics bounds.
+            Physics.SyncTransforms();
+            Assert.That(colliders.Length, Is.EqualTo(stage.Buildings.Count), "Facade decoration must not add obstacle volumes.");
+            foreach (var bounds in stage.Buildings)
+            {
+                var collider = colliders.Single(c => Vector3.Distance(c.bounds.center, bounds.center) < 0.001f);
+                Assert.That(Vector3.Distance(collider.bounds.size, bounds.size), Is.LessThan(0.001f));
+                var renderer = collider.GetComponent<Renderer>();
+                Assert.That(Vector3.Distance(renderer.bounds.center, bounds.center), Is.LessThan(0.001f));
+                Assert.That(Vector3.Distance(renderer.bounds.size, bounds.size), Is.LessThan(0.001f));
+                Assert.That(renderer.sharedMaterial.shader.isSupported, Is.True);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator BootstrapLoadsGroundNodesAndBothSinkColors()
         {
             yield return SceneManager.LoadSceneAsync("Bootstrap", LoadSceneMode.Single);

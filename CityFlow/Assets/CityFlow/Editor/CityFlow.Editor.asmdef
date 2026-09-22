@@ -7,7 +7,8 @@
     "Unity.RenderPipelines.Universal.Runtime",
     "VContainer",
     "CityFlow.Domain",
-    "CityFlow.Infrastructure"
+    "CityFlow.Infrastructure",
+    "Unity.RenderPipelines.Core.Runtime"
   ],
   "includePlatforms": [
     "Editor"

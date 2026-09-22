@@ -11,6 +11,7 @@ using CityFlow.Presentation.Rendering;
 using CityFlow.Presentation.UI;
 using CityFlow.Presentation.Overview;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using VContainer.Unity;
 
@@ -26,9 +27,14 @@ namespace CityFlow.Composition
         private readonly FlowSimulation simulation;
         private readonly VisualTreeAsset hudLayout;
         private readonly PanelSettings panelSettings;
+        private readonly Material obstacleSurface;
+        private readonly VolumeProfile obstacleGlow;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
-            VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection)
+            VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection,
+            Material obstacleSurface, VolumeProfile obstacleGlow)
         {
+            this.obstacleSurface = obstacleSurface;
+            this.obstacleGlow = obstacleGlow;
             this.connection = connection; this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
             this.hudLayout = hudLayout; this.panelSettings = panelSettings;
         }
@@ -36,7 +42,7 @@ namespace CityFlow.Composition
         {
             city = new GameObject("Validation City");
             var view = city.AddComponent<ValidationCityView>();
-            view.Initialize(stage, network);
+            view.Initialize(stage, network, obstacleSurface, obstacleGlow);
             city.AddComponent<SimulationDriver>().Initialize(simulation);
             var hud = new GameObject("Validation HUD");
             hud.SetActive(false);

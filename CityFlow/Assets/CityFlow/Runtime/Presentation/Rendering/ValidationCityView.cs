@@ -7,6 +7,7 @@ using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
 using CityFlow.Presentation.Overview;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace CityFlow.Presentation.Rendering
 {
@@ -32,7 +33,7 @@ namespace CityFlow.Presentation.Rendering
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => nodeViews.Count;
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Material obstacleSurface, VolumeProfile obstacleGlow)
         {
             stage = definition;
             network = flowNetwork;
@@ -47,8 +48,12 @@ namespace CityFlow.Presentation.Rendering
             sceneCamera.clearFlags = CameraClearFlags.SolidColor;
             sceneCamera.backgroundColor = new Color(0.035f, 0.052f, 0.082f);
             Material ground = Material(new Color(0.075f, 0.11f, 0.15f));
-            Material building = Material(new Color(0.24f, 0.32f, 0.40f));
-            Material roof = Material(new Color(0.36f, 0.48f, 0.56f));
+            var glowObject = new GameObject("Obstacle glow");
+            glowObject.transform.SetParent(transform, false);
+            var volume = glowObject.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 10;
+            volume.sharedProfile = obstacleGlow;
             Material grid = Material(new Color(0.11f, 0.17f, 0.22f));
             Rect area = definition.WalkableArea;
             Cube("Ground", new Vector3(area.center.x, definition.GroundHeight - 0.4f, area.center.y),
@@ -59,8 +64,7 @@ namespace CityFlow.Presentation.Rendering
                 Cube("10 m grid", new Vector3(area.center.x, definition.GroundHeight + 0.01f, z), new Vector3(area.width, 0.02f, 0.06f), grid);
             foreach (Bounds b in definition.Buildings)
             {
-                buildings.Add(Cube("Building", b.center, b.size, building).GetComponent<Renderer>());
-                buildings.Add(Cube("Roof", new Vector3(b.center.x, b.max.y + 0.08f, b.center.z), new Vector3(b.size.x + 0.15f, 0.16f, b.size.z + 0.15f), roof).GetComponent<Renderer>());
+                buildings.Add(Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>());
             }
             foreach(Renderer renderer in buildings) opaqueBuildings.Add(renderer,renderer.sharedMaterial);
             CreateLines(flowNetwork.Snapshot());

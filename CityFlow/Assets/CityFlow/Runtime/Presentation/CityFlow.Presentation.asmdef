@@ -9,7 +9,8 @@
     "Unity.InputSystem",
     "Unity.Cinemachine",
     "Unity.RenderPipelines.Universal.Runtime",
-    "Unity.VisualEffectGraph.Runtime"
+    "Unity.VisualEffectGraph.Runtime",
+    "Unity.RenderPipelines.Core.Runtime"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
