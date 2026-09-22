@@ -137,9 +137,9 @@ namespace CityFlow.Presentation.UI
             string pauseAction = simulation.IsPaused ? "Esc: resume" : "Esc: pause";
             string recovery = simulation.IsPaused ? "Paused · Connect matching Sinks · Esc to resume" : "Esc to pause and connect matching Sinks";
             var source = state.Nodes.Where(n => n.Definition.Kind == NodeKind.Source && n.BufferCapacity.HasValue)
-                .OrderByDescending(n => n.IsInputStopped).ThenByDescending(n => n.OverloadSeconds)
+                .OrderByDescending(n => n.IsBufferFull).ThenByDescending(n => n.OverloadSeconds)
                 .ThenByDescending(n => (double)n.Buffer.Count / n.BufferCapacity.GetValueOrDefault(1)).FirstOrDefault();
-            if (source?.IsInputStopped == true)
+            if (source?.IsBufferFull == true)
                 return $"{source.Definition.Id}: {Math.Max(0, network.Settings.OverloadGrace - source.OverloadSeconds):0.0}s TO GAME OVER · {recovery}";
             if (source != null && source.Buffer.Count >= source.BufferCapacity * 0.8)
                 return $"{source.Definition.Id} Buffer nearly full · {recovery}";

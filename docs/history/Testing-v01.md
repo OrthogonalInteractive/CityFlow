@@ -218,3 +218,7 @@
 - Green: 定義・配置を3型へ分割し、全EditMode 141/141成功。配置のシリアライズ往復、初期配置とWave、生成設定の境界を含む。
 - Inspectorの追加3テストは、実Editorパネルに取り付けて種類変更・適用される項目・共通設定保持・Undo・未選択要素を検証し、3/3成功。
 - シーン統合は全PlayMode 47/47成功。コンパイルError/Warning 0、Console Error/Warning 0。
+- 表示側のRed: SourceホバーのIN／INPUT表示、Sink送り元の欠落、Source満杯の入力停止扱いを3テストで再現。さらに、Source指定で直前の別候補が確定するケースをPlayModeで再現。
+- SourceのBuffer満杯とRelayの入力停止を分け、Source OUT・Sink IN・Relay IN／OUTだけを表示。無効な接続先の指定ではAttentionとPreviewを維持し、以前の候補を誤確定しない。
+- 表示変更後の全EditMode 146/146成功。既存ゲージテストはSource OverloadとRelay入力停止を区別する仕様へ更新。
+- 最終PlayMode 48/48成功。ホバーの仮想マウスを実デバイスから分離し、終了時に復元。実画面3枚を [Node方向の対応報告](../Node-Directions-2026-09-22.md) に保存。

@@ -36,7 +36,8 @@ namespace CityFlow.Tests.EditMode
         {
             // Specification 5.2 proposal: equality starts overload and five continuous seconds cause defeat.
             var n = Create(); Fill(n); n.EvaluateOverload(4.95);
-            Assert.That(Node(n, "S").IsInputStopped, Is.True);
+            Assert.That(Node(n, "S").IsInputStopped, Is.False, "A Source has no input to stop.");
+            Assert.That(Node(n, "S").IsBufferFull, Is.True);
             Assert.That(Node(n, "S").OverloadSeconds, Is.EqualTo(4.95).Within(1e-8));
             Assert.That(n.IsGameOver, Is.False);
             n.EvaluateOverload(0.05);
@@ -46,7 +47,7 @@ namespace CityFlow.Tests.EditMode
         {
             var n = Create(); Fill(n); n.EvaluateOverload(4);
             Connect(n, "S", "T"); n.RouteWaitingFlows(new First()); n.EvaluateOverload(0.05);
-            Assert.That(Node(n, "S").IsInputStopped, Is.False);
+            Assert.That(Node(n, "S").IsBufferFull, Is.False);
             Assert.That(Node(n, "S").OverloadSeconds, Is.Zero);
             Fill(n); n.EvaluateOverload(1);
             Assert.That(n.IsGameOver, Is.False);

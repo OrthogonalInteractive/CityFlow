@@ -16,7 +16,21 @@ namespace CityFlow.Tests.EditMode
         {
             var n = Network(); n.GenerateFlow("S", FlowColor.Red);
             string text = OverviewReadout.Describe(OverviewTarget.Node("S"), n.Snapshot(), n.Settings);
-            Assert.That(text, Does.Contain("BUFFER 1/4 (25%)").And.Contain("Red: 1").And.Contain("OUT 1/2").And.Contain("INPUT OPEN"));
+            Assert.That(text, Does.Contain("BUFFER 1/4 (25%)").And.Contain("Red: 1").And.Contain("OUT 1/2"));
+        }
+        [Test] public void SourceReadoutContainsOnlyOutputAndGenerationInformation()
+        {
+            var n = Network();
+            string text = OverviewReadout.Describe(OverviewTarget.Node("S"), n.Snapshot(), n.Settings);
+            Assert.That(text, Does.Contain("OUT 1/2").And.Contain("CONNECTED TO: T").And.Contain("GENERATE"));
+            Assert.That(text, Does.Not.Contain("IN ").And.Not.Contain("INPUT").And.Not.Contain("INCOMING"));
+        }
+        [Test] public void SinkReadoutContainsOnlyInputAndConsumptionInformation()
+        {
+            var n = Network();
+            string text = OverviewReadout.Describe(OverviewTarget.Node("T"), n.Snapshot(), n.Settings);
+            Assert.That(text, Does.Contain("IN 1/2").And.Contain("CONNECTED FROM: S"));
+            Assert.That(text, Does.Not.Contain("OUT ").And.Not.Contain("BUFFER").And.Not.Contain("GENERATE"));
         }
         [Test] public void LineReadoutUsesActualRouteForTimeThroughputAndCapacity()
         {

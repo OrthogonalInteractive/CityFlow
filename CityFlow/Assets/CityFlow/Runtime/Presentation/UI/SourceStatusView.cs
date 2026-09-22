@@ -107,7 +107,7 @@ namespace CityFlow.Presentation.UI
                     if (i < visible) dot.sharedMaterial = FlowMaterial(node.Buffer[i].Color);
                 }
                 double age = simulation.ElapsedSeconds - view.LastGeneration;
-                if (node.IsInputStopped)
+                if (node.IsBufferFull)
                 {
                     overloaded = true;
                     double progress = Math.Min(1, node.OverloadSeconds / network.Settings.OverloadGrace);

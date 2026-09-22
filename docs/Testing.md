@@ -58,6 +58,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-22のNode方向の型分割・設定移行・表示変更は、全EditMode **146/146**、全PlayMode **48/48**成功。最終コンパイルError/Warning **0**。配置の種類変更・Undo・初期配置／Waveの移行と、SourceのOUT専用・SinkのIN専用表示を確認した。[画面付きの対応報告](Node-Directions-2026-09-22.md) を参照。
+
 2026-09-22のUX改善は #14〜#17。全体検証はEditMode **130/130**、PlayMode **47/47**成功（Snapshot最適化まで）。その後のPauseヒント仕上げ・ホバー対象へのFフォーカス確認は、関連PlayMode **15/15**成功。最終コンパイルError/Warning **0**、撮影後Console Error/Warning **0**。
 
 - Source 80%・猶予円弧・秒数・Pause・回復、混雑と予約の線種の併用、Sink始点禁止、空Line Undoを検証。

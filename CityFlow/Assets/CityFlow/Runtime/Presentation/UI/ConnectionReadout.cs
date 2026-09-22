@@ -12,6 +12,8 @@ namespace CityFlow.Presentation.UI
         {
             ConnectionFailure.None => "Slots available / route unchecked",
             ConnectionFailure.DuplicateDirection => "This direction already exists",
+            ConnectionFailure.InputNotSupported => "This Node has no IN connections",
+            ConnectionFailure.OutputNotSupported => "This Node has no OUT connections",
             ConnectionFailure.OutgoingLimit => "FROM OUT slots are full",
             ConnectionFailure.IncomingLimit => "TO IN slots are full",
             ConnectionFailure.SelfConnection => "Choose two different Nodes",
@@ -29,7 +31,7 @@ namespace CityFlow.Presentation.UI
             return $"{definition.Id} / {definition.Kind.ToString().ToUpperInvariant()}{color}\n" +
                 $"GROUND DISTANCE {candidate.Distance:0.0} m / {candidate.Band.ToString().ToUpperInvariant()}\n" +
                 $"FROM OUT {candidate.SourceOutgoingUsed}/{candidate.SourceOutgoingLimit}  →  TO IN {node.IncomingUsed}/{definition.MaxIncoming}\n" +
-                $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n{status}";
+                (definition.Kind == NodeKind.Relay ? $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n" : "") + status;
         }
     }
 }

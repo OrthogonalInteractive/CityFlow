@@ -24,7 +24,7 @@ namespace CityFlow.Tests.PlayMode
             Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
         }
 
-        private static void AssertGauge(VisualElement root, string id, int capacity, params FlowColor[] colors)
+        private static void AssertGauge(VisualElement root, string id, int capacity, NodeKind kind, params FlowColor[] colors)
         {
             var label = root.Q<Label>($"node-label-{id}");
             Assert.That(label.text, Does.Contain($"{colors.Length}/{capacity}"));
@@ -42,7 +42,9 @@ namespace CityFlow.Tests.PlayMode
                         "Full Buffer warning must preserve each FLOW's color.");
                 else Assert.That(slots[i].ClassListContains("empty"), Is.True);
             }
-            Assert.That(label.ClassListContains("input-stopped"), Is.EqualTo(colors.Length >= capacity));
+            Assert.That(label.ClassListContains(kind == NodeKind.Source ? "source-overload" : "input-stopped"),
+                Is.EqualTo(colors.Length >= capacity));
+            if (kind == NodeKind.Source) Assert.That(label.ClassListContains("input-stopped"), Is.False);
         }
 
         [UnityTest] public IEnumerator SourceGaugeShowsOrderedFlowColorsEmptyCapacityAndOverflowAfterRebinding()
@@ -54,14 +56,14 @@ namespace CityFlow.Tests.PlayMode
             var colors = new[] { FlowColor.Red, FlowColor.Blue, FlowColor.Red };
             foreach (var color in colors) network.GenerateFlow("S1", color);
             yield return null; yield return null;
-            AssertGauge(document.rootVisualElement, "S1", 10, colors);
+            AssertGauge(document.rootVisualElement, "S1", 10, NodeKind.Source, colors);
             Assert.That(document.rootVisualElement.Q("node-tooltip").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
 
             for (int i = 0; i < 7; i++) network.GenerateFlow("S1", FlowColor.Blue);
             network.GenerateFlow("S1", FlowColor.Red);
             document.gameObject.SetActive(false); document.gameObject.SetActive(true);
             yield return null; yield return null;
-            AssertGauge(document.rootVisualElement, "S1", 10,
+            AssertGauge(document.rootVisualElement, "S1", 10, NodeKind.Source,
                 colors.Concat(Enumerable.Repeat(FlowColor.Blue, 7)).Append(FlowColor.Red).ToArray());
             Assert.That(document.rootVisualElement.Q("node-label-S1").Query(className: "node-gauge").ToList().Count, Is.EqualTo(1));
             Assert.That(document.rootVisualElement.Q("node-label-RED").Q(className: "node-gauge"), Is.Null);
@@ -83,12 +85,12 @@ namespace CityFlow.Tests.PlayMode
             }
             yield return null; yield return null;
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            AssertGauge(root, "R1", 5, colors);
+            AssertGauge(root, "R1", 5, NodeKind.Relay, colors);
 
             Assert.That(network.TryConnect("R1", "RED", new[] { relay, source, red }).Succeeded, Is.True);
             scope.Container.Resolve<FlowSimulation>().Tick(FlowSimulation.StepSeconds);
             yield return null; yield return null;
-            AssertGauge(root, "R1", 5, FlowColor.Blue, FlowColor.Blue, FlowColor.Blue);
+            AssertGauge(root, "R1", 5, NodeKind.Relay, FlowColor.Blue, FlowColor.Blue, FlowColor.Blue);
             var outgoing = network.Snapshot().Lines.Single(l => l.SourceId == "R1");
             Assert.That(outgoing.InFlight.Select(f => f.Flow.Color), Is.EqualTo(new[] { FlowColor.Red, FlowColor.Red }));
         }

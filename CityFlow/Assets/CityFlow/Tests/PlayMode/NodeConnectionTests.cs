@@ -188,6 +188,24 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Label>("route-feedback").text,Does.Contain("FROM OUT slots are full"));
             Assert.That(root.Q<Button>("connect-confirm").enabledSelf,Is.False);
         }
+        [UnityTest] public IEnumerator SourceCannotBeFocusedOrConfirmAPreviousTarget()
+        {
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            overview.Select(OverviewTarget.Node("R1"));
+            var controller = Controller();
+            controller.BeginSelected();
+            controller.FocusTarget("BLUE");
+            yield return null;
+            int before = network.Snapshot().Lines.Count;
+            controller.ConfirmTarget("S1");
+            Assert.That(network.Snapshot().Lines.Count, Is.EqualTo(before));
+            Assert.That(controller.AttentionId, Is.EqualTo("BLUE"));
+            Assert.That(controller.IsNode360, Is.True);
+            var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            Assert.That(root.Q<Button>("candidate-S1"), Is.Null);
+        }
         [UnityTest] public IEnumerator SinkClickStaysInOverviewAndExplainsWhyItCannotStartALine()
         {
             var overview = Object.FindAnyObjectByType<OverviewController>();

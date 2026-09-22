@@ -78,11 +78,12 @@ namespace CityFlow.Application.Connections
                 return new ConnectionCandidate(node,distance,band,source,network.CheckConnection(SourceId,node.Definition.Id));
             }).Where(candidate => Filter == DistanceBand.All || candidate.Band == Filter).ToArray();
         }
-        public void SelectTarget(string destinationId)
+        public bool SelectTarget(string destinationId)
         {
             if (preview.EditingLineId.HasValue || SourceId == null || destinationId == SourceId ||
-                !network.NodeDefinitions.Any(n => n.Id == destinationId && n.Kind != NodeKind.Source)) return;
+                !network.NodeDefinitions.Any(n => n.Id == destinationId && n.Kind != NodeKind.Source)) return false;
             preview.Generate(SourceId,destinationId);
+            return true;
         }
         public ConnectionFailure Confirm()
         {

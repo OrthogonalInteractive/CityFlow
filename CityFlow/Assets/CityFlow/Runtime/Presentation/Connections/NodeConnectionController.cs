@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using CityFlow.Application.Connections;
 using CityFlow.Domain.Spatial;
+using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Overview;
 using CityFlow.Presentation.Rendering;
 using R3;
@@ -132,7 +133,8 @@ namespace CityFlow.Presentation.Connections
             var node = session.Nodes.FirstOrDefault(n => n.Id == overview.Selected.NodeId);
             if (node != null && node.MaxOutgoing == 0)
             {
-                notice = $"{node.Id} cannot start a Line. Connect into this Sink.";
+                notice = node.Kind == NodeKind.Sink ? $"{node.Id} cannot start a Line. Connect into this Sink." :
+                    $"{node.Id} has no OUT slots.";
                 noticeUntil = Time.unscaledTime + 4;
                 return;
             }
@@ -192,12 +194,13 @@ namespace CityFlow.Presentation.Connections
         public void SetAttention(string id)
         {
             if (!IsNode360 || IsEditing || session == null || (AttentionId == id && session.TargetId == id)) return;
-            AttentionId=id; session.SelectTarget(id);
+            if (session.SelectTarget(id)) AttentionId = id;
         }
         public void ConfirmTarget(string id)
         {
             if (!IsNode360 || IsEditing || session == null) return;
-            SetAttention(id); session.Confirm();
+            SetAttention(id);
+            if (AttentionId == id && session.TargetId == id) session.Confirm();
         }
         private string? PickTarget(Vector2 point)
         {
@@ -219,7 +222,7 @@ namespace CityFlow.Presentation.Connections
             NodeDefinition? node = session.Nodes.FirstOrDefault(n => n.Id == id);
             if (node == null) return;
             SetAttention(id);
-            if (id != session?.SourceId) Face(node.Position + Vector3.up * 1.4f);
+            if (session.TargetId == id) Face(node.Position + Vector3.up * 1.4f);
         }
         private void Face(Vector3 point)
         {

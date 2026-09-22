@@ -9,7 +9,8 @@ namespace CityFlow.Domain.FlowNetwork
 {
     public sealed class NodeSnapshot
     {
-        public bool IsInputStopped { get; }
+        public bool IsBufferFull => BufferCapacity.HasValue && Buffer.Count >= BufferCapacity.Value;
+        public bool IsInputStopped => Definition.Kind == NodeKind.Relay && IsBufferFull;
         public int? BufferCapacity { get; }
         public double OverloadSeconds { get; }
         public long GeneratedCount { get; }
@@ -21,7 +22,7 @@ namespace CityFlow.Domain.FlowNetwork
         internal NodeSnapshot(NodeDefinition definition, int incoming, int outgoing, IEnumerable<Flow> buffer, int? bufferCapacity, double overloadSeconds,
             long generatedCount, FlowColor? lastGeneratedColor)
         { Definition = definition; IncomingUsed = incoming; OutgoingUsed = outgoing; Buffer = Array.AsReadOnly(buffer.ToArray());
-          BufferCapacity = bufferCapacity; IsInputStopped = bufferCapacity.HasValue && Buffer.Count >= bufferCapacity.Value; OverloadSeconds = overloadSeconds;
+          BufferCapacity = bufferCapacity; OverloadSeconds = overloadSeconds;
           GeneratedCount = generatedCount; LastGeneratedColor = lastGeneratedColor; }
     }
 }

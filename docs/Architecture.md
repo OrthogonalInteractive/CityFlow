@@ -111,6 +111,8 @@ tick後だけの通知に限定せず、Pause中の同期コマンドの次の�
 
 既存のWiringStage／ValidationStageはuloop経由で旧設定を退避し、型付き配置へ移行済み。位置・有効な接続上限・Source生成値・Wave時刻／倍率・初期Line・GUIDを維持し、無効だったSource INなどの項目を除去した。旧形式アセットの自動移行はランタイムに持ち込まない。
 
+Snapshotの`IsBufferFull`はSource／Relayの容量到達を表し、`IsInputStopped`はRelayの満杯による受け取り停止だけを表す。Sourceの敗北警告は`IsBufferFull`とOverload猶予を使う。
+
 接続はSource→Relay／Sink、Relay→Relay／Sinkのみ。Sourceへの入力とSinkからの出力は、枠の満杯とは別の失敗理由で拒否する。Relay同士の逆方向Lineは引き続き独立して作成できる。
 
 ## 現行の輸送とLine操作
@@ -131,7 +133,7 @@ Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対�
 
 ## 現行のUIと表示
 
-UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は状態反映・入力・座標変換を担当する。ホバー詳細はHoverDetails.uxmlで見出し・主要数値・Buffer・接続・警告に分ける。表示用要素はPickingMode.Ignore。UIDocument再生成時は参照・イベント・描画を結び直す。
+UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は状態反映・入力・座標変換を担当する。ホバー詳細はHoverDetails.uxmlで見出し・主要数値・Buffer・接続・警告に分ける。接続情報はSourceがOUT・送り先、RelayがIN／OUT、SinkがIN・送り元のみ。SourceにINPUT OPEN／STOPPEDは表示しない。表示用要素はPickingMode.Ignore。UIDocument再生成時は参照・イベント・描画を結び直す。
 
 基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はラベルの残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。
 

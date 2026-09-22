@@ -46,7 +46,10 @@ namespace CityFlow.Tests.PlayMode
                 overview.Hover(screen); yield return null; yield return null;
                 Assert.That(tooltip.resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
                 string detail=HudAssertions.TooltipText(root);
-                Assert.That(detail,Does.Contain(id).And.Contain("IN "));
+                Assert.That(detail, Does.Contain(id));
+                Assert.That(detail, Does.Contain(id == "S1" ? "OUT " : "IN "));
+                if (id == "S1") Assert.That(detail, Does.Not.Contain("IN ").And.Not.Contain("INPUT").And.Not.Contain("INCOMING"));
+                if (id == "RED") Assert.That(detail, Does.Not.Contain("OUT "));
                 Assert.That(tooltip.worldBound.xMin,Is.GreaterThanOrEqualTo(0));
                 Assert.That(tooltip.worldBound.xMax,Is.LessThanOrEqualTo(root.worldBound.xMax));
                 Assert.That(tooltip.worldBound.yMax,Is.LessThanOrEqualTo(root.worldBound.yMax));
@@ -126,6 +129,9 @@ namespace CityFlow.Tests.PlayMode
             InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
             var mouse=InputSystem.AddDevice<Mouse>();
+            // Keep native cursor events from replacing the synthetic Mouse.current during UI checks.
+            var otherMice = InputSystem.devices.OfType<Mouse>().Where(device => device != mouse && device.enabled).ToArray();
+            foreach (var device in otherMice) InputSystem.DisableDevice(device);
             try
             {
                 foreach(var pair in new[]{("connect-selection","S1"),("candidate-option-R1","R1")})
@@ -133,7 +139,7 @@ namespace CityFlow.Tests.PlayMode
                     Vector2 panel=root.Q(pair.Item1).worldBound.center;
                     Vector2 screen=new Vector2(panel.x/root.layout.width*Screen.width,(1-panel.y/root.layout.height)*Screen.height);
                     InputSystem.QueueStateEvent(mouse,new MouseState { position=screen }); yield return null; yield return null;
-                    Assert.That(root.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex));
+                    Assert.That(root.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex), pair.Item1);
                     Assert.That(HudAssertions.TooltipText(root),Does.Contain(pair.Item2).And.Contain("BUFFER"));
                     Assert.That(root.Q("node-tooltip").worldBound.xMin,Is.GreaterThanOrEqualTo(root.layout.width*0.72f));
                 }
@@ -142,6 +148,7 @@ namespace CityFlow.Tests.PlayMode
             }
             finally
             {
+                foreach (var device in otherMice) if (device.added) InputSystem.EnableDevice(device);
                 InputSystem.RemoveDevice(mouse); InputSystem.settings.editorInputBehaviorInPlayMode=old;
                 InputSystem.settings.backgroundBehavior=background;
             }

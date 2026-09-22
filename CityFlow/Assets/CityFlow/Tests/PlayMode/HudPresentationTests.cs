@@ -60,7 +60,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Label>("hover-title"), Is.Not.Null);
             Assert.That(root.Q<Label>("hover-title").text, Does.Contain("S1"));
             Assert.That(root.Q<Label>("hover-primary").text, Does.Contain("BUFFER 2/10"));
-            Assert.That(root.Q<Label>("hover-metrics").text, Does.Contain("IN ").And.Contain("OUT "));
+            Assert.That(root.Q<Label>("hover-metrics").text, Does.Contain("OUT ").And.Not.Contain("IN "));
             Assert.That(root.Q("hover-leader").resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
             Assert.That(root.Q("hover-buffer").Children().OfType<Label>().Take(2).Select(l => l.text), Is.EqualTo(new[] { "R", "B" }));
             Assert.That(root.Q("node-gauge-S1").Children().OfType<Label>().Take(2).Select(l => l.text), Is.EqualTo(new[] { "R", "B" }));

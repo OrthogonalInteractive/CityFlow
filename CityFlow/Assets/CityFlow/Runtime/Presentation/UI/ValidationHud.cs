@@ -124,7 +124,7 @@ namespace CityFlow.Presentation.UI
                     marker.text += $"  {node.Buffer.Count}/{capacity}";
                     BufferGauge.Refresh(marker.Q<VisualElement>($"node-gauge-{node.Definition.Id}"), node);
                     bool source = node.Definition.Kind == NodeKind.Source;
-                    bool overload = source && node.IsInputStopped;
+                    bool overload = source && node.IsBufferFull;
                     marker.EnableInClassList("source-warning", source && node.Buffer.Count >= capacity * 0.8);
                     marker.EnableInClassList("source-overload", overload);
                     marker.EnableInClassList("source-flash", overload && (int)(simulation.ElapsedSeconds * 2) % 2 == 0);

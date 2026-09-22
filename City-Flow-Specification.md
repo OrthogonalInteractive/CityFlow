@@ -380,7 +380,7 @@ Node 360は接続先探索と経路Previewに用い、手動調整を選ぶとOv
 | 直線距離 | 始点から候補NodeまでのGround面上の直線距離 | 候補探索時 |
 | Line Length | 障害物を避けた実際のGround経路長 | 経路生成後・編集中 |
 
-候補Nodeには種類、Sink Color、距離、IN／OUTの使用数と上限を表示する。接続可否に直接関係する始点OUTと候補INを強調する。
+候補Nodeには種類、Sink Color、距離、種別に存在するIN／OUTの使用数と上限を表示する。接続可否に直接関係する始点OUTと候補INを強調する。
 
 **補完案：候補の見つけやすさ**
 
@@ -450,7 +450,7 @@ RelayおよびRelay行きLineは無彩色とし、Sinkの目的色と区別す�
 
 左上の基本HUDは累積処理成功数（DELIVERED、ゼロ埋めなし）、経過時間（TIME、分:秒）、1行の「WAVE n · NEXT xs」とする。Wave更新の短い通知は画面下部を優先し、出現マーカーとともにNodeラベル・操作欄を避ける。出現マーカーをずらす場合はリーダー線でNodeとの対応を示す。Pause操作は独立させる。多数のLineがある場面では、ホバー中・選択中のNodeの入出力とLineを強調する。
 
-**v0.1 HUD簡略化の採用：** NETWORK INSPECTOR、中央上部Sourceモニター、NODE CONNECTIONS、DIRECTED LINES常設表、独立したGROUND ROUTE PREVIEWパネルを廃止する。Source／Relay／SinkとLineの情報はホバー中だけ対象付近に表示し、選択後も常設しない。Buffer・色別内訳・接続数・接続先、Sourceの生成間隔・生成累計・直近色・準備時間・空き数・Game Over猶予をホバー詳細へ集約する。パネルはUXMLテンプレートで見出し・主要数値・Bufferゲージ・IN/OUT・警告・接続へ分ける。対象Nodeと画面外を避け、リーダー線で対象を示し、ワールド入力を遮らない。Node 360の候補や始点表示からもホバーで情報を確認できる。配線中の実経路Preview・無効理由・手動編集機能は維持し、経路の数値と理由は配線操作欄へ表示する。
+**v0.1 HUD簡略化の採用：** NETWORK INSPECTOR、中央上部Sourceモニター、NODE CONNECTIONS、DIRECTED LINES常設表、独立したGROUND ROUTE PREVIEWパネルを廃止する。Source／Relay／SinkとLineの情報はホバー中だけ対象付近に表示し、選択後も常設しない。Buffer・色別内訳・接続数・接続先、Sourceの生成間隔・生成累計・直近色・準備時間・空き数・Game Over猶予をホバー詳細へ集約する。パネルはUXMLテンプレートで見出し・主要数値・Bufferゲージ・種別に存在するIN/OUT・警告・接続へ分ける。SourceはOUTと送り先、SinkはINと送り元、RelayはIN／OUTを表示する。Sourceの満杯は生成Bufferの警告として表し、入力停止とは表示しない。対象Nodeと画面外を避け、リーダー線で対象を示し、ワールド入力を遮らない。Node 360の候補や始点表示からもホバーで情報を確認できる。配線中の実経路Preview・無効理由・手動編集機能は維持し、経路の数値と理由は配線操作欄へ表示する。
 
 SourceはBuffer 80%でラベル枠を予告色にし、満杯時は残り猶予秒数をラベルへ常時表示する。生成リングを残り時間に応じて縮む円弧へ切り替え、ラベル枠の控えめな点滅と画面端の薄い警告を併用する。警告の時間源はゲーム時間とし、Pauseで秒数・円弧・点滅を止め、回復・Retryで解除する。
 

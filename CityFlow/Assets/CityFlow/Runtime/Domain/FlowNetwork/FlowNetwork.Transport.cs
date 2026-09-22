@@ -54,7 +54,8 @@ namespace CityFlow.Domain.FlowNetwork
                     bool atEnd = flight.Distance >= line.Route.Length;
                     bool matchingSink = line.Destination.Definition.SinkColor == flight.Flow.Color;
                     int? capacity = Settings.BufferCapacity(line.Destination.Definition.Kind);
-                    bool canReceive = matchingSink || (capacity.HasValue && line.Destination.Buffer.Count < capacity.Value);
+                    bool canReceive = matchingSink || (line.Destination.Definition.Kind == NodeKind.Relay &&
+                        capacity.HasValue && line.Destination.Buffer.Count < capacity.Value);
                     if (atEnd && canReceive)
                     {
                         if (matchingSink) deliveredCount++;

@@ -30,9 +30,9 @@ namespace CityFlow.Tests.EditMode
                 Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="R").Buffer.Count,Is.EqualTo(5));
                 Assert.That(network.Snapshot().Lines.Single().InFlight.Count,Is.EqualTo(1));
                 for(int i=0;i<9;i++) network.GenerateFlow("S",FlowColor.Red);
-                Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="S").IsInputStopped,Is.False);
+                Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="S").IsBufferFull,Is.False);
                 network.GenerateFlow("S",FlowColor.Red);
-                Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="S").IsInputStopped,Is.True);
+                Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="S").IsBufferFull,Is.True);
                 Assert.That(network.IsGameOver,Is.False);
                 Assert.That(network.Snapshot().GeneratedCount,Is.EqualTo(16));
             }
