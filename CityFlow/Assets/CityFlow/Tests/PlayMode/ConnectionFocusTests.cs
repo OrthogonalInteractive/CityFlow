@@ -95,7 +95,7 @@ namespace CityFlow.Tests.PlayMode
         [UnityTest] public IEnumerator FocusAlsoDimsUnrelatedInFlightAndSourceEffects()
         {
             var flow = Network.GenerateFlow("S1", FlowColor.Red);
-            Network.RouteWaitingFlows(new SystemRandomSource(1));
+            Network.RouteWaitingFlows();
             Network.GenerateFlow("S1", FlowColor.Blue);
             yield return null; yield return null;
             Hover("R2");

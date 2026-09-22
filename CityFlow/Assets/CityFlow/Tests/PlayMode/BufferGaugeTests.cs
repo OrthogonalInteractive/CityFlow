@@ -18,6 +18,15 @@ namespace CityFlow.Tests.PlayMode
 {
     public sealed class BufferGaugeTests
     {
+        private static int ConnectExit(FlowNetwork network, string from, string to)
+        {
+            var session = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<CityFlow.Application.Connections.ConnectionSession>();
+            Assert.That(session.Begin(from), Is.True);
+            session.SelectTarget(to);
+            Assert.That(session.Confirm(), Is.EqualTo(ConnectionFailure.None));
+            return session.LastCreatedLineId.GetValueOrDefault();
+        }
+
         [UnitySetUp] public IEnumerator Load()
         {
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
@@ -63,7 +72,7 @@ namespace CityFlow.Tests.PlayMode
             var source = network.NodeDefinitions.Single(n => n.Id == "S1").Position;
             var sink = network.NodeDefinitions.Single(n => n.Id == "RED").Position;
             Assert.That(network.TryConnect("S1", "RED", new[] { source, sink }).Succeeded, Is.True);
-            network.RouteWaitingFlows(new SystemRandomSource(1));
+            network.RouteWaitingFlows();
             yield return null; yield return null;
             Assert.That(network.Snapshot().Lines.Single().InFlight.Count, Is.EqualTo(1));
             Assert.That(root.Q("node-label-S1").resolvedStyle.display, Is.EqualTo(DisplayStyle.None),
@@ -101,18 +110,15 @@ namespace CityFlow.Tests.PlayMode
             var relay = network.NodeDefinitions.Single(n => n.Id == "R1").Position;
             var red = network.NodeDefinitions.Single(n => n.Id == "RED").Position;
             Assert.That(network.TryConnect("S1", "R1", new[] { source, relay }).Succeeded, Is.True);
-            var random = new SystemRandomSource(1);
             var colors = new[] { FlowColor.Blue, FlowColor.Red, FlowColor.Blue, FlowColor.Red, FlowColor.Blue };
-            foreach (var color in colors)
-            {
-                network.GenerateFlow("S1", color); network.RouteWaitingFlows(random); network.AdvanceInFlight(20);
-            }
+            Fixtures.RelayCongestion.Prepare(network, "S1", "R1", colors, System.Array.Empty<FlowColor>(),
+                (from, to) => ConnectExit(network, from, to));
             yield return null; yield return null;
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             AssertGauge(root, "R1", 5, NodeKind.Relay, colors);
 
             Assert.That(network.TryConnect("R1", "RED", new[] { relay, source, red }).Succeeded, Is.True);
-            scope.Container.Resolve<FlowSimulation>().Tick(FlowSimulation.StepSeconds);
+            network.RouteWaitingFlows();
             yield return null; yield return null;
             AssertGauge(root, "R1", 5, NodeKind.Relay, FlowColor.Blue, FlowColor.Blue, FlowColor.Blue);
             var outgoing = network.Snapshot().Lines.Single(l => l.SourceId == "R1");

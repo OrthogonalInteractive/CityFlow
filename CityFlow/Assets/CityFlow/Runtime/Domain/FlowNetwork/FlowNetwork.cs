@@ -87,6 +87,7 @@ namespace CityFlow.Domain.FlowNetwork
             if (additions.Count > 0)
             {
                 InvalidateSnapshot();
+                InvalidateRouting();
                 cachedDefinitions = null;
             }
             foreach(NodeDefinition definition in additions) nodes.Add(definition.Id,new NodeState(definition));
@@ -123,6 +124,7 @@ namespace CityFlow.Domain.FlowNetwork
                 return new ConnectionResult(ConnectionFailure.InvalidRoute);
             InvalidateSnapshot();
             var created = new LineState(nextLineId++, source, destination, route);
+            InvalidateRouting();
             lines.Add(created); source.Outgoing.Add(created); destination.Incoming.Add(created);
             return new ConnectionResult(ConnectionFailure.None, created.Id);
         }

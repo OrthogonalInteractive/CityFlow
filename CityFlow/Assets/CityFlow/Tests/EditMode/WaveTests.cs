@@ -23,7 +23,9 @@ namespace CityFlow.Tests.EditMode
         [Test] public void WavePreservesExistingLineBufferFlightsAndDeletionReservation()
         {
             var n=Network(); n.TryConnect("S","R",new[]{Vector3.zero,new Vector3(10,0,0)});
+            int exit=n.TryConnect("R","T",new[]{new Vector3(10,0,0),new Vector3(20,0,0)}).LineId.GetValueOrDefault();
             n.GenerateFlow("S",FlowColor.Red); var sim=new FlowSimulation(n,new Last(),new[]{Wave(2)}); sim.Tick(1);
+            n.RequestDeletion(exit);
             var old=n.Snapshot().Lines.Single(); n.RequestDeletion(old.Id); n.GenerateFlow("S",FlowColor.Red); sim.Tick(0.95);
             var before=n.Snapshot(); sim.Tick(0.05); var after=n.Snapshot();
             Assert.That(sim.Wave,Is.EqualTo(2)); Assert.That(after.Nodes.Count,Is.EqualTo(5));
@@ -42,6 +44,21 @@ namespace CityFlow.Tests.EditMode
             Assert.That(n.Snapshot().Nodes[0].Buffer.Any(f=>f.Color==FlowColor.Green),Is.True);
             sim.Tick(2.2); Assert.That(n.Snapshot().Nodes.Single(x=>x.Definition.Id=="NEW").Buffer,Is.Empty);
             sim.Tick(0.05); Assert.That(n.Snapshot().Nodes.Single(x=>x.Definition.Id=="NEW").Buffer.Count,Is.EqualTo(1));
+        }
+        [Test] public void AddedSourceCanUseAnExistingColorAfterTheRoutingTableWasBuilt()
+        {
+            var n = Network(interval: 0.1);
+            var wave = new WaveDefinition(0.5, 1, new NodeDefinition[] {
+                new SourceNodeDefinition("NEW", new Vector3(-10, 0, 0), generationInterval: 0.1) });
+            var sim = new FlowSimulation(n, new Last(), new[] { wave });
+            sim.Tick(0.4);
+            Assert.That(n.Snapshot().Nodes[0].Buffer, Is.Not.Empty);
+            sim.Tick(0.6);
+            Assert.That(n.Snapshot().Nodes.Single(x => x.Definition.Id == "NEW").Buffer, Is.Not.Empty);
+            int exit = n.TryConnect("NEW", "T", new[] { new Vector3(-10, 0, 0), new Vector3(20, 0, 0) })
+                .LineId.GetValueOrDefault();
+            sim.Tick(FlowSimulation.StepSeconds);
+            Assert.That(n.Snapshot().Lines.Single(x => x.Id == exit).InFlight.Count, Is.EqualTo(2));
         }
         [Test] public void PauseFreezesWaveAdditionAndSourceWarmup()
         {

@@ -21,7 +21,6 @@ namespace CityFlow.Tests.PlayMode
 {
     public sealed class WaveSessionTests
     {
-        private sealed class First : IRandomSource { public int NextIndex(int count)=>0; }
         [UnitySetUp] public IEnumerator Load()
         {
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
@@ -70,7 +69,7 @@ namespace CityFlow.Tests.PlayMode
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             var sim=scope.Container.Resolve<FlowSimulation>(); var s=scope.Container.Resolve<ConnectionSession>();
             var scene=SceneManager.GetActiveScene().handle; Connect(s,"S1","RED"); int blue=Connect(s,"S1","BLUE");
-            sim.Tick(59.95-sim.ElapsedSeconds); Assert.That(n.IsGameOver,Is.False); n.GenerateFlow("S1",FlowColor.Blue); n.RouteWaitingFlows(new First());
+            sim.Tick(59.95-sim.ElapsedSeconds); Assert.That(n.IsGameOver,Is.False); n.GenerateFlow("S1",FlowColor.Blue); n.RouteWaitingFlows();
             Assert.That(n.Snapshot().Lines.Single(x=>x.Id==blue).InFlight,Is.Not.Empty); n.RequestDeletion(blue);
             var before=n.Snapshot().Lines.Single(x=>x.Id==blue); sim.Tick(0.05); yield return null; yield return null;
             Assert.That(sim.Wave,Is.EqualTo(2)); Assert.That(SceneManager.GetActiveScene().handle,Is.EqualTo(scene));

@@ -9,7 +9,6 @@ namespace CityFlow.Tests.EditMode
 {
     public sealed class LineLifecycleTests
     {
-        private sealed class First : IRandomSource { public int NextIndex(int count)=>0; }
         private static FlowNetwork Create() => new FlowNetwork(new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),new NodeDefinition[] {
             new SourceNodeDefinition("S", Vector3.zero, maxOutgoing: 3, generationInterval: 1000),
             new RelayNodeDefinition("R", new Vector3(10,0,0)),
@@ -20,7 +19,7 @@ namespace CityFlow.Tests.EditMode
             return n.TryConnect(from,to,new[]{nodes.Single(x=>x.Id==from).Position,nodes.Single(x=>x.Id==to).Position}).LineId!.Value;
         }
         private static void Send(FlowNetwork n)
-        { n.GenerateFlow("S",FlowColor.Red); n.RouteWaitingFlows(new First()); }
+        { n.GenerateFlow("S",FlowColor.Red); n.RouteWaitingFlows(); }
         private static void Conserve(FlowNetwork n)
         {
             var s=n.Snapshot(); var ids=s.Nodes.SelectMany(x=>x.Buffer).Select(x=>x.Id).Concat(s.Lines.SelectMany(x=>x.InFlight).Select(x=>x.Flow.Id)).ToArray();
@@ -28,7 +27,8 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void DeleteBlocksNewDeparturesAndReleasesSlotsOnlyAfterDrain()
         {
-            var n=Create(); int id=Connect(n,"S","R"); Send(n); n.AdvanceInFlight(0.3);
+            var n=Create(); int id=Connect(n,"S","R"), exit=Connect(n,"R","T"); Send(n);
+            n.RequestDeletion(exit); n.AdvanceInFlight(0.3);
             Assert.That(n.RequestDeletion(id),Is.True); Send(n);
             Assert.That(n.Snapshot().Lines.Single().InFlight.Count,Is.EqualTo(1));
             Assert.That(n.Snapshot().Nodes.Single(x=>x.Definition.Id=="S").OutgoingUsed,Is.EqualTo(1));
@@ -38,14 +38,16 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void BlockedDestinationNeverForcesDeletionAndCancelPreservesFlights()
         {
-            var n=Create(); int id=Connect(n,"S","R"); Send(n); Send(n); n.AdvanceInFlight(2);
-            Send(n); Send(n); n.AdvanceInFlight(2); var before=n.Snapshot().Lines.Single();
+            var n=Create(); int id=Connect(n,"S","R");
+            Fixtures.RelayCongestion.Prepare(n, "S", "R", new[] { FlowColor.Red, FlowColor.Red },
+                new[] { FlowColor.Red, FlowColor.Red }, (from, to) => Connect(n, from, to));
+            n.AdvanceInFlight(2); var before=n.Snapshot().Lines.Single();
             Assert.That(n.RequestDeletion(id),Is.True); n.AdvanceInFlight(10000);
             Assert.That(n.Snapshot().Lines.Single().InFlight.Select(f=>(f.Flow.Id,f.Distance)),Is.EqualTo(before.InFlight.Select(f=>(f.Flow.Id,f.Distance))));
             Assert.That(n.CancelPending(id),Is.True);
             Assert.That(n.Snapshot().Lines.Single().Route,Is.SameAs(before.Route));
             Assert.That(n.Snapshot().Nodes.Single(x=>x.Definition.Id=="S").OutgoingUsed,Is.EqualTo(1));
-            n.RequestDeletion(id); Connect(n,"R","T"); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(2);
+            n.RequestDeletion(id); Connect(n,"R","T"); n.RouteWaitingFlows(); n.AdvanceInFlight(2);
             Assert.That(n.Snapshot().Lines.Any(l=>l.Id==id),Is.False); Conserve(n);
         }
         [Test] public void RouteChangeKeepsOldPositionsUntilDrainThenUsesNewPolyline()
@@ -57,7 +59,7 @@ namespace CityFlow.Tests.EditMode
             Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Distance,Is.EqualTo(5));
             Send(n); Assert.That(n.Snapshot().Lines.Single().InFlight.Count,Is.EqualTo(1));
             n.AdvanceInFlight(2); Assert.That(n.Snapshot().Lines.Single().Route.Points,Is.EqualTo(route));
-            n.RouteWaitingFlows(new First()); Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Distance,Is.Zero); Conserve(n);
+            n.RouteWaitingFlows(); Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Distance,Is.Zero); Conserve(n);
         }
         [Test] public void CancellingRouteChangeKeepsOldRouteAndRestartsDepartures()
         {
@@ -80,7 +82,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void ReservedMatchingSinkIsExcludedFromDirectPriority()
         {
-            var n=Create(); int direct=Connect(n,"S","T"); int relay=Connect(n,"S","R"); Send(n);
+            var n=Create(); int direct=Connect(n,"S","T"); int relay=Connect(n,"S","R"); Connect(n,"R","T"); Send(n);
             Assert.That(n.RequestDeletion(direct),Is.True); Send(n);
             Assert.That(n.Snapshot().Lines.Single(x=>x.Id==relay).InFlight.Count,Is.EqualTo(1)); Conserve(n);
         }

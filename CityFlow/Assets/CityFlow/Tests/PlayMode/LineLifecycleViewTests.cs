@@ -18,7 +18,6 @@ namespace CityFlow.Tests.PlayMode
 {
     public sealed class LineLifecycleViewTests
     {
-        private sealed class First : IRandomSource { public int NextIndex(int count)=>0; }
         [UnitySetUp] public IEnumerator Load()
         {
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
@@ -31,9 +30,9 @@ namespace CityFlow.Tests.PlayMode
         {
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             var session=scope.Container.Resolve<ConnectionSession>(); int id=Connect(session,"S1","R1");
-            for(int i=0;i<n.Settings.RelayBufferCapacity;i++) n.GenerateFlow("S1",FlowColor.Red);
-            n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100);
-            n.GenerateFlow("S1",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100);
+            Fixtures.RelayCongestion.Prepare(n, "S1", "R1", Enumerable.Repeat(FlowColor.Red, n.Settings.RelayBufferCapacity).ToArray(),
+                new[] { FlowColor.Red }, (from, to) => Connect(session, from, to));
+            n.AdvanceInFlight(100);
             var before=n.Snapshot().Lines.Single().InFlight.Single();
             Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Line(id)); yield return null;
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
@@ -44,7 +43,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Flow.Id,Is.EqualTo(before.Flow.Id));
             Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Distance,Is.EqualTo(before.Distance));
             Submit(root.Q<Button>("line-delete")); Connect(session,"R1","RED");
-            n.RouteWaitingFlows(new First()); n.AdvanceInFlight(100); yield return null; yield return null;
+            n.RouteWaitingFlows(); n.AdvanceInFlight(100); yield return null; yield return null;
             Assert.That(n.Snapshot().Lines.Any(l=>l.Id==id),Is.False);
             Assert.That(GameObject.Find($"Line {id}: S1 -> R1"),Is.Null);
             Assert.That(n.Snapshot().GeneratedCount,Is.EqualTo(n.Snapshot().Nodes.Sum(x=>x.Buffer.Count)+n.Snapshot().Lines.Sum(l=>l.InFlight.Count)+n.Snapshot().DeliveredCount));
@@ -53,7 +52,7 @@ namespace CityFlow.Tests.PlayMode
         {
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var n=scope.Container.Resolve<FlowNetwork>();
             var session=scope.Container.Resolve<ConnectionSession>(); int id=Connect(session,"S1","BLUE");
-            n.GenerateFlow("S1",FlowColor.Blue); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(0.2);
+            n.GenerateFlow("S1",FlowColor.Blue); n.RouteWaitingFlows(); n.AdvanceInFlight(0.2);
             var old=n.Snapshot().Lines.Single();
             Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Line(id)); yield return null;
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement; Submit(root.Q<Button>("line-edit")); yield return null;

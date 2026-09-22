@@ -10,7 +10,8 @@
     "Unity.RenderPipelines.Universal.Runtime",
     "VContainer",
     "CityFlow.Presentation",
-    "CityFlow.Editor"
+    "CityFlow.Editor",
+    "CityFlow.Tests.Fixtures"
   ],
   "includePlatforms": [
     "Editor"

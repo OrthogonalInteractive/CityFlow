@@ -10,7 +10,6 @@ namespace CityFlow.Tests.EditMode
 {
     public sealed class NodeBufferCapacityTests
     {
-        private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         [TestCase(false)] [TestCase(true)]
         public void DefaultAndAuthoredSettingsGiveSourceTenAndRelayFive(bool authored)
         {
@@ -24,9 +23,11 @@ namespace CityFlow.Tests.EditMode
                     new RelayNodeDefinition("R", new Vector3(10,0,0)),
                     new SinkNodeDefinition("RED", new Vector3(20,0,0), FlowColor.Red) }), settings.LoadNetworkSettings());
                 Assert.That(network.TryConnect("S","R",new[] { Vector3.zero,new Vector3(10,0,0) }).Succeeded,Is.True);
-                for(int i=0;i<6;i++) network.GenerateFlow("S",FlowColor.Red);
-                network.RouteWaitingFlows(new First()); network.AdvanceInFlight(10);
-                network.RouteWaitingFlows(new First()); network.AdvanceInFlight(10);
+                Fixtures.RelayCongestion.Prepare(network, "S", "R", Enumerable.Repeat(FlowColor.Red, 5).ToArray(),
+                    new[] { FlowColor.Red }, (from, to) => network.TryConnect(from, to, new[] {
+                        network.NodeDefinitions.Single(n => n.Id == from).Position,
+                        network.NodeDefinitions.Single(n => n.Id == to).Position }).LineId.GetValueOrDefault());
+                network.AdvanceInFlight(10);
                 Assert.That(network.Snapshot().Nodes.Single(n=>n.Definition.Id=="R").Buffer.Count,Is.EqualTo(5));
                 Assert.That(network.Snapshot().Lines.Single().InFlight.Count,Is.EqualTo(1));
                 for(int i=0;i<9;i++) network.GenerateFlow("S",FlowColor.Red);

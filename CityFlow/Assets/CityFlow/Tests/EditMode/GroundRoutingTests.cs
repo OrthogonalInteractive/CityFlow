@@ -132,7 +132,6 @@ namespace CityFlow.Tests.EditMode
             preview.Generate("missing","B");
             Assert.That(Current(preview).ConnectionFailure, Is.EqualTo(ConnectionFailure.UnknownSource));
         }
-        private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         [Test] public void GeneratedRouteIsTheSameRouteUsedForTransportAndDistance()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
@@ -140,7 +139,7 @@ namespace CityFlow.Tests.EditMode
             var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             var candidate = Current(preview);
             Assert.That(n.TryConnect("A","B",candidate.Points).Succeeded, Is.True);
-            n.GenerateFlow("A",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(candidate.TravelTime/2);
+            n.GenerateFlow("A",FlowColor.Red); n.RouteWaitingFlows(); n.AdvanceInFlight(candidate.TravelTime/2);
             var line = n.Snapshot().Lines.Single();
             Assert.That(line.Route.Points, Is.EqualTo(candidate.Points));
             Assert.That(line.Route.Length, Is.EqualTo(candidate.Length));

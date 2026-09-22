@@ -12,11 +12,11 @@ DDDを用いてルールの所有者と状態変更の境界を明確にし、Ed
 
 | モジュール | 所有する概念 | 責務と境界 |
 | --- | --- | --- |
-| FlowNetwork | FLOW、Node、Source、Sink、Relay、Buffer、Line、In-Flight | ネットワークの整合性、接続枠、局所FLOW Routing、容量、受け渡し、削除予約・取消、経路切替 |
+| FlowNetwork | FLOW、Node、Source、Sink、Relay、Buffer、Line、In-Flight | ネットワークの整合性、接続枠、直結優先・最短距離のFLOW Routing、容量、受け渡し、削除予約・取消、経路切替 |
 | Spatial | LineRoute、経路長、Ground制約、通行可能領域 | 幾何経路の値と妥当性。建物の取り込み・Physics問い合わせ・探索アルゴリズムの実装は外部へ分ける |
 | Progression | GameSession、Wave、生成予定、Overload猶予 | 同一都市内の進行、時間、生成する色の成立条件、SourceによるGame Over |
 
-Hubは構成上の役割でありNode種別にしない。FLOW Routingは直接の接続先選択、Line Routingは障害物を避ける幾何経路生成であり、別のサービス・テストとして扱う。
+Hubは構成上の役割でありNode種別にしない。FLOW Routingは既存ネットワークに基づく次の配送先選択、Line Routingは障害物を避ける幾何経路生成であり、別のサービス・テストとして扱う。
 
 ## 集約と整合性
 
@@ -73,13 +73,21 @@ Domainを別の.NET専用プロジェクトへ移植すること自体を目標�
 
 ## 時間、Pause、再現性
 
-Applicationのシミュレーション更新入口に明示的な時間差分を渡し、Domainで `Time.deltaTime` やグローバル乱数を直接参照しない。ランダム選択は差し替え可能な乱数源または選択結果を入力にする。
+Applicationのシミュレーション更新入口に明示的な時間差分を渡し、Domainで `Time.deltaTime` やグローバル乱数を直接参照しない。生成色のランダム選択は差し替え可能な乱数源を入力にする。配送先は乱数を使わず決定する。
 
 Pauseはシミュレーション更新を止める。生成・移動・受け渡し・Wave・Node追加・Overloadタイマーは同時に停止する。一方、入力・カメラ・ホバー・Previewは表示側の時間で動かす。`Time.timeScale = 0` だけをPauseの契約にしない。
 
 FLOWが残るLineの削除・経路切替は再開後に進める。既に空のLineの削除など、時間を必要としないコマンドはPause中も実行できる。
 
 固定tickは暫定0.05秒。順序はWave追加（Sinkを先に登録）→生成→既存FLOWの移動・受け渡し→予約完了→Bufferからの出発→Source Overload→結果確定。このtickで出発したFLOWは次tickから移動する。乱数源は差し替え可能なIRandomSourceで、実シーンは固定seed 1337。
+
+## FLOWの配送経路
+
+`FlowNetwork.Routing.cs` が色ごとの配送経路表を所有し、Source／Relay共通で使う。同色Sinkへの直結を優先し、直結がないNodeは「次のLine長＋残り距離」でRelayを選ぶ。幾何経路を作るA*とは独立した、逆向き有向グラフの複数起点Dijkstra法である。
+
+直結があるNodeでは探索の辺を作成順先頭の同色直結だけに制限し、実際には選ばないRelay経由の近道を残り距離に含めない。出発時の複数直結は従来の作成順で空きを探す。Relay候補は等距離内で空き・ステップ数・Line IDの順に決定する。受け取り先BufferやLineの満杯は経路表の重みに含めず、最短候補が満杯なら待つ。無関係な色のFLOWの評価は続ける。
+
+経路表は色が必要になった時に作成し、Node追加、Line追加、削除予約、取消、経路切替要求と排出完了時に失効する。生成・輸送・容量回復だけでは再探索しない。既存FLOWの現在位置やIn-Flight所有権は変更しない。将来の3D対応でも評価は`LineRoute.Length`を使うが、現時点ではGroundの制約を維持する。混雑予測・Widthを使う自動分散は未実装。
 
 ## 経路とPLATEAUへの拡張
 

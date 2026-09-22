@@ -22,8 +22,11 @@ namespace CityFlow.Tests.EditMode
         private static NodeSnapshot Node(FlowNetwork n, string id) => n.Snapshot().Nodes.Single(x => x.Definition.Id == id);
         private static void Fill(FlowNetwork n)
         { n.GenerateFlow("S", FlowColor.Red); n.GenerateFlow("S", FlowColor.Red); }
-        private static void Connect(FlowNetwork n, string from, string to) => Assert.That(n.TryConnect(from, to,
-            new[] { Node(n, from).Definition.Position, Node(n, to).Definition.Position }).Succeeded, Is.True);
+        private static int Connect(FlowNetwork n, string from, string to)
+        {
+            var result = n.TryConnect(from, to, new[] { Node(n, from).Definition.Position, Node(n, to).Definition.Position });
+            Assert.That(result.Succeeded, Is.True); return result.LineId.GetValueOrDefault();
+        }
         private static void Conserve(FlowNetwork n)
         {
             var s = n.Snapshot();
@@ -46,7 +49,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void RecoveryResetsGraceAndNewOverloadStartsFromZero()
         {
             var n = Create(); Fill(n); n.EvaluateOverload(4);
-            Connect(n, "S", "T"); n.RouteWaitingFlows(new First()); n.EvaluateOverload(0.05);
+            Connect(n, "S", "T"); n.RouteWaitingFlows(); n.EvaluateOverload(0.05);
             Assert.That(Node(n, "S").IsBufferFull, Is.False);
             Assert.That(Node(n, "S").OverloadSeconds, Is.Zero);
             Fill(n); n.EvaluateOverload(1);
@@ -55,8 +58,10 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void RelayBackpressureStopsFlightsAndRecoveryRetainsIds()
         {
-            var n = Create(); Connect(n, "S", "R"); Fill(n); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(2);
-            Fill(n); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(2); n.EvaluateOverload(100);
+            var n = Create(); Connect(n, "S", "R");
+            Fixtures.RelayCongestion.Prepare(n, "S", "R", new[] { FlowColor.Red, FlowColor.Red },
+                new[] { FlowColor.Red, FlowColor.Red }, (from, to) => Connect(n, from, to));
+            n.AdvanceInFlight(2); n.EvaluateOverload(100);
             Assert.That(n.IsGameOver, Is.False); Assert.That(Node(n, "R").IsInputStopped, Is.True);
             var blocked = n.Snapshot().Lines[0].InFlight;
             Assert.That(blocked.All(x => x.IsStopped), Is.True);
@@ -64,7 +69,7 @@ namespace CityFlow.Tests.EditMode
             n.AdvanceInFlight(2);
             Assert.That(n.Snapshot().Lines[0].InFlight.Select(x => (x.Flow.Id, x.Distance)),
                 Is.EqualTo(blocked.Select(x => (x.Flow.Id, x.Distance))));
-            Connect(n, "R", "T"); n.RouteWaitingFlows(new First());
+            Connect(n, "R", "T"); n.RouteWaitingFlows();
             Assert.That(Node(n, "R").IsInputStopped, Is.False);
             n.AdvanceInFlight(2);
             Assert.That(n.Snapshot().Lines[0].InFlight, Is.Empty);
@@ -83,9 +88,9 @@ namespace CityFlow.Tests.EditMode
                 new RelayNodeDefinition("R", new Vector3(30,0,0)),
                 new SinkNodeDefinition("T", new Vector3(40,0,0), FlowColor.Red) }),
                 new NetworkSettings(10,1,3,10,0));
-            Connect(n,"S","R"); n.GenerateFlow("S",FlowColor.Red); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(4);
-            for(int i=0;i<3;i++) n.GenerateFlow("S",FlowColor.Red);
-            n.RouteWaitingFlows(new First());
+            Connect(n,"S","R");
+            Fixtures.RelayCongestion.Prepare(n, "S", "R", new[] { FlowColor.Red },
+                Enumerable.Repeat(FlowColor.Red, 3).ToArray(), (from, to) => Connect(n, from, to));
             for(int tick=0;tick<80;tick++)
             {
                 var before=n.Snapshot().Lines[0].InFlight.Select(f=>f.Distance).ToArray();
@@ -97,7 +102,7 @@ namespace CityFlow.Tests.EditMode
             var queue=n.Snapshot().Lines[0].InFlight;
             Assert.That(queue.Select(f=>f.Distance),Is.EqualTo(new double[] {30,20,10}).Within(0.0001));
             Assert.That(queue.All(f=>f.IsStopped),Is.True); Conserve(n);
-            Connect(n,"R","T"); n.RouteWaitingFlows(new First()); n.AdvanceInFlight(0.05);
+            Connect(n,"R","T"); n.RouteWaitingFlows(); n.AdvanceInFlight(0.05);
             Assert.That(n.Snapshot().Lines[0].InFlight[0].Flow.Id,Is.EqualTo(queue[1].Flow.Id));
             Assert.That(n.Snapshot().Lines[0].InFlight[0].Distance,Is.EqualTo(20.5).Within(0.0001)); Conserve(n);
         }

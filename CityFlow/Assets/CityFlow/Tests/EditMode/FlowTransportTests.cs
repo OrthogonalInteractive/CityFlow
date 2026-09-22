@@ -58,7 +58,7 @@ namespace CityFlow.Tests.EditMode
         {
             var network = Network();
             int relay = Connect(network, "S", "R"), direct = Connect(network, "S", "T");
-            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows(new Choices());
+            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows();
             Assert.That(Line(network, direct).InFlight.Count, Is.EqualTo(1));
             Assert.That(Line(network, relay).InFlight, Is.Empty); AssertConserved(network);
         }
@@ -67,10 +67,10 @@ namespace CityFlow.Tests.EditMode
             // Specification 7 proposal: a full matching direct Line never falls back to a Relay.
             var network = Network(capacity: 1);
             int direct = Connect(network, "S", "T"), relay = Connect(network, "S", "R"), blue = Connect(network, "S", "B");
-            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows(new Choices());
+            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows();
             Flow waiting = network.GenerateFlow("S", FlowColor.Red);
             Flow departing = network.GenerateFlow("S", FlowColor.Blue);
-            network.RouteWaitingFlows(new Choices());
+            network.RouteWaitingFlows();
             Assert.That(Node(network, "S").Buffer.Single().Id, Is.EqualTo(waiting.Id));
             Assert.That(Line(network, blue).InFlight.Single().Flow.Id, Is.EqualTo(departing.Id));
             Assert.That(Line(network, relay).InFlight, Is.Empty);
@@ -81,26 +81,30 @@ namespace CityFlow.Tests.EditMode
             var network = Network(capacity: 1);
             int first = Connect(network, "S", "T"), second = Connect(network, "S", "U");
             for (int i = 0; i < 3; i++) network.GenerateFlow("S", FlowColor.Red);
-            var choices = new Choices(1); network.RouteWaitingFlows(choices);
-            Assert.That(choices.Bounds, Is.Empty, "Matching Sink selection is deterministic.");
+            long[] waitingIds = Node(network, "S").Buffer.Select(f => f.Id).ToArray();
+            network.RouteWaitingFlows();
+            Assert.That(Line(network, first).InFlight.Single().Flow.Id, Is.EqualTo(waitingIds[0]));
+            Assert.That(Line(network, second).InFlight.Single().Flow.Id, Is.EqualTo(waitingIds[1]));
             Assert.That(Line(network, first).InFlight.Count, Is.EqualTo(1));
             Assert.That(Line(network, second).InFlight.Count, Is.EqualTo(1));
             Assert.That(Node(network, "S").Buffer.Count, Is.EqualTo(1)); AssertConserved(network);
         }
-        [TestCase(0)] [TestCase(1)]
-        public void RandomBranchingOffersEveryAvailableLineOnce(int choice)
+        [Test]
+        public void UnreachableRelaysPreserveBuffer()
         {
             var network = Network(); int first = Connect(network, "S", "R"), second = Connect(network, "S", "Q");
             network.GenerateFlow("S", FlowColor.Red);
-            var choices = new Choices(choice); network.RouteWaitingFlows(choices);
-            Assert.That(choices.Bounds, Is.EqualTo(new[] { 2 }));
-            Assert.That(Line(network, choice == 0 ? first : second).InFlight.Count, Is.EqualTo(1)); AssertConserved(network);
+            network.RouteWaitingFlows();
+            Assert.That(Line(network, first).InFlight, Is.Empty);
+            Assert.That(Line(network, second).InFlight, Is.Empty);
+            Assert.That(Node(network, "S").Buffer.Count, Is.EqualTo(1)); AssertConserved(network);
         }
-        [Test] public void RandomBranchingExcludesFullLinesAndNoExitPreservesBuffer()
+        [Test] public void EqualDistanceRelaysUseAvailableLinesAndThenWait()
         {
             var network = Network(capacity: 1); int first = Connect(network, "S", "R"), second = Connect(network, "S", "Q");
-            for (int i = 0; i < 3; i++) network.GenerateFlow("S", FlowColor.Red);
-            network.RouteWaitingFlows(new Choices(0));
+            Connect(network, "R", "B", new Vector3(10, 0, 10)); Connect(network, "Q", "B");
+            for (int i = 0; i < 3; i++) network.GenerateFlow("S", FlowColor.Blue);
+            network.RouteWaitingFlows();
             Assert.That(Line(network, first).InFlight.Count, Is.EqualTo(1));
             Assert.That(Line(network, second).InFlight.Count, Is.EqualTo(1));
             Assert.That(Node(network, "S").Buffer.Count, Is.EqualTo(1)); AssertConserved(network);
@@ -111,7 +115,7 @@ namespace CityFlow.Tests.EditMode
             int shortLine = Connect(network, "S", "T");
             int longLine = Connect(network, "S", "B", new Vector3(0, 0, -20), new Vector3(20, 0, -20));
             network.GenerateFlow("S", FlowColor.Red); network.GenerateFlow("S", FlowColor.Blue);
-            network.RouteWaitingFlows(new Choices());
+            network.RouteWaitingFlows();
             Assert.That(Line(network, longLine).Route.Length, Is.EqualTo(70));
             Assert.That(Line(network, shortLine).Capacity, Is.EqualTo(Line(network, longLine).Capacity));
             network.AdvanceInFlight(1.9);
@@ -127,7 +131,7 @@ namespace CityFlow.Tests.EditMode
         {
             var network = Network(); int line = Connect(network, "S", "T");
             network.GenerateFlow("S", FlowColor.Red); network.GenerateFlow("S", FlowColor.Red);
-            network.RouteWaitingFlows(new Choices());
+            network.RouteWaitingFlows();
             for (int i = 0; i < 4; i++) network.AdvanceInFlight(0.5);
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1));
             Assert.That(Line(network, line).InFlight.Single().Distance, Is.EqualTo(10).Within(0.0001));
@@ -136,34 +140,35 @@ namespace CityFlow.Tests.EditMode
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(2)); AssertConserved(network);
         }
 
-        [TestCase(0)] [TestCase(1)]
-        public void BlueFlowChoosesOnlyRelaysWhenRedSinkIsAlsoConnected(int choice)
+        [Test]
+        public void BlueFlowChoosesReachableRelayWhenRedSinkIsAlsoConnected()
         {
             var network = Network(); int red = Connect(network, "S", "T");
             int first = Connect(network, "S", "R"), second = Connect(network, "S", "Q");
             network.GenerateFlow("S", FlowColor.Blue);
-            var choices = new Choices(choice); network.RouteWaitingFlows(choices);
-            Assert.That(choices.Bounds, Is.EqualTo(new[] { 2 }));
+            Connect(network, "Q", "B"); network.RouteWaitingFlows();
             Assert.That(Line(network, red).InFlight, Is.Empty);
-            Assert.That(Line(network, choice == 0 ? first : second).InFlight.Single().Flow.Color, Is.EqualTo(FlowColor.Blue));
+            Assert.That(Line(network, first).InFlight, Is.Empty);
+            Assert.That(Line(network, second).InFlight.Single().Flow.Color, Is.EqualTo(FlowColor.Blue));
             AssertConserved(network);
         }
         [Test] public void WrongColorSinkWithoutRelayLeavesFlowAtSource()
         {
             var network = Network(); int red = Connect(network, "S", "T");
-            Flow blue = network.GenerateFlow("S", FlowColor.Blue); var choices = new Choices();
-            network.RouteWaitingFlows(choices); network.AdvanceInFlight(100);
+            Flow blue = network.GenerateFlow("S", FlowColor.Blue);
+            network.RouteWaitingFlows(); network.AdvanceInFlight(100);
             Assert.That(Line(network, red).InFlight, Is.Empty);
             Assert.That(Node(network, "S").Buffer.Single().Id, Is.EqualTo(blue.Id));
-            Assert.That(Node(network, "T").Buffer, Is.Empty); Assert.That(choices.Bounds, Is.Empty);
+            Assert.That(Node(network, "T").Buffer, Is.Empty);
             Assert.That(network.Snapshot().DeliveredCount, Is.Zero); AssertConserved(network);
         }
         [Test] public void FullRelayDoesNotRedirectFlowToWrongColorSink()
         {
             var network = Network(capacity: 1); int relay = Connect(network, "S", "R");
             int red = Connect(network, "S", "T");
-            network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows(new Choices());
-            Flow waiting = network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows(new Choices());
+            Connect(network, "R", "B");
+            network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows();
+            Flow waiting = network.GenerateFlow("S", FlowColor.Blue); network.RouteWaitingFlows();
             Assert.That(Line(network, relay).InFlight.Count, Is.EqualTo(1));
             Assert.That(Line(network, red).InFlight, Is.Empty);
             Assert.That(Node(network, "S").Buffer.Single().Id, Is.EqualTo(waiting.Id)); AssertConserved(network);
@@ -171,16 +176,16 @@ namespace CityFlow.Tests.EditMode
         [Test] public void BlockedReceiverRetainsLineOwnershipAndCapacityUntilAccepted()
         {
             var network = Network(); int incoming = Connect(network, "S", "R");
-            for (int i = 0; i < 2; i++) network.GenerateFlow("S", FlowColor.Red);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
-            for (int i = 0; i < 2; i++) network.GenerateFlow("S", FlowColor.Blue);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
+            Fixtures.RelayCongestion.Prepare(network, "S", "R",
+                new[] { FlowColor.Red, FlowColor.Red }, new[] { FlowColor.Blue, FlowColor.Blue },
+                (from, to) => Connect(network, from, to));
+            network.AdvanceInFlight(2);
             Assert.That(Node(network, "R").Buffer.Count, Is.EqualTo(2));
             Assert.That(Line(network, incoming).InFlight.Count, Is.EqualTo(2));
             Assert.That(Line(network, incoming).InFlight[1].Distance, Is.LessThan(Line(network, incoming).InFlight[0].Distance));
             network.AdvanceInFlight(100);
             Assert.That(Line(network, incoming).InFlight.Count, Is.EqualTo(2));
-            Connect(network, "R", "T"); network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(1);
+            Connect(network, "R", "T"); network.RouteWaitingFlows(); network.AdvanceInFlight(1);
             Assert.That(Line(network, incoming).InFlight, Is.Empty);
             Assert.That(Node(network, "R").Buffer.Count, Is.EqualTo(2)); AssertConserved(network);
         }
@@ -188,7 +193,7 @@ namespace CityFlow.Tests.EditMode
         {
             var network = Network(buffer: 1, capacity: 2); int line = Connect(network, "S", "B");
             network.GenerateFlow("S", FlowColor.Blue); network.GenerateFlow("S", FlowColor.Blue);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(10);
+            network.RouteWaitingFlows(); network.AdvanceInFlight(10);
             Assert.That(Node(network, "B").Buffer, Is.Empty);
             Assert.That(Node(network, "B").IsInputStopped, Is.False);
             Assert.That(Node(network, "B").Definition.MaxOutgoing, Is.Zero);
@@ -200,15 +205,11 @@ namespace CityFlow.Tests.EditMode
         {
             var network = Network(capacity: 3, buffer: 5);
             int incoming = Connect(network, "S", "R"), wrongSink = Connect(network, "R", "T");
-            for (int i = 0; i < 5; i++)
-            {
-                network.GenerateFlow("S", FlowColor.Blue);
-                network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
-            }
+            Fixtures.RelayCongestion.Prepare(network, "S", "R", Enumerable.Repeat(FlowColor.Blue, 5).ToArray(),
+                new[] { FlowColor.Blue, FlowColor.Blue }, (from, to) => Connect(network, from, to));
             long[] oldest = Node(network, "R").Buffer.Select(f => f.Id).ToArray();
             Assert.That(Node(network, "R").IsInputStopped, Is.True);
-            for (int i = 0; i < 2; i++) network.GenerateFlow("S", FlowColor.Blue);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
+            network.AdvanceInFlight(2);
             Assert.That(Line(network, incoming).InFlight.All(f => f.IsStopped), Is.True);
             Assert.That(Line(network, wrongSink).InFlight, Is.Empty);
 
@@ -241,14 +242,13 @@ namespace CityFlow.Tests.EditMode
             Assert.That(Node(network, "S").Buffer.Last().Color, Is.EqualTo(FlowColor.Red));
             AssertConserved(network);
         }
-        [Test] public void SimultaneousIncomingLinesCannotOverfillReceiver()
+        [Test] public void IncomingLineCannotOverfillReceiver()
         {
             var network = Network(buffer: 1, capacity: 1);
-            Connect(network, "S", "R"); Connect(network, "S", "Q");
-            Connect(network, "Q", "R");
-            network.GenerateFlow("S", FlowColor.Red); network.GenerateFlow("S", FlowColor.Red);
-            network.RouteWaitingFlows(new Choices(0)); network.AdvanceInFlight(2);
-            network.RouteWaitingFlows(new Choices()); network.AdvanceInFlight(2);
+            Connect(network, "S", "R");
+            Fixtures.RelayCongestion.Prepare(network, "S", "R", new[] { FlowColor.Red },
+                new[] { FlowColor.Red }, (from, to) => Connect(network, from, to));
+            network.AdvanceInFlight(2);
             Assert.That(Node(network, "R").Buffer.Count, Is.EqualTo(1));
             Assert.That(network.Snapshot().Lines.Sum(l => l.InFlight.Count), Is.EqualTo(1)); AssertConserved(network);
         }

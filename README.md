@@ -69,7 +69,7 @@ CityFlow/              # Unityプロジェクトルート
   Assets/CityFlow/
     Runtime/
       Domain/          # ゲームルール・集約・値オブジェクト
-        FlowNetwork/   # Node、Line、FLOW、Buffer、局所Routing
+        FlowNetwork/   # Node、Line、FLOW、Buffer、直結優先・最短距離Routing
         Spatial/       # 経路の値・Ground制約・距離
         Progression/   # Wave、生成、Overload、生存時間
       Application/     # ユースケース・シミュレーション進行・外部ポート
@@ -161,7 +161,7 @@ Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常
 1. `Assets/CityFlow/Scenes/WiringLab.unity` を開いてPlayする。今までと同じ簡易都市で、初期Lineは0本。
 2. S1からRED・BLUEへ接続する。最初はSourceに15秒の準備があり、**Esc**で時間を止めて配線してもよい。
 3. 60 / 120 / 180秒にWaveが進み、緑 / 黄 / 紫のSinkやSource・Relayが加わる。追加通知をクリックすると出現Nodeへ寄れる。追加Sourceは20秒準備し、既存ネットワークとFLOWは維持される。
-4. 接続枠・距離・固定容量・局所Routingを見ながら、配線追加・経路編集・削除予約で混雑を解消する。Wave進行に伴い生成間隔は基本値の0.9 / 0.75 / 0.6倍になる。
+4. 接続枠・距離・固定容量・直結優先・最短距離Routingを見ながら、配線追加・経路編集・削除予約で混雑を解消する。Wave進行に伴い生成間隔は基本値の0.9 / 0.75 / 0.6倍になる。
 5. SourceのOverloadが猶予を超えると結果を表示する。**Retry** で同じ都市を配線0から再試行する。
 
 Waveの時刻・追加Node・生成間隔と猶予は `WiringStage` で調整可能。現時点の値はプレイ確認用の暫定値であり、構成比較・難度調整・v0.1完了判定はIssue #12に残る。

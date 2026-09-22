@@ -9,7 +9,7 @@
 | Overview・Node 360・距離帯 | ConnectionSessionTests / NodeConnectionTests | #16 / #17 |
 | Preview・XZ編集・確定 | ManualRouteTests / ManualRouteInputTests | #17 |
 | 途中区間の貫通拒否 | GroundRoutingTests / ManualRouteTests | 既存検証 |
-| 同色Sink優先・Relay限定分岐 | FlowTransportTests | 既存検証 |
+| 同色Sink優先・最短距離のRelay選択 | FlowRoutingTests / FlowTransportTests | 2026-09-22: 直結優先を維持してランダム配送を置換 |
 | Line満杯待機・距離による輸送差 | FlowTransportTests / PlayPacingTests | #15 |
 | IN/OUT上限 | FlowNetworkTests / ConnectionSessionTests | #16 |
 | Pause中の配線・確認 | PauseTests / PauseInputTests | #14 / #16 / #17 |
@@ -32,6 +32,8 @@
 #18の入力アセット移行、Player対象化、既存未追跡ファイルの管理判断は保留。Snapshot最適化と文書の現行／履歴分離は実施済み。
 
 ## #12 / #13に残す比較プレイ
+
+2026-09-22の配送ルール変更後の条件で再評価する。直結優先は維持し、Relayは到達可能な最短距離経路を選ぶ。旧ランダム配送での比較結果を新ルールの難度評価として流用しない。
 
 - [ ] 完全Hub集中と分散構成を同一都市・固定条件で比較する。
 - [ ] 長距離直結と短距離Relay経由の輸送量・配線操作時間を比較する。

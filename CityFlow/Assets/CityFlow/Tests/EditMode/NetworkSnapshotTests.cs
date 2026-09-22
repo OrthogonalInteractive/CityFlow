@@ -12,7 +12,6 @@ namespace CityFlow.Tests.EditMode
     public sealed class NetworkSnapshotTests
     {
         private static readonly Vector3 A = new(-10, 0, 0), B = new(10, 0, 0), C = new(10, 0, 10);
-        private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         private static FlowNetwork Network() => new(new StageDefinition(0, new Rect(-30, -30, 60, 60), Array.Empty<Bounds>(),
             new NodeDefinition[] { new SourceNodeDefinition("A", A), new RelayNodeDefinition("B", B),
                 new SinkNodeDefinition("C", C, FlowColor.Red) }), new NetworkSettings(2, 2, 2, 10, 0.5f));
@@ -37,7 +36,7 @@ namespace CityFlow.Tests.EditMode
             network.TryConnect("A", "C", new[] { A, C });
             var connected = network.Snapshot();
             Assert.That(connected.Lines.Count, Is.EqualTo(1));
-            network.RouteWaitingFlows(new First());
+            network.RouteWaitingFlows();
             var departed = network.Snapshot();
             Assert.That(departed.Nodes[0].Buffer, Is.Empty);
             Assert.That(departed.Lines[0].InFlight.Count, Is.EqualTo(1));
@@ -60,8 +59,10 @@ namespace CityFlow.Tests.EditMode
         {
             var network = Network();
             int id = network.TryConnect("A", "B", new[] { A, B }).LineId ?? throw new AssertionException("Missing Line");
+            int exit = network.TryConnect("B", "C", new[] { B, C }).LineId.GetValueOrDefault();
             network.GenerateFlow("A", FlowColor.Red);
-            network.RouteWaitingFlows(new First());
+            network.RouteWaitingFlows();
+            network.RequestDeletion(exit);
             var running = network.Snapshot();
             network.RequestDeletion(id);
             var deleting = network.Snapshot();
@@ -98,7 +99,7 @@ namespace CityFlow.Tests.EditMode
             var warning = network.Snapshot();
             Assert.That(warning.Nodes[0].OverloadSeconds, Is.EqualTo(1));
             network.TryConnect("A", "C", new[] { A, C });
-            network.RouteWaitingFlows(new First());
+            network.RouteWaitingFlows();
             network.EvaluateOverload(0.1);
             Assert.That(network.Snapshot().Nodes[0].OverloadSeconds, Is.Zero);
             Assert.That(warning.Nodes[0].OverloadSeconds, Is.EqualTo(1));

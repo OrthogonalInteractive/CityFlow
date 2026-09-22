@@ -63,7 +63,7 @@ namespace CityFlow.Application.UseCases
                 ApplyDueWaves();
                 GenerateDueFlows();
                 network.AdvanceInFlight(StepSeconds);
-                network.RouteWaitingFlows(random);
+                network.RouteWaitingFlows();
                 network.EvaluateOverload(StepSeconds);
                 if(network.IsGameOver) CaptureResult();
             }

@@ -159,7 +159,7 @@ namespace CityFlow.Tests.EditMode
             s.Begin("A"); s.SelectTarget("B"); s.Confirm();
             int id = s.LastCreatedLineId.GetValueOrDefault();
             n.GenerateFlow("A", FlowColor.Red);
-            n.RouteWaitingFlows(new CityFlow.Infrastructure.Configuration.SystemRandomSource(1));
+            n.RouteWaitingFlows();
             Assert.That(s.CanUndoLastConnection, Is.False);
             Assert.That(s.UndoLastConnection(), Is.False);
             Assert.That(n.Snapshot().Lines.Single().InFlight.Count, Is.EqualTo(1));

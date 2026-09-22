@@ -10,7 +10,8 @@
     "R3.Unity",
     "CityFlow.Domain",
     "CityFlow.Infrastructure",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "CityFlow.Tests.Fixtures"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

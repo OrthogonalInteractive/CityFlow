@@ -20,6 +20,15 @@ namespace CityFlow.Tests.PlayMode
 {
     public sealed class HoverHudTests
     {
+        private static int ConnectExit(FlowNetwork network, string from, string to)
+        {
+            var session = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<CityFlow.Application.Connections.ConnectionSession>();
+            Assert.That(session.Begin(from), Is.True);
+            session.SelectTarget(to);
+            Assert.That(session.Confirm(), Is.EqualTo(ConnectionFailure.None));
+            return session.LastCreatedLineId.GetValueOrDefault();
+        }
+
         [UnitySetUp] public IEnumerator Load()
         {
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
@@ -78,15 +87,14 @@ namespace CityFlow.Tests.PlayMode
             yield return null; yield return null;
             var line=GameObject.Find("Line 1: S1 -> R1").GetComponent<LineRenderer>();
             Color normal=line.sharedMaterial.GetColor("_BaseColor");
-            var random=new SystemRandomSource(1);
-            for(int i=0;i<5;i++) { network.GenerateFlow("S1",FlowColor.Red); network.RouteWaitingFlows(random); network.AdvanceInFlight(20); }
-            for(int i=0;i<3;i++) network.GenerateFlow("S1",FlowColor.Red);
-            network.RouteWaitingFlows(random); network.AdvanceInFlight(20); yield return null;
+            Fixtures.RelayCongestion.Prepare(network, "S1", "R1", Enumerable.Repeat(FlowColor.Red, 5).ToArray(),
+                Enumerable.Repeat(FlowColor.Red, 3).ToArray(), (from, to) => ConnectExit(network, from, to));
+            network.AdvanceInFlight(20); yield return null;
             Assert.That(network.Snapshot().Lines[0].InFlight.All(f=>f.IsStopped),Is.True);
             Assert.That(line.sharedMaterial.GetColor("_BaseColor"),Is.Not.EqualTo(normal),"A blocked Line needs its own warning color.");
             var red=network.NodeDefinitions.Single(n=>n.Id=="RED").Position;
             Assert.That(network.TryConnect("R1","RED",new[]{relay,source,red}).Succeeded,Is.True);
-            network.RouteWaitingFlows(random); network.AdvanceInFlight(20); yield return null;
+            network.RouteWaitingFlows(); network.AdvanceInFlight(20); yield return null;
             Assert.That(line.sharedMaterial.GetColor("_BaseColor"),Is.EqualTo(normal));
         }
         [UnityTest] public IEnumerator BlockedPendingLineUsesDashedDeletionAndDoubleRouteChangeStrokes()
@@ -96,10 +104,9 @@ namespace CityFlow.Tests.PlayMode
             var relay = network.NodeDefinitions.Single(n => n.Id == "R1").Position;
             var created = network.TryConnect("S1", "R1", new[] { source, relay });
             int id = created.LineId.GetValueOrDefault(); Assert.That(created.Succeeded, Is.True);
-            var random = new SystemRandomSource(1);
-            for (int i = 0; i < 5; i++) { network.GenerateFlow("S1", FlowColor.Red); network.RouteWaitingFlows(random); network.AdvanceInFlight(20); }
-            for (int i = 0; i < 3; i++) network.GenerateFlow("S1", FlowColor.Red);
-            network.RouteWaitingFlows(random); network.AdvanceInFlight(20);
+            Fixtures.RelayCongestion.Prepare(network, "S1", "R1", Enumerable.Repeat(FlowColor.Red, 5).ToArray(),
+                Enumerable.Repeat(FlowColor.Red, 3).ToArray(), (from, to) => ConnectExit(network, from, to));
+            network.AdvanceInFlight(20);
             var before = network.Snapshot().Lines.Single();
             network.RequestDeletion(id); yield return null; yield return null;
             var dashes = Object.FindObjectsByType<LineRenderer>().Where(l => l.name == "Deletion dash " + id).ToArray();

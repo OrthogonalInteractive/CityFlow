@@ -7,9 +7,8 @@ namespace CityFlow.Domain.FlowNetwork
 {
     public sealed partial class FlowNetwork
     {
-        public void RouteWaitingFlows(IRandomSource random)
+        public void RouteWaitingFlows()
         {
-            if (random == null) throw new ArgumentNullException(nameof(random));
             InvalidateSnapshot();
             foreach (var definition in NodeDefinitions)
             {
@@ -17,17 +16,9 @@ namespace CityFlow.Domain.FlowNetwork
                 for (int index = 0; index < node.Buffer.Count;)
                 {
                     Flow flow = node.Buffer[index];
-                    // Specification 7: direct matching Sinks define the candidate set even when full.
-                    LineState[] open = node.Outgoing.Where(line => line.Status == LineStatus.Running).ToArray();
-                    LineState[] direct = open.Where(line => line.Destination.Definition.SinkColor == flow.Color).ToArray();
-                    LineState[] candidates = (direct.Length > 0 ? direct : open.Where(line => line.Destination.Definition.Kind == NodeKind.Relay))
-                        .Where(line => line.InFlight.Count < Settings.MaxInFlight).ToArray();
-                    if (candidates.Length == 0) { index++; continue; }
-                    // Matching Sinks use stable connection order; only Relay choices consume randomness.
-                    int choice = direct.Length > 0 || candidates.Length == 1 ? 0 : random.NextIndex(candidates.Length);
-                    if (choice < 0 || choice >= candidates.Length)
-                        throw new InvalidOperationException("Random source returned an index outside the candidate range.");
-                    LineState selected = candidates[choice];
+                    LineState? selected = RoutesFor(flow.Color)[node]
+                        .FirstOrDefault(line => line.InFlight.Count < Settings.MaxInFlight);
+                    if (selected == null) { index++; continue; }
                     selected.InFlight.Add(new InFlightState(flow));
                     node.Buffer.RemoveAt(index);
                 }

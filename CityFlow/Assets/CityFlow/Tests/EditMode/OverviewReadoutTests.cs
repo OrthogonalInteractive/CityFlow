@@ -11,7 +11,6 @@ namespace CityFlow.Tests.EditMode
 {
     public sealed class OverviewReadoutTests
     {
-        private sealed class First : IRandomSource { public int NextIndex(int count) => 0; }
         [Test] public void NodeReadoutShowsColorBufferAndConnectionUsage()
         {
             var n = Network(); n.GenerateFlow("S", FlowColor.Red);
@@ -34,7 +33,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void LineReadoutUsesActualRouteForTimeThroughputAndCapacity()
         {
-            var n = Network(); n.GenerateFlow("S", FlowColor.Red); n.RouteWaitingFlows(new First());
+            var n = Network(); n.GenerateFlow("S", FlowColor.Red); n.RouteWaitingFlows();
             string text = OverviewReadout.Describe(OverviewTarget.Line(1), n.Snapshot(), n.Settings);
             Assert.That(text, Does.Contain("LENGTH 20.0 m").And.Contain("TRAVEL 2.00 s")
                 .And.Contain("IN-FLIGHT 1/2 (50%)").And.Contain("THROUGHPUT 1.00 FLOW/s").And.Contain("MOVING 1 · STOPPED 0"));
