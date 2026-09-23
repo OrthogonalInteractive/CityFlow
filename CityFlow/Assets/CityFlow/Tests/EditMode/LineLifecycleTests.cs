@@ -90,7 +90,7 @@ namespace CityFlow.Tests.EditMode
         {
             var n=Create(); int id=Connect(n,"S","T"); Send(n); n.AdvanceInFlight(0.2);
             var stage=new StageDefinition(0,new Rect(-50,-50,100,100),Array.Empty<Bounds>(),n.NodeDefinitions);
-            using var p=new CityFlow.Application.Routing.LinePreviewService(n,new CityFlow.Infrastructure.Routing.GroundRoutePlanner(stage,0));
+            using var p=new CityFlow.Application.Routing.LinePreviewService(n,new CityFlow.Infrastructure.Routing.LineRoutePlanner(stage,0));
             using var session=new CityFlow.Application.Connections.ConnectionSession(n,p);
             Assert.That(session.BeginLineEdit(id),Is.True); var old=n.Snapshot().Lines.Single();
             p.InsertPoint(0,new Vector3(10,0,10)); session.SelectTarget("R");

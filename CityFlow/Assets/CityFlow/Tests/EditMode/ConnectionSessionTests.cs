@@ -24,7 +24,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void BeginPreviewAndConfirmCreateExactlyOneDirectedLine()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            using var p = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s = new ConnectionSession(n,p);
             Assert.That(s.Begin("A"),Is.True); Assert.That(s.SourceId,Is.EqualTo("A")); Assert.That(p.Current,Is.Null);
             s.SelectTarget("B"); Assert.That(p.Current?.DestinationId,Is.EqualTo("B")); Assert.That(n.Snapshot().Lines,Is.Empty);
@@ -37,7 +37,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void SourcesAreNotTargetsAndSelectingOnePreservesTheCurrentPreview()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
             using var s = new ConnectionSession(n, p);
             Assert.That(s.Begin("C"), Is.True);
             Assert.That(s.Candidates().Select(c => c.Node.Definition.Id), Is.EquivalentTo(new[] { "B", "D" }));
@@ -48,7 +48,7 @@ namespace CityFlow.Tests.EditMode
         }
         [TestCase(false)] [TestCase(true)] public void CancelAtEitherStepUsesNoSlots(bool withPreview)
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); Assert.That(s.Begin("A"),Is.True);
             if(withPreview) s.SelectTarget("B"); s.Cancel();
             Assert.That(s.IsActive,Is.False); Assert.That(p.Current,Is.Null); Assert.That(n.Snapshot().Lines,Is.Empty);
@@ -56,7 +56,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void CandidateBandsUseGroundDistanceAndRetainPreviewAcrossFiltering()
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A");
             var candidates=s.Candidates(); Assert.That(candidates.Count,Is.EqualTo(3));
             var b=candidates.Single(x=>x.Node.Definition.Id=="B"); Assert.That(b.Distance,Is.EqualTo(30));
@@ -70,7 +70,7 @@ namespace CityFlow.Tests.EditMode
         }
         [TestCase(true)] [TestCase(false)] public void ConfirmRechecksSlotsFilledAfterPreview(bool outgoing)
         {
-            var stage=Stage(1,1); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(1,1); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("B");
             Assert.That(p.Current?.CanConfirm,Is.True);
             n.TryConnect(outgoing?"A":"C",outgoing?"C":"B",outgoing?
@@ -81,7 +81,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void SelfIsIgnoredAndDuplicateRemainsSelectableWithAReason()
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("A");
             Assert.That(p.Current, Is.Null);
             Assert.That(s.Confirm(), Is.EqualTo(ConnectionFailure.InvalidRoute));
@@ -90,12 +90,12 @@ namespace CityFlow.Tests.EditMode
             Assert.That(s.Candidates().Single(x=>x.Node.Definition.Id=="B").Failure,Is.EqualTo(ConnectionFailure.DuplicateDirection));
             Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(1));
         }
-        private sealed class ChangingPlanner : IGroundRoutePlanner
+        private sealed class ChangingPlanner : ILineRoutePlanner
         {
             public bool Blocked;
-            public GroundRouteResult Generate(Vector3 a,Vector3 b)=>new GroundRouteResult(new LineRoute(new[]{a,b}));
-            public GroundRouteResult Validate(System.Collections.Generic.IReadOnlyList<Vector3> points)=>Blocked?
-                new GroundRouteResult(RouteFailure.Obstacle,0):new GroundRouteResult(new LineRoute(points));
+            public LineRouteResult Generate(Vector3 a,Vector3 b)=>new LineRouteResult(new LineRoute(new[]{a,b}));
+            public LineRouteResult Validate(System.Collections.Generic.IReadOnlyList<Vector3> points)=>Blocked?
+                new LineRouteResult(RouteFailure.Obstacle,0):new LineRouteResult(new LineRoute(points));
         }
         [Test] public void ConfirmRevalidatesGeometryAndKeepsInvalidPreviewForAnotherChoice()
         {
@@ -109,7 +109,7 @@ namespace CityFlow.Tests.EditMode
         {
             var original=Stage(); var stage=new StageDefinition(0,original.WalkableArea,
                 new[]{new Bounds(new Vector3(15,5,30),new Vector3(5,10,90))},original.Nodes);
-            var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("B");
             Assert.That(p.Current?.Geometry.Failure,Is.EqualTo(RouteFailure.SearchFailed));
             Assert.That(s.Confirm(),Is.EqualTo(ConnectionFailure.InvalidRoute)); Assert.That(s.SourceId,Is.EqualTo("A"));
@@ -117,14 +117,14 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void IdleActionsAndUnknownSourceDoNotCreateSessionOrPreview()
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.SelectTarget("B");
             Assert.That(s.Begin("missing"),Is.False); Assert.That(s.IsActive,Is.False); Assert.That(p.Current,Is.Null);
             Assert.That(s.Confirm(),Is.EqualTo(ConnectionFailure.InvalidRoute)); Assert.That(s.Candidates(),Is.Empty);
         }
         [Test] public void BeginCannotReplaceActiveSourceAndUnknownTargetDoesNotErasePreview()
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             using var s=new ConnectionSession(n,p); s.Begin("A"); s.SelectTarget("B");
             Assert.That(s.Begin("C"),Is.False); s.SelectTarget("missing");
             Assert.That(s.SourceId,Is.EqualTo("A")); Assert.That(p.Current?.DestinationId,Is.EqualTo("B"));
@@ -132,7 +132,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void SinkCannotStartConnectionAndOwnNodeIsNeverACandidate()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
             using var s = new ConnectionSession(n, p);
             Assert.That(s.Begin("B"), Is.False);
             Assert.That(s.IsActive, Is.False); Assert.That(p.Current, Is.Null);
@@ -142,7 +142,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void UndoNewEmptyLineReleasesBothSlotsOnlyOnce()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
             using var s = new ConnectionSession(n, p);
             s.Begin("A"); s.SelectTarget("B"); s.Confirm();
             Assert.That(s.CanUndoLastConnection, Is.True);
@@ -154,7 +154,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void UndoDoesNotDeleteOccupiedLineOrUndoAnEdit()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
             using var s = new ConnectionSession(n, p);
             s.Begin("A"); s.SelectTarget("B"); s.Confirm();
             int id = s.LastCreatedLineId.GetValueOrDefault();
@@ -172,7 +172,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void DismissingUndoOrStartingAnotherConnectionInvalidatesThePreviousUndo()
         {
             var stage = Stage(); var n = Network(stage);
-            using var p = new LinePreviewService(n, new GroundRoutePlanner(stage, 0.5f));
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
             using var s = new ConnectionSession(n, p);
             s.Begin("A"); s.SelectTarget("B"); s.Confirm();
             Assert.That(s.CanUndoLastConnection, Is.True); s.DismissUndo();
@@ -184,7 +184,7 @@ namespace CityFlow.Tests.EditMode
         }
         [Test] public void BandThresholdsMustBeFinitePositiveAndOrdered()
         {
-            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f));
+            var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
             Assert.Throws<ArgumentOutOfRangeException>(()=>new ConnectionSession(n,p,0,70));
             Assert.Throws<ArgumentOutOfRangeException>(()=>new ConnectionSession(n,p,70,30));
             Assert.Throws<ArgumentOutOfRangeException>(()=>new ConnectionSession(n,p,30,float.PositiveInfinity));

@@ -78,7 +78,7 @@ namespace CityFlow.Presentation.Overview
             if (pan != Vector2.zero) Pan(pan * (sceneCamera.orthographicSize * Time.unscaledDeltaTime));
             float zoom = zoomInput.ReadValue<float>();
             if (!blocked && zoom != 0) Zoom(zoom / 120f);
-            if (!EditingRoute && !blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
+            if ((!EditingRoute || stage?.AllowsHeight == true) && !blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
             if (!blocked && dragInput.IsPressed() && delta != Vector2.zero)
                 Pan(-delta * (2 * sceneCamera.orthographicSize / Mathf.Max(1, Screen.height)));
             if (point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
@@ -114,8 +114,9 @@ namespace CityFlow.Presentation.Overview
             foreach (LineSnapshot line in network.Snapshot().Lines)
                 for (int i = 1; i < line.Route.Points.Count; i++)
                 {
-                    Vector3 a = sceneCamera.WorldToScreenPoint(line.Route.Points[i-1] + Vector3.up * 0.2f);
-                    Vector3 b = sceneCamera.WorldToScreenPoint(line.Route.Points[i] + Vector3.up * 0.2f);
+                    Vector3 lift = stage.AllowsHeight ? Vector3.zero : Vector3.up * 0.2f;
+                    Vector3 a = sceneCamera.WorldToScreenPoint(line.Route.Points[i-1] + lift);
+                    Vector3 b = sceneCamera.WorldToScreenPoint(line.Route.Points[i] + lift);
                     if (a.z <= 0 || b.z <= 0) continue;
                     Vector2 segment = (Vector2)(b-a);
                     float t = segment.sqrMagnitude == 0 ? 0 : Mathf.Clamp01(Vector2.Dot(screen-(Vector2)a, segment)/segment.sqrMagnitude);
@@ -160,7 +161,7 @@ namespace CityFlow.Presentation.Overview
             Hovered = default;
             if (stage == null || sceneCamera == null) return;
             pivot = new Vector3(stage.WalkableArea.center.x, stage.GroundHeight, stage.WalkableArea.center.y);
-            yaw = EditingRoute ? 0 : -10; pitch = EditingRoute ? 90 : 60;
+            yaw = EditingRoute ? 0 : -10; pitch = EditingRoute && !stage.AllowsHeight ? 90 : 60;
             sceneCamera.orthographicSize = Mathf.Max(stage.WalkableArea.height * 0.7f, stage.WalkableArea.width / sceneCamera.aspect * 0.7f);
             ApplyPose();
         }

@@ -12,7 +12,7 @@ using UnityEngine.UIElements;
 namespace CityFlow.Presentation.UI
 {
     [RequireComponent(typeof(UIDocument))]
-    public sealed class GroundPreviewView : MonoBehaviour
+    public sealed class LinePreviewView : MonoBehaviour
     {
         private LinePreviewService? service;
         private UIDocument? document;
@@ -56,19 +56,20 @@ namespace CityFlow.Presentation.UI
                 label.text = text; label.EnableInClassList("full",state != null && !state.CanConfirm);
             }
             if (state == null) return;
-            drawing = new GameObject("Ground Route Preview"); drawing.transform.SetParent(transform.parent);
+            drawing = new GameObject("Line Route Preview"); drawing.transform.SetParent(transform.parent);
             if (state.Geometry.Failure == RouteFailure.SearchFailed || state.Geometry.Failure == RouteFailure.InvalidPoints) return;
             if (validMaterial == null) validMaterial = CreateMaterial(new Color(0.35f,1,0.94f,0.7f));
             if (invalidMaterial == null) invalidMaterial = CreateMaterial(new Color(1,0.32f,0.20f,0.75f));
             for (int i = 1; i < state.Points.Count; i++)
             {
-                Vector3 a = state.Points[i-1] + Vector3.up*0.3f, b = state.Points[i] + Vector3.up*0.3f;
+                Vector3 lift = service?.SupportsHeight == true ? Vector3.zero : Vector3.up * 0.3f;
+                Vector3 a = state.Points[i-1] + lift, b = state.Points[i] + lift;
                 float length = Vector3.Distance(a,b);
                 if (float.IsNaN(length) || float.IsInfinity(length) || length == 0) continue;
                 Material material = state.CanConfirm || (state.Geometry.InvalidSegment >= 0 && state.Geometry.InvalidSegment != i-1) ? validMaterial : invalidMaterial;
                 for (float d = 0; d < length; d += 3)
                     Stroke(new[] { Vector3.Lerp(a,b,d/length),Vector3.Lerp(a,b,Mathf.Min(length,d+1.8f)/length) },material,0.8f);
-                Vector3 direction = (b-a).normalized, side = Vector3.Cross(Vector3.up,direction), middle = Vector3.Lerp(a,b,0.6f);
+                Vector3 direction = (b-a).normalized, side = CityFlow.Presentation.Rendering.RouteVisualGeometry.Side(direction), middle = Vector3.Lerp(a,b,0.6f);
                 Stroke(new[] { middle-direction*1.6f+side, middle, middle-direction*1.6f-side },material,0.65f);
             }
         }
@@ -94,6 +95,7 @@ namespace CityFlow.Presentation.UI
             RouteFailure.Obstacle => "INVALID · Building collision",
             RouteFailure.OutsideArea => "INVALID · Outside walkable area",
             RouteFailure.GroundHeight => "INVALID · Ground height required",
+            RouteFailure.HeightRange => "INVALID · Outside the stage height range",
             RouteFailure.EndpointMismatch => "INVALID · Endpoints must stay on Nodes",
             RouteFailure.SearchFailed => "Could not generate an automatic route.\nEndpoints retained for manual editing.",
             _ => "INVALID · Route points are not valid"

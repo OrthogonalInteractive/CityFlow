@@ -55,7 +55,7 @@ namespace CityFlow.Composition
             builder.RegisterInstance(stage);
             var network = stageConfiguration.LoadNetwork(stage, gameplaySettings.LoadNetworkSettings());
             builder.RegisterInstance(network);
-            builder.RegisterInstance<IGroundRoutePlanner>(new GroundRoutePlanner(stage, gameplaySettings.Clearance));
+            builder.RegisterInstance<ILineRoutePlanner>(new LineRoutePlanner(stage, gameplaySettings.Clearance));
             builder.Register<LinePreviewService>(Lifetime.Singleton);
             // Provisional distance bands scale with the playable area's diagonal [m].
             builder.Register<ConnectionSession>(Lifetime.Singleton)

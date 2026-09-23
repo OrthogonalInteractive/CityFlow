@@ -8,12 +8,14 @@ namespace CityFlow.Application.Connections
     {
         public NodeSnapshot Node { get; }
         public float Distance { get; }
+        public float HeightDifference { get; }
         public DistanceBand Band { get; }
         public int SourceOutgoingUsed { get; }
         public int SourceOutgoingLimit { get; }
         public ConnectionFailure Failure { get; }
         public ConnectionCandidate(NodeSnapshot node, float distance, DistanceBand band, NodeSnapshot source, ConnectionFailure failure)
         {
+            HeightDifference = node.Definition.Position.y - source.Definition.Position.y;
             Node = node; Distance = distance; Band = band; Failure = failure;
             SourceOutgoingUsed = source.OutgoingUsed; SourceOutgoingLimit = source.Definition.MaxOutgoing;
         }

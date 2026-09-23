@@ -2,5 +2,5 @@
 
 namespace CityFlow.Domain.Spatial
 {
-    public enum RouteFailure { None, InvalidPoints, GroundHeight, OutsideArea, Obstacle, SearchFailed, EndpointMismatch }
+    public enum RouteFailure { None, InvalidPoints, GroundHeight, OutsideArea, Obstacle, SearchFailed, EndpointMismatch, HeightRange }
 }

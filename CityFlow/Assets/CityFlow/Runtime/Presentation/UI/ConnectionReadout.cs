@@ -18,7 +18,7 @@ namespace CityFlow.Presentation.UI
             ConnectionFailure.IncomingLimit => "TO IN slots are full",
             ConnectionFailure.SelfConnection => "Choose two different Nodes",
             ConnectionFailure.LineUnavailable => "Line removed or another change is pending",
-            ConnectionFailure.InvalidRoute => "A valid Ground route is required",
+            ConnectionFailure.InvalidRoute => "A valid route is required",
             _ => "Node is unavailable"
         };
         public static string Candidate(ConnectionCandidate candidate, LinePreviewState? preview = null)
@@ -29,7 +29,7 @@ namespace CityFlow.Presentation.UI
             if (candidate.Failure == ConnectionFailure.None && preview?.DestinationId == definition.Id)
                 status = preview.Geometry.IsValid ? "Route preview ready / not connected" : "No valid route / see Preview reason";
             return $"{definition.Id} / {definition.Kind.ToString().ToUpperInvariant()}{color}\n" +
-                $"GROUND DISTANCE {candidate.Distance:0.0} m / {candidate.Band.ToString().ToUpperInvariant()}\n" +
+                $"DISTANCE {candidate.Distance:0.0} m / {candidate.Band.ToString().ToUpperInvariant()} · HEIGHT {candidate.HeightDifference:+0.0;-0.0;0.0} m\n" +
                 $"FROM OUT {candidate.SourceOutgoingUsed}/{candidate.SourceOutgoingLimit}  →  TO IN {node.IncomingUsed}/{definition.MaxIncoming}\n" +
                 (definition.Kind == NodeKind.Relay ? $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n" : "") + status;
         }

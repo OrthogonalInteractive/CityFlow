@@ -73,7 +73,7 @@ namespace CityFlow.Application.Connections
             return nodes.Where(node => node.Definition.Id != SourceId && node.Definition.Kind != NodeKind.Source).Select(node =>
             {
                 Vector3 delta = node.Definition.Position - source.Definition.Position;
-                float distance = new Vector2(delta.x,delta.z).magnitude;
+                float distance = delta.magnitude;
                 DistanceBand band = distance <= NearLimit ? DistanceBand.Near : distance <= MidLimit ? DistanceBand.Mid : DistanceBand.Far;
                 return new ConnectionCandidate(node,distance,band,source,network.CheckConnection(SourceId,node.Definition.Id));
             }).Where(candidate => Filter == DistanceBand.All || candidate.Band == Filter).ToArray();

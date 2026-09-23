@@ -69,6 +69,7 @@ namespace CityFlow.Domain.FlowNetwork
             }
         }
         public NetworkSettings Settings { get; }
+        public bool AllowsHeight => stage.AllowsHeight;
         public IReadOnlyList<NodeDefinition> NodeDefinitions => cachedDefinitions ??= Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
         {
@@ -79,7 +80,7 @@ namespace CityFlow.Domain.FlowNetwork
         }
         public void ValidateAdditionalNodes(IEnumerable<NodeDefinition> additions)
         {
-            new StageDefinition(stage.GroundHeight,stage.WalkableArea,stage.Buildings,NodeDefinitions.Concat(additions)).Validate(Settings.Clearance);
+            new StageDefinition(stage.GroundHeight,stage.WalkableArea,stage.Buildings,NodeDefinitions.Concat(additions),stage.MaximumAltitude).Validate(Settings.Clearance);
         }
         public bool TryAddNodes(IReadOnlyList<NodeDefinition> additions)
         {

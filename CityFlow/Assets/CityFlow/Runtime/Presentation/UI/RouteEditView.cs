@@ -24,6 +24,7 @@ namespace CityFlow.Presentation.UI
         private readonly List<VisualElement> handles = new();
         private readonly List<(Button button, Action callback)> bindings = new();
         private int selected = -1;
+        private FloatField? heightInput;
         public void Initialize(LinePreviewService service, ConnectionSession connection, NodeConnectionController cameraController,
             OverviewController input, Camera camera)
         {
@@ -43,6 +44,8 @@ namespace CityFlow.Presentation.UI
             root=document.rootVisualElement;
             Button("route-remove",Remove); Button("route-regenerate",()=>{ preview.Regenerate(); selected=-1; });
             Button("route-apply",()=>session.Confirm()); Button("route-cancel",()=>controller?.CancelSelection());
+            heightInput = root.Q<FloatField>("route-height");
+            heightInput.RegisterValueChangedCallback(ChangeHeight);
             actions?.Enable();
         }
         private void Button(string name,Action callback)
@@ -53,22 +56,28 @@ namespace CityFlow.Presentation.UI
         {
             if (controller?.IsEditing != true || overview?.IsPointerBlocked?.Invoke(screen) == true ||
                 sceneCamera == null || preview?.Current == null) return;
-            var points=preview.Current.Points; var plane=new Plane(Vector3.up,points[0]);
-            Ray ray=sceneCamera.ScreenPointToRay(screen); if (!plane.Raycast(ray,out float distance)) return;
-            Vector3 position=ray.GetPoint(distance); int nearest=0; float best=float.PositiveInfinity;
-            for (int i=0;i<points.Count-1;i++)
+            var points = preview.Current.Points;
+            int nearest = 0;
+            float best = float.PositiveInfinity, height = points[0].y;
+            for (int i = 0; i < points.Count - 1; i++)
             {
-                Vector3 d=points[i+1]-points[i]; float t=d.sqrMagnitude>0 ? Mathf.Clamp01(Vector3.Dot(position-points[i],d)/d.sqrMagnitude) : 0;
-                float error=(position-(points[i]+d*t)).sqrMagnitude; if (error<best) { best=error; nearest=i; }
+                Vector2 a = sceneCamera.WorldToScreenPoint(points[i]);
+                Vector2 b = sceneCamera.WorldToScreenPoint(points[i + 1]);
+                Vector2 delta = b - a;
+                float t = delta.sqrMagnitude > 0 ? Mathf.Clamp01(Vector2.Dot(screen - a, delta) / delta.sqrMagnitude) : 0;
+                float error = (screen - (a + delta * t)).sqrMagnitude;
+                if (error < best) { best = error; nearest = i; height = Mathf.Lerp(points[i].y, points[i + 1].y, t); }
             }
-            if (preview.InsertPoint(nearest,position)) selected=nearest+1;
+            var plane = new Plane(Vector3.up, new Vector3(0, height, 0));
+            Ray ray = sceneCamera.ScreenPointToRay(screen);
+            if (plane.Raycast(ray, out float distance) && preview.InsertPoint(nearest, ray.GetPoint(distance))) selected = nearest + 1;
         }
         private void Move(int index,Vector2 panelPoint)
         {
             if (root == null || sceneCamera == null || preview?.Current == null) return;
             var screen=new Vector2(panelPoint.x/root.layout.width*sceneCamera.pixelWidth,
                 (1-panelPoint.y/root.layout.height)*sceneCamera.pixelHeight);
-            var plane=new Plane(Vector3.up,preview.Current.Points[0]); var ray=sceneCamera.ScreenPointToRay(screen);
+            var plane=new Plane(Vector3.up,preview.Current.Points[index]); var ray=sceneCamera.ScreenPointToRay(screen);
             if (plane.Raycast(ray,out float distance)) preview.MovePoint(index,ray.GetPoint(distance));
         }
         private void LateUpdate()
@@ -101,12 +110,30 @@ namespace CityFlow.Presentation.UI
                 label.EnableInClassList("chosen",i==selected); label.EnableInClassList("endpoint",i==0||i==handles.Count-1);
             }
             bool editable=selected>0 && selected<handles.Count-1;
+            root.Q("route-height-controls").style.display = preview.SupportsHeight ? DisplayStyle.Flex : DisplayStyle.None;
+            if (heightInput != null)
+            {
+                heightInput.SetEnabled(editable);
+                if (editable && heightInput.value != state.Points[selected].y) heightInput.SetValueWithoutNotify(state.Points[selected].y);
+            }
             root.Q<Button>("route-remove").SetEnabled(editable);
             root.Q<Button>("route-apply").SetEnabled(state.CanConfirm);
-            root.Q<Label>("route-point-detail").text=editable ? $"POINT {selected} / X {state.Points[selected].x:0.0} / Z {state.Points[selected].z:0.0}" : "Select an interior handle to move or remove.";
+            root.Q<Label>("route-point-detail").text=editable ? $"POINT {selected} / X {state.Points[selected].x:0.0} / Y {state.Points[selected].y:0.0} / Z {state.Points[selected].z:0.0}" : "Select an interior handle to move or remove.";
+        }
+        private void ChangeHeight(ChangeEvent<float> change)
+        {
+            if (controller?.IsEditing != true || preview?.SupportsHeight != true || preview.Current == null ||
+                selected <= 0 || selected >= preview.Current.Points.Count - 1) return;
+            Vector3 point = preview.Current.Points[selected];
+            if (float.IsNaN(change.newValue) || float.IsInfinity(change.newValue))
+            { heightInput?.SetValueWithoutNotify(point.y); return; }
+            point.y = change.newValue;
+            preview.MovePoint(selected, point);
         }
         private void Unbind()
         {
+            if (heightInput != null) heightInput.UnregisterValueChangedCallback(ChangeHeight);
+            heightInput = null;
             actions?.Disable(); foreach(var b in bindings) b.button.clicked-=b.callback; bindings.Clear();
             foreach(var h in handles) h.RemoveFromHierarchy(); handles.Clear(); root=null;
         }

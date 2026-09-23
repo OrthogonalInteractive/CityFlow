@@ -17,19 +17,19 @@ namespace CityFlow.Tests.EditMode
             new Rect(-20,-20,40,40), buildings, new NodeDefinition[] {
                 new SourceNodeDefinition("A", new Vector3(-15,0,0), maxOutgoing: 2),
                 new SinkNodeDefinition("B", new Vector3(15,0,0), FlowColor.Red, maxIncoming: 2) });
-        private static LineRoute Route(GroundRouteResult result) => result.Route ?? throw new AssertionException("A valid route is required.");
+        private static LineRoute Route(LineRouteResult result) => result.Route ?? throw new AssertionException("A valid route is required.");
         private static LinePreviewState Current(LinePreviewService preview) => preview.Current ?? throw new AssertionException("A Preview is required.");
         private static readonly Vector3 A = new Vector3(-15,0,0), B = new Vector3(15,0,0);
         [Test] public void ClearGroundReturnsDirectRouteWithExactEndpoints()
         {
-            var r = new GroundRoutePlanner(Stage(),0.5f).Generate(A,B);
+            var r = new LineRoutePlanner(Stage(),0.5f).Generate(A,B);
             Assert.That(r.IsValid, Is.True); Assert.That(Route(r).Points, Is.EqualTo(new[] { A,B }));
             Assert.That(Route(r).Length, Is.EqualTo(30));
         }
         [Test] public void CentralFootprintProducesRepeatableGroundDetour()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var planner = new GroundRoutePlanner(stage,0.5f); var r = planner.Generate(A,B);
+            var planner = new LineRoutePlanner(stage,0.5f); var r = planner.Generate(A,B);
             Assert.That(r.IsValid, Is.True); Assert.That(Route(r).Length, Is.GreaterThan(30));
             Assert.That(stage.IsRouteWalkable(Route(r),0.5f), Is.True);
             Assert.That(Route(r).Points.All(p=>p.y==0), Is.True);
@@ -38,7 +38,7 @@ namespace CityFlow.Tests.EditMode
         [TestCase(1)] [TestCase(-1)] public void ForcedDetourUsesTheOpenSide(int closedSide)
         {
             var stage = Stage(new Bounds(new Vector3(0,5,closedSide*10),new Vector3(8,10,30)));
-            var r = new GroundRoutePlanner(stage,0.5f).Generate(A,B);
+            var r = new LineRoutePlanner(stage,0.5f).Generate(A,B);
             Assert.That(r.IsValid, Is.True);
             Assert.That(Route(r).Points.Any(p=>p.z*closedSide < -5), Is.True);
             Assert.That(stage.IsRouteWalkable(Route(r),0.5f), Is.True);
@@ -47,25 +47,25 @@ namespace CityFlow.Tests.EditMode
         {
             var stage = Stage(new Bounds(new Vector3(0,5,-10-gap/4), new Vector3(5,10,20-gap/2)),
                 new Bounds(new Vector3(0,5,10+gap/4),new Vector3(5,10,20-gap/2)));
-            var r = new GroundRoutePlanner(stage,0.6f).Generate(A,B);
+            var r = new LineRoutePlanner(stage,0.6f).Generate(A,B);
             Assert.That(r.IsValid, Is.EqualTo(valid));
             if (!valid) Assert.That(r.Failure, Is.EqualTo(RouteFailure.SearchFailed));
         }
         [Test] public void SegmentCrossingFootprintIsInvalidEvenWhenControlPointsAreOutside()
         {
-            var planner = new GroundRoutePlanner(Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10))),0.5f);
+            var planner = new LineRoutePlanner(Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10))),0.5f);
             var r = planner.Validate(new[] { A,B });
             Assert.That(r.Failure, Is.EqualTo(RouteFailure.Obstacle)); Assert.That(r.InvalidSegment, Is.Zero);
         }
         [Test] public void DomainAndInfrastructureRejectTheSameFullRoute()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var r = new GroundRoutePlanner(stage,0.5f).Validate(new[] { A,B });
+            var r = new LineRoutePlanner(stage,0.5f).Validate(new[] { A,B });
             Assert.That(r.IsValid, Is.EqualTo(stage.IsRouteWalkable(new LineRoute(new[] { A,B }),0.5f)));
         }
         [Test] public void HeightAndAreaFailuresHaveDistinctReasons()
         {
-            var planner = new GroundRoutePlanner(Stage(),0.5f);
+            var planner = new LineRoutePlanner(Stage(),0.5f);
             Assert.That(planner.Validate(new[] { A,B+Vector3.up }).Failure, Is.EqualTo(RouteFailure.GroundHeight));
             Assert.That(planner.Generate(A,new Vector3(30,0,0)).Failure, Is.EqualTo(RouteFailure.OutsideArea));
         }
@@ -73,7 +73,7 @@ namespace CityFlow.Tests.EditMode
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
             var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
-            var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
+            var preview = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null); var r = Current(preview);
             Assert.That(r.CanConfirm, Is.True); Assert.That(r.OutgoingAfter, Is.EqualTo(1)); Assert.That(r.IncomingAfter, Is.EqualTo(1));
             Assert.That(r.TravelTime, Is.EqualTo(r.Length/20)); Assert.That(r.Throughput, Is.EqualTo(10/r.TravelTime));
@@ -84,7 +84,7 @@ namespace CityFlow.Tests.EditMode
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(5,10,50)));
             var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
-            var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
+            var preview = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null); Assert.That(Current(preview).CanConfirm, Is.False);
             Assert.That(Current(preview).Geometry.Failure, Is.EqualTo(RouteFailure.SearchFailed));
             Assert.That(Current(preview).Points, Is.EqualTo(new[] { A,B })); Assert.That(n.Snapshot().Lines, Is.Empty);
@@ -92,7 +92,7 @@ namespace CityFlow.Tests.EditMode
         [Test] public void EditedPreviewValidatesAllSegmentsAndKeepsEndpointsFixed()
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
-            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f)),new GroundRoutePlanner(stage,0.5f));
+            var preview = new LinePreviewService(new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f)),new LineRoutePlanner(stage,0.5f));
             preview.Generate("A","B"); preview.UpdatePoints(new[] { A,B });
             Assert.That(Current(preview).Geometry.Failure, Is.EqualTo(RouteFailure.Obstacle));
             preview.UpdatePoints(new[] { A,new Vector3(-15,0,-10),new Vector3(15,0,-10),B });
@@ -104,7 +104,7 @@ namespace CityFlow.Tests.EditMode
         {
             var stage = Stage(); var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             n.TryConnect("A","B",new[] { A,B });
-            var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
+            var preview = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(preview.Current, Is.Not.Null);
             Assert.That(Current(preview).ConnectionFailure, Is.EqualTo(ConnectionFailure.DuplicateDirection));
             Assert.That(Current(preview).CanConfirm, Is.False); Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(1));
@@ -118,13 +118,13 @@ namespace CityFlow.Tests.EditMode
             var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
             Assert.That(n.TryConnect(outgoing ? "A" : "C",outgoing ? "C" : "B",
                 outgoing ? new[] { A,new Vector3(0,0,15) } : new[] { new Vector3(0,0,15),B }).Succeeded, Is.True);
-            var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
+            var preview = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             Assert.That(Current(preview).ConnectionFailure, Is.EqualTo(outgoing ? ConnectionFailure.OutgoingLimit : ConnectionFailure.IncomingLimit));
             Assert.That(Current(preview).CanConfirm, Is.False); Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(1));
         }
         [Test] public void InvalidPointsAndUnknownEndpointsAreRejected()
         {
-            var stage = Stage(); var planner = new GroundRoutePlanner(stage,0.5f);
+            var stage = Stage(); var planner = new LineRoutePlanner(stage,0.5f);
             Assert.That(planner.Validate(Array.Empty<Vector3>()).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
             Assert.That(planner.Validate(new[] { A,A,B }).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
             Assert.That(planner.Validate(new[] { A,new Vector3(float.NaN,0,0),B }).Failure, Is.EqualTo(RouteFailure.InvalidPoints));
@@ -136,7 +136,7 @@ namespace CityFlow.Tests.EditMode
         {
             var stage = Stage(new Bounds(new Vector3(0,5,0),new Vector3(10,10,10)));
             var n = new FlowNetwork(stage,new NetworkSettings(50,50,10,20,0.5f));
-            var preview = new LinePreviewService(n,new GroundRoutePlanner(stage,0.5f)); preview.Generate("A","B");
+            var preview = new LinePreviewService(n,new LineRoutePlanner(stage,0.5f)); preview.Generate("A","B");
             var candidate = Current(preview);
             Assert.That(n.TryConnect("A","B",candidate.Points).Succeeded, Is.True);
             n.GenerateFlow("A",FlowColor.Red); n.RouteWaitingFlows(); n.AdvanceInFlight(candidate.TravelTime/2);

@@ -13,7 +13,7 @@ namespace CityFlow.Application.Routing
         public string SourceId { get; }
         public string DestinationId { get; }
         public IReadOnlyList<Vector3> Points { get; }
-        public GroundRouteResult Geometry { get; }
+        public LineRouteResult Geometry { get; }
         public ConnectionFailure ConnectionFailure { get; }
         public bool CanConfirm => Geometry.IsValid && ConnectionFailure == ConnectionFailure.None;
         public int OutgoingAfter { get; }
@@ -24,7 +24,7 @@ namespace CityFlow.Application.Routing
         public double Length => Geometry.Route?.Length ?? 0;
         public double TravelTime { get; }
         public double Throughput => TravelTime > 0 ? Capacity / TravelTime : 0;
-        public LinePreviewState(string source, string destination, IReadOnlyList<Vector3> points, GroundRouteResult geometry,
+        public LinePreviewState(string source, string destination, IReadOnlyList<Vector3> points, LineRouteResult geometry,
             ConnectionFailure connectionFailure, NodeSnapshot? from, NodeSnapshot? to, NetworkSettings settings, bool replacement = false)
         {
             SourceId = source; DestinationId = destination; Points = Array.AsReadOnly(points.ToArray());

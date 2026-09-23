@@ -10,19 +10,23 @@ namespace CityFlow.Domain.Spatial
     public sealed class StageDefinition
     {
         public float GroundHeight { get; }
+        public float MaximumAltitude { get; }
+        public bool AllowsHeight => MaximumAltitude > 0;
+        public float CeilingHeight => GroundHeight + MaximumAltitude;
         public Rect WalkableArea { get; }
         public IReadOnlyList<Bounds> Buildings { get; }
         public IReadOnlyList<NodeDefinition> Nodes { get; }
         public StageDefinition(float groundHeight, Rect walkableArea, IEnumerable<Bounds> buildings,
-            IEnumerable<NodeDefinition> nodes)
+            IEnumerable<NodeDefinition> nodes, float maximumAltitude = 0)
         {
+            MaximumAltitude = maximumAltitude;
             GroundHeight = groundHeight; WalkableArea = walkableArea;
             Buildings = Array.AsReadOnly(buildings.ToArray());
             Nodes = Array.AsReadOnly(nodes.ToArray());
         }
         public void Validate(float clearance)
         {
-            if (!Finite(GroundHeight) || !Finite(clearance) || clearance < 0 ||
+            if (!Finite(GroundHeight) || !Finite(MaximumAltitude) || MaximumAltitude < 0 || !Finite(CeilingHeight) || !Finite(clearance) || clearance < 0 ||
                 !Finite(WalkableArea.x) || !Finite(WalkableArea.y) || !Finite(WalkableArea.width) ||
                 !Finite(WalkableArea.height) || WalkableArea.width <= 0 || WalkableArea.height <= 0)
                 throw new ArgumentException("Ground and clearance must be finite and define a positive area.");
@@ -47,7 +51,7 @@ namespace CityFlow.Domain.Spatial
                     !Enum.IsDefined(typeof(FlowNetwork.FlowColor), node.SinkColor.Value)))
                     throw new ArgumentException("Only Sinks must have one valid color.");
                 if (!IsWalkable(node.Position, clearance))
-                    throw new ArgumentException($"Node {node.Id} is outside walkable Ground.");
+                    throw new ArgumentException($"Node {node.Id} is outside the buildable space.");
             }
             if (Nodes.Any(node => node.Kind == FlowNetwork.NodeKind.Source) &&
                 !Nodes.Any(node => node.Kind == FlowNetwork.NodeKind.Sink))
@@ -59,12 +63,14 @@ namespace CityFlow.Domain.Spatial
         public RouteFailure ValidatePoint(Vector3 point, float clearance)
         {
             if (!Finite(point)) return RouteFailure.InvalidPoints;
-            if (Mathf.Abs(point.y - GroundHeight) > 0.0001f) return RouteFailure.GroundHeight;
+            if (!AllowsHeight && Mathf.Abs(point.y - GroundHeight) > 0.0001f) return RouteFailure.GroundHeight;
+            if (AllowsHeight && (point.y < GroundHeight || point.y > CeilingHeight)) return RouteFailure.HeightRange;
             if (point.x < WalkableArea.xMin + clearance || point.x > WalkableArea.xMax - clearance ||
                 point.z < WalkableArea.yMin + clearance || point.z > WalkableArea.yMax - clearance)
                 return RouteFailure.OutsideArea;
             return Buildings.Any(b => point.x >= b.min.x-clearance && point.x <= b.max.x+clearance &&
-                point.z >= b.min.z-clearance && point.z <= b.max.z+clearance) ? RouteFailure.Obstacle : RouteFailure.None;
+                point.z >= b.min.z-clearance && point.z <= b.max.z+clearance &&
+                (!AllowsHeight || (point.y >= b.min.y-clearance && point.y <= b.max.y+clearance))) ? RouteFailure.Obstacle : RouteFailure.None;
         }
 
         public bool IsRouteWalkable(LineRoute route, float clearance) =>
@@ -88,7 +94,8 @@ namespace CityFlow.Domain.Spatial
                     Vector3 delta = points[i]-start;
                     double enter = 0, exit = 1;
                     if (ClipAxis(start.x, delta.x, building.min.x-clearance, building.max.x+clearance, ref enter, ref exit) &&
-                        ClipAxis(start.z, delta.z, building.min.z-clearance, building.max.z+clearance, ref enter, ref exit))
+                        ClipAxis(start.z, delta.z, building.min.z-clearance, building.max.z+clearance, ref enter, ref exit) &&
+                        (!AllowsHeight || ClipAxis(start.y, delta.y, building.min.y-clearance, building.max.y+clearance, ref enter, ref exit)))
                     { invalidSegment = i-1; return RouteFailure.Obstacle; }
                 }
             return RouteFailure.None;

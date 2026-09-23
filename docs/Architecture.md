@@ -2,7 +2,7 @@
 
 ## 目的と現在の状態
 
-Unity 6000.4.7f1上で、仕様書v0.1の配線UXと輸送ルールを検証する。
+Unity 6000.4.7f1上で、仕様書v0.1の配線UX・輸送ルールとv0.2 Δ1の高さ配線を検証する。
 DDDを用いてルールの所有者と状態変更の境界を明確にし、EditMode中心のTDDで実装する。
 この文書は現在の設計を記す。変更経緯・旧数値は [設計履歴](history/Architecture-v01.md)、仕様§18の検証対応は [完了条件の追跡](V01-Acceptance.md) を参照。
 
@@ -13,7 +13,7 @@ DDDを用いてルールの所有者と状態変更の境界を明確にし、Ed
 | モジュール | 所有する概念 | 責務と境界 |
 | --- | --- | --- |
 | FlowNetwork | FLOW、Node、Source、Sink、Relay、Buffer、Line、In-Flight | ネットワークの整合性、接続枠、直結優先・最短距離のFLOW Routing、容量、受け渡し、削除予約・取消、経路切替 |
-| Spatial | LineRoute、経路長、Ground制約、通行可能領域 | 幾何経路の値と妥当性。建物の取り込み・Physics問い合わせ・探索アルゴリズムの実装は外部へ分ける |
+| Spatial | LineRoute、3D経路長、Ground／高度制約、通行可能領域 | 幾何経路の値と妥当性。建物の取り込み・Physics問い合わせ・探索アルゴリズムの実装は外部へ分ける |
 | Progression | GameSession、Wave、生成予定、Overload猶予 | 同一都市内の進行、時間、生成する色の成立条件、SourceによるGame Over |
 
 Hubは構成上の役割でありNode種別にしない。FLOW Routingは既存ネットワークに基づく次の配送先選択、Line Routingは障害物を避ける幾何経路生成であり、別のサービス・テストとして扱う。
@@ -91,11 +91,11 @@ FLOWが残るLineの削除・経路切替は再開後に進める。既に空の
 
 直結があるNodeでは探索の辺を作成順先頭の同色直結だけに制限し、実際には選ばないRelay経由の近道を残り距離に含めない。出発時の複数直結は従来の作成順で空きを探す。Relay候補は等距離内で空き・ステップ数・Line IDの順に決定する。受け取り先BufferやLineの満杯は経路表の重みに含めず、最短候補が満杯なら待つ。無関係な色のFLOWの評価は続ける。
 
-経路表は色が必要になった時に作成し、Node追加、Line追加、削除予約、取消、経路切替要求と排出完了時に失効する。生成・輸送・容量回復だけでは再探索しない。既存FLOWの現在位置やIn-Flight所有権は変更しない。将来の3D対応でも評価は`LineRoute.Length`を使うが、現時点ではGroundの制約を維持する。混雑予測・Widthを使う自動分散は未実装。
+経路表は色が必要になった時に作成し、Node追加、Line追加、削除予約、取消、経路切替要求と排出完了時に失効する。生成・輸送・容量回復だけでは再探索しない。既存FLOWの現在位置やIn-Flight所有権は変更しない。高さ有効時も評価は`LineRoute.Length`の3D実経路長を使う。混雑予測・Widthを使う自動分散は未実装。
 
 ## 経路とPLATEAUへの拡張
 
-現行のIGroundRoutePlannerはApplicationの境界で、InfrastructureのGroundRoutePlannerが実装する。
+`ILineRoutePlanner`はApplicationの境界で、Infrastructureの`LineRoutePlanner`が実装する。Ground専用名から改名し、アセットGUIDを維持した。
 
 | 境界の候補 | v0.1 | v0.2 / v0.3 |
 | --- | --- | --- |
@@ -129,7 +129,7 @@ Snapshotの`IsBufferFull`はSource／Relayの容量到達を表し、`IsInputSto
 
 ## 現行の輸送とLine操作
 
-Source／RelayはBufferから古い順に出発可否を評価し、出られない色を残して後続の別色も評価する。同色Sinkへの直結を優先し、全部満杯なら待つ。直結がなければ空いているRelay行きだけから等確率で選ぶ。同色Sinkが複数ある場合は接続作成順。Sinkは同色FLOWを即時消化し、Buffer・Outgoing Lineを持たない。
+Source／RelayはBufferから古い順に出発可否を評価し、出られない色を残して後続の別色も評価する。同色Sinkへの直結を優先し、全部満杯なら待つ。直結がなければ同色Sinkまでの合計実経路長が最小のRelay行きを選び、最短が満杯なら等距離の空き候補以外へ迂回せず待つ。同色Sinkが複数ある場合は接続作成順。Sinkは同色FLOWを即時消化し、Buffer・Outgoing Lineを持たない。
 
 受け取り完了まではLineの容量を解放しない。移動間隔は実経路長 / MaxInFlight。各FLOWは現在の距離から共通速度以下で前進し、後退・追い越し・停止時の位置変更をしない。Sourceの容量超過生成も失わず保持し、Relay満杯は入力だけを停止する。Source容量以上が猶予時間続くと敗北し、容量未満へ戻ると猶予をリセットする。
 
@@ -137,7 +137,15 @@ Source／RelayはBufferから古い順に出発可否を評価し、出られな
 
 ## 現行のLine Routingと配線UX
 
-v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。Ground高さ固定であり、3D探索やPLATEAUは今回扱わない。
+v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。`MaximumAltitude = 0`ではこのGround制約を維持する。
+
+v0.2 Δ1では`StageDefinition.MaximumAltitude`を有効化する。XYZすべてをクリップして線分とクリアランス付き建物Boundsの交差を調べ、上越し・下通過・上昇下降を扱う。`LineRoute.Length`は全区間のVector3距離を合計し、PositionAt、輸送時間、推定Throughput、配送経路表へ共通で渡す。
+
+3D可視グラフはGround、端点、建物上面／下面の高さで角をサンプリングし、上面／下面の辺には端点投影と直線経路の交点も加える。3D距離を辺のコストとA*ヒューリスティックにする。有限グラフ上の最短候補であり、連続3D空間の厳密最短ではない。PLATEAUや大規模都市の性能保証は対象外。
+
+HeightLabは同じ6棟を使い、屋上と空中に初期Node／Wave追加Nodeを置く。上限高度はGroundから暫定60 m。既存WiringLab／Bootstrapは0のまま。手動編集では内側の制御点だけY入力でき、XZドラッグはそのYを保持する。端点はNode位置に固定。右ドラッグでOrbitし、候補には3D距離と符号付き高低差を表示する。入力欄のEnterは接続確定に渡さない。
+
+高さ有効時のLine中心線・FLOW位置は確定経路そのものを使い、Ground描画用の上方オフセットを適用しない。FLOWは直径0.8 mにして0.5 mクリアランス内へ収める。垂直区間の矢印・二重線は代替基準軸から横方向を算出する。
 
 ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身とすべてのSourceを接続先候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
 
@@ -177,6 +185,7 @@ OverlayLayoutが画面端・Node・操作欄・他マーカーを避け、Overla
 | Source / Relay Buffer | 10 / 5 FLOW。SinkはBufferなし |
 | Line容量 / FLOW速度 | 3 FLOW / 8 m/s |
 | Source Overload猶予 | 5秒（容量以上から計時） |
+| HeightLab | 5 Node、0 Line、上限高度60 m。R1・BLUEは屋上、R2は空中。Waveも高さ付き |
 | WiringLab開始 | 5 Node、2色、0 Line。S1準備15秒 |
 | Source基本生成間隔 | S1/S3 3秒、S2 3.9秒。Bootstrapは0.75秒の負荷検証 |
 | Wave 2 / 3 / 4 | 60 / 120 / 180秒、生成間隔倍率0.9 / 0.75 / 0.6 |

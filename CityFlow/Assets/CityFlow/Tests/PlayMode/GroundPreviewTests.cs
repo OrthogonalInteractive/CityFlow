@@ -36,13 +36,13 @@ namespace CityFlow.Tests.PlayMode
             yield return null;
             Assert.That(preview.Current, Is.Not.Null);
             Assert.That(root.Q<Label>("route-feedback").text, Does.Contain("R1 → BLUE").And.Contain("LENGTH").And.Contain("AFTER"));
-            var drawing = GameObject.Find("Ground Route Preview");
+            var drawing = GameObject.Find("Line Route Preview");
             Assert.That(drawing, Is.Not.Null); Assert.That(drawing.GetComponentsInChildren<LineRenderer>().Length, Is.GreaterThan(0));
             Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(count));
             var cancel = root.Q<Button>("connect-cancel");
             UiPointer.Click(cancel);
             yield return null;
-            Assert.That(preview.Current, Is.Null); Assert.That(GameObject.Find("Ground Route Preview"), Is.Null);
+            Assert.That(preview.Current, Is.Null); Assert.That(GameObject.Find("Line Route Preview"), Is.Null);
             Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(count));
         }
         [UnityTest] public IEnumerator InvalidGeometryAndConnectionExplainWhyPreviewCannotBeConfirmed()

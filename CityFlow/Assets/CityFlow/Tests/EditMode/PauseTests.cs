@@ -33,7 +33,7 @@ namespace CityFlow.Tests.EditMode
             var stage=Stage(); var n=new FlowNetwork(stage,new NetworkSettings(20,20,2,10,0)); var s=new FlowSimulation(n,new First());
             n.TryConnect("S","T",new[]{Vector3.zero,new Vector3(20,0,0)}); n.GenerateFlow("S",FlowColor.Red); s.Tick(0.3);
             int id=n.Snapshot().Lines.Single().Id; var before=n.Snapshot().Lines.Single().InFlight.Single(); s.SetPaused(true);
-            using var p=new LinePreviewService(n,new GroundRoutePlanner(stage,0)); using var c=new ConnectionSession(n,p);
+            using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0)); using var c=new ConnectionSession(n,p);
             c.Begin("R"); c.SelectTarget("T"); p.InsertPoint(0,new Vector3(15,0,5)); Assert.That(c.Confirm(),Is.EqualTo(ConnectionFailure.None));
             int empty=c.LastCreatedLineId!.Value; Assert.That(n.RequestDeletion(empty),Is.True);
             Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(1)); Assert.That(n.RequestDeletion(id),Is.True);

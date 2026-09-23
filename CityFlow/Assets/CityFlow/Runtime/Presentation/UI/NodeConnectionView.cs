@@ -134,7 +134,7 @@ namespace CityFlow.Presentation.UI
                 bool occluded = controller.IsOccluded(id);
                 string visibility = (outside ? "OFFSCREEN " : "") + (occluded ? "OCCLUDED" : "");
                 string kind = definition.Kind.ToString().ToUpperInvariant();
-                marker.text = $"{id} / {kind} / {candidate.Distance:0} m\n{visibility}\n{Status(candidate, state)}";
+                marker.text = $"{id} / {kind} / {candidate.Distance:0} m\nΔY {candidate.HeightDifference:+0.0;-0.0;0.0} m · {visibility}\n{Status(candidate, state)}";
                 marker.EnableInClassList("chosen", id == controller.AttentionId);
                 marker.EnableInClassList("blocked", Group(candidate, state) == 2);
                 marker.EnableInClassList("occluded", occluded);
@@ -203,7 +203,7 @@ namespace CityFlow.Presentation.UI
                 string id = node.Definition.Id;
                 var option = candidateOptions[id];
                 string status = Status(candidate, state);
-                option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
+                option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m · ΔY {candidate.HeightDifference:+0;-0;0}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
                 option.EnableInClassList("chosen",id == controller.AttentionId);
                 option.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);
                 option.style.display = DisplayStyle.Flex;

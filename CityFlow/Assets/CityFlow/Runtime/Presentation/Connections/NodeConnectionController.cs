@@ -236,7 +236,7 @@ namespace CityFlow.Presentation.Connections
             if (node == null) return false;
             Vector3 delta = node.Position + Vector3.up * 1.4f - sceneCamera.transform.position;
             var ray = new Ray(sceneCamera.transform.position,delta.normalized);
-            // Visual occlusion uses building volumes; route validity remains a separate Ground query.
+            // Visual occlusion uses building volumes; route validity remains a separate spatial query.
             return stage.Buildings.Any(b => b.IntersectRay(ray,out float distance) && distance < delta.magnitude);
         }
         private void OnDisable()

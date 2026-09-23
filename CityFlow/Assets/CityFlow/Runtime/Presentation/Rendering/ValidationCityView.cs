@@ -35,6 +35,7 @@ namespace CityFlow.Presentation.Rendering
             selected = target;
             if (network != null) Focus.Refresh(network.Snapshot(), target.NodeId);
         }
+        private Vector3 RouteLift => stage?.AllowsHeight == true ? Vector3.zero : Vector3.up * 0.2f;
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => nodeViews.Count;
 
@@ -116,7 +117,7 @@ namespace CityFlow.Presentation.Rendering
                 var material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
                 material.SetColor("_BaseColor", color); materials.Add(material);
                 renderers.Add(Stroke($"Line {line.Id}: {line.SourceId} -> {line.DestinationId}",
-                    line.Route.Points.Select(p => p + Vector3.up * 0.2f).ToArray(), material, 0.5f));
+                    line.Route.Points.Select(p => p + RouteLift).ToArray(), material, 0.5f));
                 if (line.Status == LineStatus.DeletePending)
                 {
                     renderers[0].enabled = false;
@@ -133,8 +134,8 @@ namespace CityFlow.Presentation.Rendering
                 for (int i = 1; i < line.Route.Points.Count; i++)
                 {
                     Vector3 direction = (line.Route.Points[i] - line.Route.Points[i - 1]).normalized;
-                    Vector3 side = Vector3.Cross(Vector3.up, direction);
-                    Vector3 center = (line.Route.Points[i] + line.Route.Points[i - 1]) * 0.5f + Vector3.up * 0.22f;
+                    Vector3 side = RouteVisualGeometry.Side(direction);
+                    Vector3 center = (line.Route.Points[i] + line.Route.Points[i - 1]) * 0.5f + RouteLift;
                     renderers.Add(Stroke("Direction", new[] { center - direction * 1.8f + side, center, center - direction * 1.8f - side }, material, 0.35f));
                 }
             }
@@ -193,26 +194,28 @@ namespace CityFlow.Presentation.Rendering
                     }
                     // Preserve the FLOW color and keep close-up particles at their normal size.
                     particle.transform.localScale = flight.IsStopped && !transparentBuildings ? new Vector3(1.5f, 0.45f, 1.5f) : Vector3.one * 1.15f;
-                    particle.transform.position = line.Route.PositionAt(flight.Distance) + Vector3.up * 0.9f;
+                    if (stage?.AllowsHeight == true) particle.transform.localScale = Vector3.one * 0.8f;
+                    particle.transform.position = line.Route.PositionAt(flight.Distance) +
+                        (stage?.AllowsHeight == true ? Vector3.zero : Vector3.up * 0.9f);
                     Focus.Apply(particle.GetComponent<Renderer>(), Focus.IncludesLine(line.Id));
                 }
             foreach (long id in particles.Keys.Where(id => !active.Contains(id)).ToArray())
             { Destroy(particles[id]); particles.Remove(id); }
         }
 
-        private static Vector3[] PathBetween(LineRoute route, double from, double to)
+        private Vector3[] PathBetween(LineRoute route, double from, double to)
         {
-            var points = new List<Vector3> { route.PositionAt(from) + Vector3.up * 0.2f };
+            var points = new List<Vector3> { route.PositionAt(from) + RouteLift };
             double distance = 0;
             for (int i = 1; i < route.Points.Count; i++)
             {
                 distance += Vector3.Distance(route.Points[i - 1], route.Points[i]);
-                if (distance > from && distance < to) points.Add(route.Points[i] + Vector3.up * 0.2f);
+                if (distance > from && distance < to) points.Add(route.Points[i] + RouteLift);
             }
-            points.Add(route.PositionAt(to) + Vector3.up * 0.2f);
+            points.Add(route.PositionAt(to) + RouteLift);
             return points.ToArray();
         }
-        private static Vector3[] OffsetPath(LineRoute route, float offset)
+        private Vector3[] OffsetPath(LineRoute route, float offset)
         {
             // The two decorative rails straddle the unchanged transport centerline.
             var points = new Vector3[route.Points.Count];
@@ -220,8 +223,8 @@ namespace CityFlow.Presentation.Rendering
             {
                 Vector3 incoming = i > 0 ? (route.Points[i] - route.Points[i - 1]).normalized : Vector3.zero;
                 Vector3 outgoing = i + 1 < points.Length ? (route.Points[i + 1] - route.Points[i]).normalized : Vector3.zero;
-                Vector3 side = Vector3.Cross(Vector3.up, (incoming + outgoing).normalized);
-                points[i] = route.Points[i] + side * offset + Vector3.up * 0.2f;
+                Vector3 side = RouteVisualGeometry.Side((incoming + outgoing).normalized);
+                points[i] = route.Points[i] + side * offset + RouteLift;
             }
             return points;
         }

@@ -17,7 +17,7 @@ namespace CityFlow.Tests.EditMode
                 new SinkNodeDefinition("B", new Vector3(20,0,0), FlowColor.Red, maxIncoming: 3) };
             var stage = new StageDefinition(0,new Rect(-10,-20,50,40),Array.Empty<Bounds>(),nodes);
             var network = new FlowNetwork(stage,new NetworkSettings(10,10,10,20,0.5f));
-            var preview = new LinePreviewService(network,new GroundRoutePlanner(stage,0.5f));
+            var preview = new LinePreviewService(network,new LineRoutePlanner(stage,0.5f));
             preview.Generate("A","B"); return (network,preview);
         }
         [Test] public void EditingProjectsToGroundUpdatesMetricsAndDoesNotReserveSlots()

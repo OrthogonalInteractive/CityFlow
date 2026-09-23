@@ -20,10 +20,10 @@ namespace CityFlow.Domain.Spatial
             {
                 Vector3 p = copy[i];
                 if (float.IsNaN(p.x) || float.IsNaN(p.y) || float.IsNaN(p.z) || float.IsInfinity(p.x) ||
-                    float.IsInfinity(p.y) || float.IsInfinity(p.z) || p.y != copy[0].y)
-                    throw new ArgumentException("Route points must be finite and share Ground height.");
+                    float.IsInfinity(p.y) || float.IsInfinity(p.z))
+                    throw new ArgumentException("Route points must be finite.");
                 if (i == 0) continue;
-                double segment = Vector2.Distance(new Vector2(p.x, p.z), new Vector2(copy[i - 1].x, copy[i - 1].z));
+                double segment = Vector3.Distance(p, copy[i - 1]);
                 if (segment <= 0) throw new ArgumentException("Consecutive route points must differ.");
                 length += segment;
             }

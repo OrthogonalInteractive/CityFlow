@@ -199,3 +199,12 @@ Label { margin: 0; padding: 0; }
     border-radius: 5px; background-color: rgb(240,248,249); border-width: 2px; border-color: rgb(98,246,221); }
 .minimap-north { position: absolute; right: 6px; top: 4px; font-size: 11px; color: rgb(240,248,249); }
 .minimap-scale { font-size: 11px; color: rgb(180,198,213); margin-top: 7px; -unity-text-align: middle-right; }
+
+.route-height-controls { margin-top: 8px; margin-bottom: 8px; }
+.route-height-controls .unity-base-field__label { min-width: 105px; }
+
+.route-height-controls .unity-base-field__input {
+    background-color: rgb(18, 35, 46); color: rgb(235, 249, 247);
+    border-width: 1px; border-color: rgb(76, 125, 128); padding: 5px;
+}
+.route-height-controls .unity-base-field__input:focus { border-color: rgb(103, 231, 219); }

@@ -36,15 +36,15 @@ namespace CityFlow.Infrastructure.Configuration
             if(Waves==null) throw new ArgumentException("Wave schedule must be present.");
             var waves=Waves.Select(w=>new WaveDefinition(w.StartSeconds,w.IntervalScale,
                 (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n => (n ?? throw new ArgumentException("Wave Node placement must have a type.")).ToDefinition()))).ToArray();
-            var known=initial.Nodes.ToList(); var planner=new GroundRoutePlanner(initial,clearance); double previous=0;
+            var known=initial.Nodes.ToList(); var planner=new LineRoutePlanner(initial,clearance); double previous=0;
             foreach(var wave in waves)
             {
                 if(wave.StartSeconds<=previous) throw new ArgumentException("Wave times must increase."); previous=wave.StartSeconds;
-                new StageDefinition(initial.GroundHeight,initial.WalkableArea,initial.Buildings,known.Concat(wave.Additions)).Validate(clearance);
+                new StageDefinition(initial.GroundHeight,initial.WalkableArea,initial.Buildings,known.Concat(wave.Additions),initial.MaximumAltitude).Validate(clearance);
                 foreach(var node in wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1))
                 {
                     if(!known.Any(n=>planner.Generate(n.Position,node.Position).IsValid))
-                        throw new ArgumentException($"Node {node.Id} requires a Ground route to an existing Node.");
+                        throw new ArgumentException($"Node {node.Id} requires a valid route to an existing Node.");
                     known.Add(node);
                 }
             }
@@ -64,8 +64,10 @@ namespace CityFlow.Infrastructure.Configuration
             return network;
         }
 
-        [Tooltip("Shared Ground Y coordinate [m]. One Unity unit equals one meter.")]
+        [Tooltip("Ground Y coordinate [m]. One Unity unit equals one meter.")]
         public float GroundHeight;
+        [Tooltip("Height above Ground allowed for Nodes and routes [m]. Zero preserves v0.1 Ground-only stages. Provisional v0.2 limit: 60 m.")]
+        public float MaximumAltitude;
         public Rect WalkableArea = new Rect(-60, -45, 120, 90);
         public Bounds[] Buildings = Array.Empty<Bounds>();
         [SerializeReference] public NodePlacement[] Nodes = Array.Empty<NodePlacement>();
@@ -74,7 +76,7 @@ namespace CityFlow.Infrastructure.Configuration
         {
             if (Buildings == null || Nodes == null || Nodes.Length == 0)
                 throw new ArgumentException("Stage arrays must be present and contain initial Nodes.");
-            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => (node ?? throw new ArgumentException("Node placement must have a type.")).ToDefinition()));
+            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => (node ?? throw new ArgumentException("Node placement must have a type.")).ToDefinition()), MaximumAltitude);
             stage.Validate(clearance);
             return stage;
         }
