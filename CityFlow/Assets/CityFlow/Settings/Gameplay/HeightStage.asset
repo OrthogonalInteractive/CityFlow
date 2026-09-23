@@ -1,0 +1,141 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
+  m_Name: HeightStage
+  m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
+  Waves:
+  - StartSeconds: 60
+    IntervalScale: 0.9
+    Additions:
+    - rid: 4226161458178687037
+    - rid: 4226161458178687038
+  - StartSeconds: 120
+    IntervalScale: 0.75
+    Additions:
+    - rid: 4226161458178687039
+    - rid: 4226161458178687040
+  - StartSeconds: 180
+    IntervalScale: 0.6
+    Additions:
+    - rid: 4226161458178687041
+    - rid: 4226161458178687042
+  Lines: []
+  GroundHeight: 0
+  MaximumAltitude: 60
+  WalkableArea:
+    serializedVersion: 2
+    x: -60
+    y: -45
+    width: 120
+    height: 90
+  Buildings:
+  - m_Center: {x: 0, y: 6, z: 0}
+    m_Extent: {x: 9, y: 6, z: 8}
+  - m_Center: {x: 20, y: 4, z: 19}
+    m_Extent: {x: 5, y: 4, z: 11}
+  - m_Center: {x: 36, y: 7, z: 19}
+    m_Extent: {x: 5, y: 7, z: 11}
+  - m_Center: {x: -19, y: 5, z: 17}
+    m_Extent: {x: 6, y: 5, z: 8.5}
+  - m_Center: {x: -17, y: 3, z: -31}
+    m_Extent: {x: 6, y: 3, z: 4}
+  - m_Center: {x: 13, y: 4, z: -31}
+    m_Extent: {x: 8, y: 4, z: 4}
+  Nodes:
+  - rid: 4226161458178687043
+  - rid: 4226161458178687044
+  - rid: 4226161458178687045
+  - rid: 4226161458178687046
+  - rid: 4226161458178687047
+  references:
+    version: 2
+    RefIds:
+    - rid: 4226161458178687037
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: GREEN
+        Position: {x: -19, y: 11, z: 17}
+        MaxIncoming: 3
+        SinkColor: 3
+    - rid: 4226161458178687038
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S2
+        Position: {x: 48, y: 20, z: -20}
+        MaxOutgoing: 3
+        GenerationInterval: 3.9
+        GenerationDelay: 20
+    - rid: 4226161458178687039
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: YELLOW
+        Position: {x: 0, y: 32, z: 36}
+        MaxIncoming: 3
+        SinkColor: 2
+    - rid: 4226161458178687040
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R3
+        Position: {x: -45, y: 0, z: 0}
+        MaxIncoming: 3
+        MaxOutgoing: 3
+    - rid: 4226161458178687041
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: PURPLE
+        Position: {x: 13, y: 9, z: -31}
+        MaxIncoming: 3
+        SinkColor: 4
+    - rid: 4226161458178687042
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S3
+        Position: {x: -48, y: 28, z: -36}
+        MaxOutgoing: 3
+        GenerationInterval: 3
+        GenerationDelay: 20
+    - rid: 4226161458178687043
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S1
+        Position: {x: -38, y: 0, z: -20}
+        MaxOutgoing: 3
+        GenerationInterval: 3
+        GenerationDelay: 15
+    - rid: 4226161458178687044
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R1
+        Position: {x: 0, y: 13, z: 0}
+        MaxIncoming: 3
+        MaxOutgoing: 3
+    - rid: 4226161458178687045
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R2
+        Position: {x: -12, y: 24, z: -20}
+        MaxIncoming: 3
+        MaxOutgoing: 3
+    - rid: 4226161458178687046
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: RED
+        Position: {x: -38, y: 0, z: 22}
+        MaxIncoming: 3
+        SinkColor: 0
+    - rid: 4226161458178687047
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: BLUE
+        Position: {x: 36, y: 15, z: 19}
+        MaxIncoming: 3
+        SinkColor: 1

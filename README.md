@@ -1,7 +1,7 @@
 # City Flow
 
 簡易3D都市に有向Lineを配線し、色付きFLOWを対応するSinkへ運ぶUnityゲーム。
-まずは [仕様書](City-Flow-Specification.md) のv0.1（Ground配線MVP）を開発する。
+[仕様書](City-Flow-Specification.md) のv0.1（Ground配線MVP）とv0.2 Δ1（高さ方向）を実装している。
 
 ## 開発環境
 
@@ -34,7 +34,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。左上HUDはDELIVEREDとTIMEのみ。NodeとLineの情報はホバー中だけ確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
+5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。左上HUDはDELIVERED・TIME・Wave。NodeとLineの情報はホバー中だけ確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -70,7 +70,7 @@ CityFlow/              # Unityプロジェクトルート
     Runtime/
       Domain/          # ゲームルール・集約・値オブジェクト
         FlowNetwork/   # Node、Line、FLOW、Buffer、直結優先・最短距離Routing
-        Spatial/       # 経路の値・Ground制約・距離
+        Spatial/       # 経路の値・Ground／高度制約・3D距離
         Progression/   # Wave、生成、Overload、生存時間
       Application/     # ユースケース・シミュレーション進行・外部ポート
       Infrastructure/  # Unity空間判定・設定読み込み・将来のPLATEAU連携
@@ -128,7 +128,7 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 ## Ground経路Preview
 
-独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Edit Ground routeボタンで手動編集できる。PreviewだけではLine・接続枠を消費しない。
+独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Edit routeボタンで手動編集できる。PreviewだけではLine・接続枠を消費しない。
 
 ## Node 360で接続する
 
@@ -137,7 +137,7 @@ Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.u
 1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。Connectボタンは不要。
 2. 360の正面は、入る直前のOverview画面で上を向いていた方角になる。右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
 3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバーして候補に注目すると、自動Previewが表示される。一覧では固定の候補情報を更新し、詳細ポップアップは出さない。無効な候補も理由を確認できる。
-4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **Edit Ground route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
+4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **Edit route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
 5. Overviewの経路確認では **Confirm Line** ボタンで確定する。**Cancel connection** ボタンまたは **Esc** で取り消し、元のOverviewへ戻る。取消は接続枠を消費しない。
 
 Escは選択や編集中Previewのキャンセル専用。Node 360でも、Pauseボタンを押すまでは輸送が進行する。
@@ -146,7 +146,7 @@ Escは選択や編集中Previewのキャンセル専用。Node 360でも、Pause
 
 ## Ground経路を手動編集する
 
-Node 360で接続先を選び、**Edit Ground route** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Remove selected point** ボタンで削除する。A/Bの端点とGround高さは固定。
+Node 360で接続先を選び、**Edit route** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Remove selected point** ボタンで削除する。A/Bの端点とGround高さは固定。
 
 **Regenerate automatic route** で自動経路へ戻し、**Apply Line** で確定、**Cancel** ボタンまたは **Esc** で配線全体を取り消す。建物を横切る区間は赤色と理由を表示し、適用不可になる。WASD/中ボタンドラッグとホイールで編集中もPan/Zoomできる。
 
@@ -179,7 +179,7 @@ FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。
 
 ## FLOWの送り先とBufferの基本設定
 
-同色Sinkへの直結を優先し、そのLineが満杯なら待機する。直結がなければ空いているRelay行きLineだけから選ぶ。例としてS1の接続がREDとR1なら、RedはREDへ、BlueはR1へ送る。Relay行きも満杯ならS1で待つ。異色Sinkへは流さない。
+同色Sinkへの直結を優先し、そのLineが満杯なら待機する。直結がなければ同色Sinkまでの合計実経路長が最小のRelay行きLineを選ぶ。最短が満杯なら等距離の空き候補だけを代替にでき、到達経路がなければ待つ。例としてS1の接続がREDとR1なら、RedはREDへ、BlueはR1へ送る。Relay行きも満杯ならS1で待つ。異色Sinkへは流さない。
 
 Source／RelayはBufferに入っているFLOWを古い順に出力する。出られない色は残して、出られる後続FLOWも評価する。満杯でも出力は継続し、対応色Sinkを後からつなげば次のtickから排出・受け取り再開できる（Pause中は再開後）。
 
@@ -200,3 +200,19 @@ Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S
 ### Node配置の編集
 
 `WiringStage`／`ValidationStage`のNodesとWaveのAdditionsは、InspectorのNode TypeからSource／Relay／Sinkを選ぶ。SourceはOUT・生成設定、RelayはIN／OUT、SinkはIN・色だけを設定できる。種類変更はID・位置と共通の接続枠を保持し、Undoで戻せる。新規要素は必ず種類と一意のIDを設定する。
+
+
+## 高さ方向を試す（v0.2 Δ1）
+
+`Assets/CityFlow/Scenes/HeightLab.unity` を開いてPlayする。WiringLabと同じ6棟・初期5 Node・0 Lineで、R1とBLUEは屋上、R2は空中に配置している。Waveで追加するNodeも高さを持つ。設定は`HeightStage.asset`。
+
+- Source／Relayから候補に注目すると、3D距離と高低差を表示し、横迂回・上越しを探索する。
+- **Edit route** ボタンから編集へ入り、**Shift+クリック**で制御点を追加して、選択点の**HEIGHT Y (m)**を入力する。値は絶対Y座標。入力欄からフォーカスを外すと反映され、Lineの確定は **Apply Line** ボタンで行う。
+- ハンドルのドラッグは選択点のYを保ってXZを動かす。右ドラッグで斜めから確認し、**Apply Line**で確定する。端点はNodeに固定。
+- 地下・上限外・建物を貫く区間は赤く表示され、確定できない。長さ・移動時間・推定Throughputは同じ3D経路から計算する。
+
+`StageConfiguration.MaximumAltitude`はGroundからの上限[m]で、HeightLabでは暫定60。0なら従来のGround専用となり、WiringLab／Bootstrapの挙動を維持する。NodeのPosition.yも範囲内で指定し、屋根からクリアランスを確保する。
+
+探索は有限サンプルの3D可視グラフ＋A*で、連続空間の厳密最短ではない。今回の導入は高さ方向だけで、Port Unit・Width・複数候補・方向反転・PLATEAUは未導入。[検証と画面](docs/Height-Routing-2026-09-23.md)を参照。
+
+並行開発時は別worktreeへUnityプロジェクトを用意し、`uloop launch /絶対パス/CityFlow`で別Editorを起動する。その後も全コマンドに`--project-path /絶対パス/CityFlow`を指定し、既存Editorへ送らない。

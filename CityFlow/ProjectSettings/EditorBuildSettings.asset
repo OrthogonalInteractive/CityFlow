@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/CityFlow/Scenes/WiringLab.unity
     guid: 1613e04eb93bf469a899f0fcd987640b
+  - enabled: 1
+    path: Assets/CityFlow/Scenes/HeightLab.unity
+    guid: 1916fe4d6c0044b08b3496eeb509aff7
   m_configObjects: {}

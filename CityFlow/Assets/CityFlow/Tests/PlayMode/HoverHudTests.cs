@@ -146,7 +146,14 @@ namespace CityFlow.Tests.PlayMode
                     Vector2 panel=root.Q(pair.Item1).worldBound.center;
                     Vector2 screen=new Vector2(panel.x/root.layout.width*Screen.width,(1-panel.y/root.layout.height)*Screen.height);
                     InputSystem.QueueStateEvent(mouse,new MouseState { position=screen }); yield return null; yield return null;
-                    // Dispatch UI entry explicitly because Editor test focus can suppress panel pointer events.
+                    // Update the panel pointer cache as well as Mouse.current; Editor focus can suppress native UI events.
+                    // A previous synthetic click must not leave a stale pointer over a world marker.
+                    using (var move = PointerMoveEvent.GetPooled(new Event { type = EventType.MouseMove, mousePosition = panel }))
+                    {
+                        move.target = root.Q(pair.Item1);
+                        root.Q(pair.Item1).SendEvent(move);
+                    }
+                    // Dispatch entry explicitly when the Editor does not forward the synthetic mouse to the panel.
                     using (var enter = PointerEnterEvent.GetPooled(new Event { type = EventType.MouseMove, mousePosition = panel }))
                     {
                         enter.target = root.Q(pair.Item1);

@@ -144,7 +144,7 @@ namespace CityFlow.Presentation.UI
             if (source != null && source.Buffer.Count >= source.BufferCapacity * 0.8)
                 return $"{source.Definition.Id} Buffer nearly full · {recovery}";
             if (connectionCamera.IsEditing) return $"Shift + click: add point · Drag: move · Apply Line button: apply · Esc: cancel · {pauseAction}";
-            if (connectionCamera.IsNode360) return $"Hover: preview · Click: connect · Edit Ground route button: edit · Right drag: look · Esc: cancel · {pauseAction}";
+            if (connectionCamera.IsNode360) return $"Hover: preview · Click: connect · Edit route button: edit · Right drag: look · Esc: cancel · {pauseAction}";
             var preparing = state.Nodes.FirstOrDefault(n => simulation.SourceStartRemaining(n.Definition.Id) > 0);
             if (preparing != null) return $"{preparing.Definition.Id} starts in {Math.Ceiling(simulation.SourceStartRemaining(preparing.Definition.Id)):0}s · Click to connect";
             if (state.Lines.Count == 0) return $"Click S1, then a matching Sink to connect · {pauseAction}";
