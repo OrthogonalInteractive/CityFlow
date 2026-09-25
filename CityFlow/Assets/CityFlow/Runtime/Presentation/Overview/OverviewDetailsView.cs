@@ -76,7 +76,7 @@ namespace CityFlow.Presentation.Overview
             Vector2 screen = controller.enabled ? controller.HoverScreenPosition : Mouse.current?.position.ReadValue() ?? Vector2.zero;
             Vector2 point = RuntimePanelUtils.ScreenToPanel(root.panel, new Vector2(screen.x, Screen.height - screen.y));
             OverviewTarget target = default;
-            // Candidate controls share the same Node details as the world markers.
+            // Source labels and world markers opt into Node details; candidate list rows do not.
             for (VisualElement? hit = root.panel.Pick(point); hit != null; hit = hit.parent)
                 if (hit.userData is OverviewTarget node) { target = node; break; }
             if (target.IsEmpty && controller.IsPointerBlocked?.Invoke(screen) != true)

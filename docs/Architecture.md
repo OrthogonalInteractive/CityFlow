@@ -143,6 +143,8 @@ ConnectionSessionが始点・距離フィルター・確定／取消、LinePrevi
 
 Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対角長の25%/50%（現在37.5 m/75 m）。カメラ領域はUSSのcity-viewportから求め、建物をアルファ0.18へ切り替える。Overview復帰・手動編集・無効化時に元のカメラ、選択、不透明表示を復元する。
 
+`NodeConnectionController`はOverviewの退避済みカメラ回転から画面上方向をGroundへ投影し、360進入時の水平方角に使う。Node位置やステージ中央への方向には依存しない。経路確認との往復では360の視線を維持する。
+
 ## 現行のUIと表示
 
 テスト用建物はStageDefinitionのBoundsから1棟1個のCubeを生成する。暗いガラス調の面、アンバーの発光枠、細い外壁格子は`AmberObstacle.shader`で面上に描き、装飾用の屋根やColliderを追加しない。レンダラーとBoxColliderの範囲を経路判定のBoundsに一致させる。
@@ -160,6 +162,8 @@ OverviewのNodeホバー／Fフォーカスは、`ConnectionFocus`がSnapshotか
 Lineの混雑は橙＋太さ、削除予約は破線、経路切替待ちは二重線。混雑と予約が同時に成立しても線種と色を併用する。二重線の左右オフセットは装飾であり、FLOWと距離計測は中央の確定経路を使う。
 
 OverlayLayoutが画面端・Node・操作欄・他マーカーを避け、OverlayLeaderで対象との対応を示す。余白・安全距離・Viewport比率はUSSへ置く。候補一覧は接続可能／経路未確認／BLOCKEDの順にし、一覧をホバー中は行位置を固定する。重複だけを理由に候補マーカーを非表示にしない。極端に狭い画面では全要素の非重複を保証しないが、一覧で全候補を操作できる。
+
+候補一覧は固定の候補情報とPreviewを更新し、`OverviewDetailsView`へのホバー対象を登録しない。始点ラベル・ワールドマーカーは詳細表示を維持する。
 
 ## 設定と同一都市の進行
 

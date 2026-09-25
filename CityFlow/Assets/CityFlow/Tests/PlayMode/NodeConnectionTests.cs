@@ -39,6 +39,44 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(c,Is.Not.Null,"Bootstrap must compose the Node 360 connection flow."); return c;
         }
         private static void Submit(Button button) => UiPointer.Click(button);
+        [UnityTest] public IEnumerator Node360EntryFacesOverviewScreenUpForEveryNodeAndOrbit()
+        {
+            var controller = Controller();
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            var camera = Camera.main;
+            var session = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<ConnectionSession>();
+            var ground = new Plane(Vector3.up, Vector3.zero);
+            foreach (var orbit in new[] { Vector2.zero, new Vector2(90, 35), new Vector2(213, -25) })
+            {
+                overview.ResetView();
+                overview.Orbit(orbit);
+                var before = overview.CaptureView();
+                var center = camera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+                var upper = camera.ViewportPointToRay(new Vector3(0.5f, 0.6f, 0));
+                Assert.That(ground.Raycast(center, out float centerDistance), Is.True);
+                Assert.That(ground.Raycast(upper, out float upperDistance), Is.True);
+                Vector3 screenUp = (upper.GetPoint(upperDistance) - center.GetPoint(centerDistance)).normalized;
+                foreach (string id in new[] { "S1", "R1", "R2" })
+                {
+                    overview.Select(OverviewTarget.Node(id));
+                    controller.BeginSelected();
+                    yield return null; yield return null;
+                    Assert.That(controller.IsNode360, Is.True);
+                    var forward = Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up).normalized;
+                    Assert.That(Vector3.Dot(forward, screenUp), Is.GreaterThan(0.9999f), id + " must face screen-up, independent of its position.");
+                    Assert.That(session.TargetId, Is.Null, "Entering must not choose a candidate or turn toward one.");
+                    controller.Look(new Vector2(37, -12));
+                    Quaternion looked = camera.transform.rotation;
+                    controller.ToggleOverview();
+                    controller.ToggleOverview();
+                    Assert.That(Quaternion.Angle(camera.transform.rotation, looked), Is.LessThan(0.01f));
+                    controller.CancelSelection();
+                    Assert.That(camera.transform.position, Is.EqualTo(before.Position));
+                    Assert.That(Quaternion.Angle(camera.transform.rotation, before.Rotation), Is.LessThan(0.1f));
+                }
+            }
+        }
+
         [UnityTest] public IEnumerator Node360SeparatesPanelsFromCityAndRestoresOpaqueBuildings()
         {
             var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();

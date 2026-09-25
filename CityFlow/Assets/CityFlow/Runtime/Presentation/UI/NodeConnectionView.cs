@@ -162,7 +162,7 @@ namespace CityFlow.Presentation.UI
                 string id = node.Id;
                 if (candidateOptions.ContainsKey(id)) continue;
                 var option = new Button(() => controller.ConfirmTarget(id)) { name = "candidate-option-" + id };
-                option.userData = OverviewTarget.Node(id);
+                // The fixed candidate readout supplies details; list rows must not open a floating tooltip.
                 option.AddToClassList("candidate-option");
                 option.RegisterCallback<PointerEnterEvent>(_ => controller.FocusTarget(id));
                 var swatch = new Label(node.SinkColor.HasValue ? node.SinkColor.Value.ToString().Substring(0, 1) : "•")

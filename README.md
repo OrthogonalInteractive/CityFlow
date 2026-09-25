@@ -135,8 +135,8 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は3 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
 
 1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。Connectボタンは不要。
-2. 右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
-3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバーして候補に注目すると、自動Previewが表示される。無効な候補も理由を確認できる。
+2. 360の正面は、入る直前のOverview画面で上を向いていた方角になる。右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
+3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバーして候補に注目すると、自動Previewが表示される。一覧では固定の候補情報を更新し、詳細ポップアップは出さない。無効な候補も理由を確認できる。
 4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **Edit Ground route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
 5. Overviewの経路確認では **Confirm Line** ボタンで確定する。**Cancel connection** ボタンまたは **Esc** で取り消し、元のOverviewへ戻る。取消は接続枠を消費しない。
 

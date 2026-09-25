@@ -124,7 +124,7 @@ namespace CityFlow.Tests.PlayMode
             foreach (var flight in before.InFlight)
                 Assert.That(GameObject.Find($"FLOW {flight.Flow.Id} / {flight.Flow.Color}").transform.localScale, Is.EqualTo(Vector3.one * 1.15f));
         }
-        [UnityTest] public IEnumerator Node360ShowsSourceAndCandidateDetailsOnlyUnderThePointer()
+        [UnityTest] public IEnumerator Node360CandidateListPreviewsWithoutPopupAndSourceDetailsRemainAvailable()
         {
             var overview=Object.FindAnyObjectByType<OverviewController>();
             overview.Select(OverviewTarget.Node("S1"));
@@ -141,15 +141,33 @@ namespace CityFlow.Tests.PlayMode
             foreach (var device in otherMice) InputSystem.DisableDevice(device);
             try
             {
-                foreach(var pair in new[]{("connect-selection","S1"),("candidate-option-R1","R1")})
+                foreach(var pair in new[]{("connect-selection","S1"),("candidate-option-R1","R1"),("candidate-option-BLUE","BLUE")})
                 {
                     Vector2 panel=root.Q(pair.Item1).worldBound.center;
                     Vector2 screen=new Vector2(panel.x/root.layout.width*Screen.width,(1-panel.y/root.layout.height)*Screen.height);
                     InputSystem.QueueStateEvent(mouse,new MouseState { position=screen }); yield return null; yield return null;
-                    Assert.That(root.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.Flex), pair.Item1);
-                    Assert.That(HudAssertions.TooltipText(root),Does.Contain(pair.Item2).And.Contain("BUFFER"));
-                    Assert.That(root.Q("node-tooltip").worldBound.xMin,Is.GreaterThanOrEqualTo(root.layout.width*0.72f));
+                    // Dispatch UI entry explicitly because Editor test focus can suppress panel pointer events.
+                    using (var enter = PointerEnterEvent.GetPooled(new Event { type = EventType.MouseMove, mousePosition = panel }))
+                    {
+                        enter.target = root.Q(pair.Item1);
+                        root.Q(pair.Item1).SendEvent(enter);
+                    }
+                    yield return null; yield return null;
+                    if (pair.Item1 == "connect-selection")
+                    {
+                        Assert.That(root.Q("node-tooltip").resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
+                        Assert.That(HudAssertions.TooltipText(root), Does.Contain("S1").And.Contain("BUFFER"));
+                    }
+                    else
+                    {
+                        Assert.That(root.Q("node-tooltip").resolvedStyle.display, Is.EqualTo(DisplayStyle.None), "The list must not open a floating detail panel.");
+                        var session = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<CityFlow.Application.Connections.ConnectionSession>();
+                        Assert.That(session.TargetId, Is.EqualTo(pair.Item2), "Hover must still preview the candidate.");
+                        Assert.That(root.Q<Label>("candidate-detail").text, Does.Contain(pair.Item2));
+                    }
                 }
+                UiPointer.Click(root.Q<Button>("candidate-option-BLUE")); yield return null;
+                Assert.That(Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>().Snapshot().Lines.Single().DestinationId, Is.EqualTo("BLUE"));
                 InputSystem.QueueStateEvent(mouse,new MouseState { position=new Vector2(-100,-100) }); yield return null; yield return null;
                 Assert.That(root.Q("node-tooltip").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
             }

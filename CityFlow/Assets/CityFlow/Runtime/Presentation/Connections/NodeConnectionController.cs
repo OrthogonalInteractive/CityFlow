@@ -89,10 +89,11 @@ namespace CityFlow.Presentation.Connections
                 bookmark = overview.CaptureView(); overviewWasEnabled = overview.enabled;
                 previousSelection = overview.Selected;
                 AttentionId = null; enteredFrame=Time.frameCount;
-                yaw = 0; pitch = 5; IsNode360 = true;
+                // Preserve the ground direction that pointed upward in the Overview image.
+                Vector3 screenUp = Vector3.ProjectOnPlane(bookmark.Value.Rotation * Vector3.up, Vector3.up);
+                yaw = Mathf.Atan2(screenUp.x, screenUp.z) * Mathf.Rad2Deg;
+                pitch = 5; IsNode360 = true;
                 overview.enabled = false; ApplyNodePose();
-                Vector3 center = new Vector3(stage.WalkableArea.center.x,stage.GroundHeight,stage.WalkableArea.center.y);
-                Face(center);
             }
             else if (!session.IsActive && bookmark.HasValue) Restore();
         }
