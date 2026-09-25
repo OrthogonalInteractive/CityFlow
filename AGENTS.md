@@ -27,6 +27,7 @@
 - 時間停止・再開、確定、編集、削除、Undoは画面内ボタンで操作する。Escは360・経路編集・選択のキャンセル専用とし、時間を変更しない。Enter／BackspaceやボタンのキーボードSubmitで処理を実行しない。カメラ操作とShift＋クリックは維持する。
 - プレイヤー向けのLine操作名は「削除」（Delete）。FLOWを排出してから完了する不変条件は維持し、画面に「削除予約」（Reserve deletion）を表示しない。
 - Node 360へ入る初期方向は直前のOverview画面上方向をGroundへ投影した方角とする。CONNECTION TARGETSでは固定の候補情報とPreviewを更新し、詳細ホバーパネルを重ねない。
+- Node 360のミニカメラは接続元Node中心・北上固定の表示専用とする。候補変更で中心を移動せず、Overview・手動編集・Game Overでは描画を止め、シーン終了時にRenderTextureとカメラを解放する。
 
 ## DDDと依存方向
 

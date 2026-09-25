@@ -142,6 +142,8 @@ Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.u
 
 Escは選択や編集中Previewのキャンセル専用。Node 360でも、Pauseボタンを押すまでは輸送が進行する。
 
+360中の左上には、接続元Nodeを中心にした見下ろしミニカメラを表示する。北が上で、中央の扇形・線が現在の視野と正面を示す。候補を見ても中心は接続元に固定され、建物・Node・Line・Previewの位置関係を確認できる。Overview・手動編集では非表示になる。
+
 ## Ground経路を手動編集する
 
 Node 360で接続先を選び、**Edit Ground route** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Remove selected point** ボタンで削除する。A/Bの端点とGround高さは固定。

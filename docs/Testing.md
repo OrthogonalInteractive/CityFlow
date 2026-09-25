@@ -58,6 +58,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-25のNode 360ミニカメラは、全PlayMode **61/61**成功。接続元中心・北上固定、候補／視線変更とPause、Overview・編集・Game Overでの描画停止、メインカメラへの非干渉、UIDocumentの再生成、シーン破棄時のCamera／RenderTexture解放を確認した。コンパイル・最終ConsoleともError/Warning **0**。1600×900と1036×757の実画面は [ミニカメラの対応報告](Node-Minimap-2026-09-25.md) を参照。
+
 2026-09-25のNode 360候補ホバー・初期方向の修正は、全PlayMode **58/58**成功。一覧での詳細ポップアップ抑制とPreview・接続の維持、3種類のOverview角度×3 Nodeでの画面上方向の引き継ぎ、経路確認との往復・取消時のカメラ復元を確認した。コンパイル・画面確認後ConsoleともError/Warning **0**。[画面付きの対応報告](Node360-UX-2026-09-25.md) を参照。
 
 2026-09-25のボタン操作・Escキャンセルは、全EditMode **158/158**、全PlayMode **57/57**成功。Pause／Resume、停止中の配線編集・確定、Escによる360・編集・Overview選択の解除、Enter／Backspace等での誤実行防止、Delete中のFLOW保持・取消を確認した。コンパイル・画面確認後ConsoleともError/Warning **0**。[画面付きの対応報告](Button-Controls-2026-09-25.md) を参照。

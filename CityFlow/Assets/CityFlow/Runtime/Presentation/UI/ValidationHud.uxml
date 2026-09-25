@@ -11,6 +11,16 @@
             <ui:Button name="pause-toggle" text="Pause" />
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
+        <ui:VisualElement name="node-minimap" class="panel node-minimap layout-obstacle" picking-mode="Ignore">
+            <ui:Label name="node-minimap-title" text="LOCAL VIEW" class="minimap-title" picking-mode="Ignore" />
+            <ui:VisualElement class="minimap-surface" picking-mode="Ignore">
+                <ui:Image name="node-minimap-image" class="minimap-image" picking-mode="Ignore" />
+                <ui:VisualElement name="node-minimap-heading" class="minimap-heading" picking-mode="Ignore" />
+                <ui:VisualElement name="node-minimap-origin" class="minimap-origin" picking-mode="Ignore" />
+                <ui:Label text="N ↑" class="minimap-north" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label name="node-minimap-scale" class="minimap-scale" picking-mode="Ignore" />
+        </ui:VisualElement>
         <ui:VisualElement name="connection-toast" class="panel connection-toast interactive layout-obstacle">
             <ui:Label name="connection-notice" class="detail-text" />
             <ui:Button name="undo-connection" text="Undo" />

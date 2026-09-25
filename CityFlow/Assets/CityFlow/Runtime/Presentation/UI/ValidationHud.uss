@@ -187,3 +187,15 @@ Label { margin: 0; padding: 0; }
 .candidate-list-panel Button.candidate-option { padding-left: 32px; }
 .candidate-swatch { position: absolute; left: 6px; top: 12px; width: 18px; height: 18px;
     font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center; color: rgb(8,15,22); border-radius: 3px; }
+
+.node-minimap { display: none; position: absolute; left: 16px; top: 16px; width: 240px; padding: 10px;
+    --minimap-range-scale: 1.5; }
+.minimap-title { font-size: 12px; -unity-font-style: bold; margin-bottom: 8px; }
+.minimap-surface { width: 216px; height: 216px; overflow: hidden; background-color: rgb(5,9,15); }
+.minimap-image, .minimap-heading { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.minimap-heading { color: rgb(98,246,221); --minimap-heading-radius: 70;
+    --minimap-cone-opacity: 0.12; --minimap-stroke-width: 1.5; }
+.minimap-origin { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 10px; height: 10px;
+    border-radius: 5px; background-color: rgb(240,248,249); border-width: 2px; border-color: rgb(98,246,221); }
+.minimap-north { position: absolute; right: 6px; top: 4px; font-size: 11px; color: rgb(240,248,249); }
+.minimap-scale { font-size: 11px; color: rgb(180,198,213); margin-top: 7px; -unity-text-align: middle-right; }

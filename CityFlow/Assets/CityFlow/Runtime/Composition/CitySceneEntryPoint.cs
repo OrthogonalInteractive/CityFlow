@@ -60,6 +60,7 @@ namespace CityFlow.Composition
             hud.AddComponent<ValidationHud>().Initialize(stage, network, simulation, camera, overview, view.Focus);
             hud.AddComponent<GroundPreviewView>().Initialize(preview);
             hud.AddComponent<NodeConnectionView>().Initialize(connection, preview, overview, connectionController, camera, network);
+            hud.AddComponent<NodeMinimapView>().Initialize(connection, connectionController, simulation, stage, camera);
             hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);
             hud.AddComponent<PauseView>().Initialize(simulation);
