@@ -58,6 +58,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-25のボタン操作・Escキャンセルは、全EditMode **158/158**、全PlayMode **57/57**成功。Pause／Resume、停止中の配線編集・確定、Escによる360・編集・Overview選択の解除、Enter／Backspace等での誤実行防止、Delete中のFLOW保持・取消を確認した。コンパイル・画面確認後ConsoleともError/Warning **0**。[画面付きの対応報告](Button-Controls-2026-09-25.md) を参照。
+
 2026-09-22の直結優先＋最短距離配送は、最終EditMode **158/158**、PlayMode **53/53**成功。合計実経路長、途中の直結優先、到達不能・最短満杯時の待機、等距離の代替、予約・取消・経路切替、Wave追加後の経路表を確認した。コンパイル・テスト後Console Error/Warning **0**。[配送ルールの対応報告](Flow-Routing-2026-09-22.md) を参照。
 
 2026-09-22の接続フォーカス・条件付きゲージは、最終全PlayMode **53/53**成功。直接接続だけの強調、孤立Node、接続削除への追従、F／Home／空白選択での保持・解除、Node 360への復帰、無関係なFLOW・Source演出・ゲージの減光を確認した。コンパイル・撮影後ConsoleともError/Warning **0**。[画面付きの対応報告](Connection-Focus-2026-09-22.md) を参照。
@@ -72,7 +74,7 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 - Wave時計、カメラ移動後の通知回避、構造化ホバー、色の頭文字、自己候補除外、全マーカーの表示を検証。
 - Snapshotの再利用、生成・接続・出発・輸送・予約・取消・Wave追加・Overload後の鮮度と、過去の読み取りの不変性を検証。変更のない1000回の読み取りでSnapshot実体は1000個→1個。FPSやGCバイト数の改善率は未測定。
 - uloopによる実画面4枚を確認し、[UX対応報告](UX-Review-2026-09-22.md) に保存。制御したネットワークを撮影しており、人による難度比較の代用にはしない。
-- 確認後はWiringLabを配線0・Pause・SimulationDriver有効へ戻した。Escで開始できる。
+- 確認後はWiringLabを配線0・Pause・SimulationDriver有効へ戻した。現在はResumeボタンで開始できる。
 
 途中のRed/Greenは [検証履歴](history/Testing-v01.md#2026-09-22-ux改善進行中) に残している。
 
