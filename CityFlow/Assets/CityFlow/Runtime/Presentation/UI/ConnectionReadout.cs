@@ -3,6 +3,7 @@
 using CityFlow.Application.Connections;
 using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
+using CityFlow.Domain.Spatial;
 
 namespace CityFlow.Presentation.UI
 {
@@ -28,10 +29,12 @@ namespace CityFlow.Presentation.UI
             string status = Reason(candidate.Failure);
             if (candidate.Failure == ConnectionFailure.None && preview?.DestinationId == definition.Id)
                 status = preview.Geometry.IsValid ? "Route preview ready / not connected" : "No valid route / see Preview reason";
+            string lift = definition is RelayNodeDefinition relay
+                ? $"LIFT +{relay.MaximumRise:0.##} m · TOP Y {relay.Position.y + relay.MaximumRise:0.##} m\n" : "";
             return $"{definition.Id} / {definition.Kind.ToString().ToUpperInvariant()}{color}\n" +
                 $"DISTANCE {candidate.Distance:0.0} m / {candidate.Band.ToString().ToUpperInvariant()} · HEIGHT {candidate.HeightDifference:+0.0;-0.0;0.0} m\n" +
                 $"FROM OUT {candidate.SourceOutgoingUsed}/{candidate.SourceOutgoingLimit}  →  TO IN {node.IncomingUsed}/{definition.MaxIncoming}\n" +
-                (definition.Kind == NodeKind.Relay ? $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n" : "") + status;
+                (definition.Kind == NodeKind.Relay ? $"TO OUT {node.OutgoingUsed}/{definition.MaxOutgoing}\n" : "") + lift + status;
         }
     }
 }

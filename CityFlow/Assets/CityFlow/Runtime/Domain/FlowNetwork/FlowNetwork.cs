@@ -70,6 +70,7 @@ namespace CityFlow.Domain.FlowNetwork
         }
         public NetworkSettings Settings { get; }
         public bool AllowsHeight => stage.AllowsHeight;
+        public float CeilingHeight => stage.CeilingHeight;
         public IReadOnlyList<NodeDefinition> NodeDefinitions => cachedDefinitions ??= Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
         {
@@ -121,7 +122,7 @@ namespace CityFlow.Domain.FlowNetwork
             catch (ArgumentException) { return new ConnectionResult(ConnectionFailure.InvalidRoute); }
             if (route.Points[0] != source.Definition.Position ||
                 route.Points[route.Points.Count - 1] != destination.Definition.Position ||
-                !stage.IsRouteWalkable(route, Settings.Clearance))
+                stage.ValidateConnectionRoute(source.Definition, destination.Definition, route.Points, Settings.Clearance, out _) != RouteFailure.None)
                 return new ConnectionResult(ConnectionFailure.InvalidRoute);
             InvalidateSnapshot();
             var created = new LineState(nextLineId++, source, destination, route);

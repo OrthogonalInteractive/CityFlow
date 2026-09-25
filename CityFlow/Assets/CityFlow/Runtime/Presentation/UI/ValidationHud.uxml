@@ -41,12 +41,13 @@
         <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="route-editor" class="panel route-editor interactive layout-obstacle">
             <ui:Label text="MANUAL ROUTE" class="section-title" />
-            <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag handles: move in XZ at their height&#10;Select a handle, then click Remove selected point&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
+            <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag handles: move on the horizontal plane&#10;Select a handle, then click Remove selected point&#10;Endpoints and Relay lift columns stay fixed.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
             <ui:Label name="edit-route-feedback" class="detail-text route-feedback" />
             <ui:Label name="route-point-detail" class="band-hint" />
             <ui:VisualElement name="route-height-controls" class="route-height-controls">
-                <ui:FloatField name="route-height" label="HEIGHT Y (m)" is-delayed="true" />
-                <ui:Label text="Select a handle, then enter its height.&#10;Right drag: orbit to check the slope." class="band-hint" />
+                <ui:FloatField name="route-height" label="ROUTE Y (m)" is-delayed="true" />
+                <ui:Label name="route-height-range" class="band-hint" />
+                <ui:Label text="Change the whole horizontal plane.&#10;Vertical movement stays above Relays.&#10;Right drag: orbit to inspect the route." class="band-hint" />
             </ui:VisualElement>
             <ui:Button name="route-remove" text="Remove selected point" />
             <ui:Button name="route-regenerate" text="Regenerate automatic route" />

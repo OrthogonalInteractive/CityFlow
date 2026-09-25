@@ -18,71 +18,74 @@ namespace CityFlow.Infrastructure.Routing
             this.stage = stage ?? throw new ArgumentNullException(nameof(stage));
             stage.Validate(clearance); this.clearance = clearance;
         }
-        public LineRouteResult Validate(IReadOnlyList<Vector3> points)
+        public LineRouteResult Validate(NodeDefinition source, NodeDefinition destination, IReadOnlyList<Vector3> points)
         {
-            RouteFailure failure = stage.ValidateRoute(points, clearance, out int segment);
+            RouteFailure failure = stage.ValidateConnectionRoute(source, destination, points, clearance, out int segment);
             if (failure != RouteFailure.None) return new LineRouteResult(failure, segment);
-            try { return new LineRouteResult(new LineRoute(points)); }
-            catch (ArgumentException) { return new LineRouteResult(RouteFailure.InvalidPoints); }
+            return new LineRouteResult(new LineRoute(points));
         }
-        public LineRouteResult Generate(Vector3 start, Vector3 end)
+
+        public LineRouteResult Generate(NodeDefinition source, NodeDefinition destination)
         {
-            RouteFailure startFailure = stage.ValidatePoint(start,clearance), endFailure = stage.ValidatePoint(end,clearance);
+            Vector3 start = source.Position, end = destination.Position;
+            RouteFailure startFailure = stage.ValidatePoint(start, clearance), endFailure = stage.ValidatePoint(end, clearance);
             if (startFailure != RouteFailure.None) return new LineRouteResult(startFailure);
             if (endFailure != RouteFailure.None) return new LineRouteResult(endFailure);
-            LineRouteResult direct = Validate(new[] { start,end });
-            if (direct.IsValid || direct.Failure == RouteFailure.InvalidPoints) return direct;
-            var vertices = new List<Vector3> { start,end };
-            // A small numerical margin keeps visibility edges outside inclusive collision boundaries.
-            const float cornerMargin = 0.002f; // [m], provisional and covered by narrow-passage tests.
+            float minimum = Mathf.Max(start.y, end.y);
+            float maximum = Mathf.Min(stage.ConnectionCeiling(source), stage.ConnectionCeiling(destination));
+            if (minimum > maximum)
+                return new LineRouteResult(source is RelayNodeDefinition || destination is RelayNodeDefinition
+                    ? RouteFailure.RelayHeightLimit : RouteFailure.VerticalAtRelayOnly);
+
+            // Each candidate has one horizontal plane and vertical legs only at endpoint Relays.
+            const float cornerMargin = 0.002f; // [m], provisional numerical clearance.
             float margin = clearance + cornerMargin;
-            var heights = new List<float> { stage.GroundHeight };
+            var heights = new List<float> { minimum, maximum };
             if (stage.AllowsHeight)
-            {
-                heights.Add(start.y); heights.Add(end.y);
                 foreach (Bounds building in stage.Buildings)
                 {
                     heights.Add(building.max.y + margin);
                     heights.Add(building.min.y - margin);
                 }
-            }
-            float[] levels = heights.Where(y => y >= stage.GroundHeight && y <= stage.CeilingHeight).Distinct().ToArray();
-            void Add(Vector3 point)
+            LineRouteResult? best = null;
+            foreach (float height in heights.Where(y => y >= minimum && y <= maximum).Distinct().OrderBy(y => y))
             {
-                if (stage.IsWalkable(point, clearance) && !vertices.Contains(point)) vertices.Add(point);
+                Vector3 a = new(start.x, height, start.z), b = new(end.x, height, end.z);
+                if (start != a && stage.ValidateRoute(new[] { start, a }, clearance, out _) != RouteFailure.None) continue;
+                if (end != b && stage.ValidateRoute(new[] { b, end }, clearance, out _) != RouteFailure.None) continue;
+                var horizontal = GeneratePlane(a, b, margin);
+                if (horizontal == null) continue;
+                var path = new List<Vector3> { start };
+                foreach (Vector3 point in horizontal)
+                    if (path[path.Count - 1] != point) path.Add(point);
+                if (path[path.Count - 1] != end) path.Add(end);
+                var result = Validate(source, destination, path);
+                if (result.IsValid && (best?.Route == null || result.Route!.Length < best.Route.Length)) best = result;
             }
+            return best ?? new LineRouteResult(RouteFailure.SearchFailed);
+        }
+
+        private IReadOnlyList<Vector3>? GeneratePlane(Vector3 start, Vector3 end, float margin)
+        {
+            if (start == end) return new[] { start };
+            bool Visible(Vector3 a, Vector3 b) => stage.ValidateRoute(new[] { a, b }, clearance, out _) == RouteFailure.None;
+            if (Visible(start, end)) return new[] { start, end };
+            var vertices = new List<Vector3> { start, end };
             foreach (Bounds building in stage.Buildings)
             {
-                foreach (float y in levels)
-                foreach (float x in new[] { building.min.x-margin, building.max.x+margin })
-                    foreach (float z in new[] { building.min.z-margin, building.max.z+margin })
-                        Add(new Vector3(x, y, z));
-                if (!stage.AllowsHeight) continue;
-                // Sample roof and underside edges as well as corners. A 3D shortest path can
-                // cross an edge away from its endpoints; these samples keep straight overpasses short.
-                foreach (float y in new[] { building.max.y + margin, building.min.y - margin })
-                {
-                    float left = building.min.x - margin, right = building.max.x + margin;
-                    float back = building.min.z - margin, front = building.max.z + margin;
-                    foreach (Vector3 endpoint in new[] { start, end })
+                if (stage.AllowsHeight && (start.y < building.min.y - clearance || start.y > building.max.y + clearance)) continue;
+                foreach (float x in new[] { building.min.x - margin, building.max.x + margin })
+                    foreach (float z in new[] { building.min.z - margin, building.max.z + margin })
                     {
-                        foreach (float x in new[] { left, right }) Add(new Vector3(x, y, Mathf.Clamp(endpoint.z, back, front)));
-                        foreach (float z in new[] { back, front }) Add(new Vector3(Mathf.Clamp(endpoint.x, left, right), y, z));
+                        var point = new Vector3(x, start.y, z);
+                        if (stage.IsWalkable(point, clearance) && !vertices.Contains(point)) vertices.Add(point);
                     }
-                    Vector3 delta = end - start;
-                    if (Mathf.Abs(delta.x) > 1e-6f)
-                        foreach (float x in new[] { left, right })
-                            Add(new Vector3(x, y, Mathf.Clamp(start.z + delta.z * (x - start.x) / delta.x, back, front)));
-                    if (Mathf.Abs(delta.z) > 1e-6f)
-                        foreach (float z in new[] { back, front })
-                            Add(new Vector3(Mathf.Clamp(start.x + delta.x * (z - start.z) / delta.z, left, right), y, z));
-                }
             }
             int count = vertices.Count;
             var edges = new double[count,count];
             for (int i = 0; i < count; i++)
                 for (int j = i+1; j < count; j++)
-                    if (Validate(new[] { vertices[i],vertices[j] }).IsValid)
+                    if (Visible(vertices[i], vertices[j]))
                         edges[i,j] = edges[j,i] = Vector3.Distance(vertices[i],vertices[j]);
             var cost = Enumerable.Repeat(double.PositiveInfinity,count).ToArray();
             var previous = Enumerable.Repeat(-1,count).ToArray();
@@ -98,7 +101,7 @@ namespace CityFlow.Infrastructure.Routing
                         double score = cost[i] + Vector3.Distance(vertices[i],end);
                         if (score < bestScore) { best = i; bestScore = score; }
                     }
-                if (best < 0) return new LineRouteResult(RouteFailure.SearchFailed);
+                if (best < 0) return null;
                 if (best == 1)
                 {
                     var path = new List<Vector3>();
@@ -106,10 +109,10 @@ namespace CityFlow.Infrastructure.Routing
                     path.Reverse();
                     for (int i = 0; i+2 < path.Count;)
                     {
-                        if (Validate(new[] { path[i],path[i+2] }).IsValid) path.RemoveAt(i+1);
+                        if (Visible(path[i], path[i+2])) path.RemoveAt(i+1);
                         else i++;
                     }
-                    return Validate(path);
+                    return path;
                 }
                 open[best] = false; closed[best] = true;
                 for (int next = 0; next < count; next++)

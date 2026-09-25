@@ -21,7 +21,7 @@ namespace CityFlow.Tests.EditMode
             {
                 asset.Nodes = new NodePlacement[] {
                     new SourceNodePlacement { Id = "S", Position = Vector3.zero, MaxOutgoing = 2, GenerationInterval = 4, GenerationDelay = 7 },
-                    new RelayNodePlacement { Id = "R", Position = Vector3.right * 5, MaxIncoming = 4, MaxOutgoing = 6 },
+                    new RelayNodePlacement { Id = "R", Position = Vector3.right * 5, MaxIncoming = 4, MaxOutgoing = 6, MaximumRise = 12 },
                     new SinkNodePlacement { Id = "T", Position = Vector3.right * 10, MaxIncoming = 8, SinkColor = FlowColor.Blue }
                 };
                 asset.Waves = new[] { new StageConfiguration.WavePlacement {
@@ -38,6 +38,7 @@ namespace CityFlow.Tests.EditMode
                 Assert.That(stage.Nodes[1], Is.TypeOf<RelayNodeDefinition>());
                 Assert.That(stage.Nodes[1].MaxIncoming, Is.EqualTo(4));
                 Assert.That(stage.Nodes[1].MaxOutgoing, Is.EqualTo(6));
+                Assert.That(((RelayNodeDefinition)stage.Nodes[1]).MaximumRise, Is.EqualTo(12));
                 var sink = (SinkNodeDefinition)stage.Nodes[2];
                 Assert.That(sink.Color, Is.EqualTo(FlowColor.Blue));
                 Assert.That(sink.MaxIncoming, Is.EqualTo(8));

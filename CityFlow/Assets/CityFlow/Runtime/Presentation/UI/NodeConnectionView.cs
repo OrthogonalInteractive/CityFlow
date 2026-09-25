@@ -6,6 +6,7 @@ using System.Linq;
 using CityFlow.Application.Connections;
 using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
+using CityFlow.Domain.Spatial;
 using CityFlow.Presentation.Connections;
 using CityFlow.Presentation.Overview;
 using CityFlow.Presentation.Rendering;
@@ -88,6 +89,8 @@ namespace CityFlow.Presentation.UI
             root.Q<Button>("route-edit").SetEnabled(preview.Current != null);
             root.Q<Label>("connect-selection").text = session.IsActive ? $"FROM {session.SourceId} / SELECT A TARGET" :
                 overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Click a Node to start wiring";
+            if (session.IsActive && network.AllowsHeight && network.NodeDefinitions.FirstOrDefault(n => n.Id == session.SourceId) is RelayNodeDefinition fromRelay)
+                root.Q<Label>("connect-selection").text = $"FROM {fromRelay.Id} · LIFT +{fromRelay.MaximumRise:0.#} m / SELECT A TARGET";
             root.Q("connect-selection").userData = session.IsActive && session.SourceId != null ? OverviewTarget.Node(session.SourceId) : default(OverviewTarget);
             root.Q("connect-selection").pickingMode = PickingMode.Position;
             root.Q("connection-panel").style.display = session.IsActive || overview.Selected.LineId.HasValue
@@ -133,7 +136,7 @@ namespace CityFlow.Presentation.UI
                 bool outside = projected.z <= 0 || !sceneCamera.pixelRect.Contains(projected);
                 bool occluded = controller.IsOccluded(id);
                 string visibility = (outside ? "OFFSCREEN " : "") + (occluded ? "OCCLUDED" : "");
-                string kind = definition.Kind.ToString().ToUpperInvariant();
+                string kind = definition is RelayNodeDefinition relay ? $"RELAY ↑{relay.MaximumRise:0.#}m" : definition.Kind.ToString().ToUpperInvariant();
                 marker.text = $"{id} / {kind} / {candidate.Distance:0} m\nΔY {candidate.HeightDifference:+0.0;-0.0;0.0} m · {visibility}\n{Status(candidate, state)}";
                 marker.EnableInClassList("chosen", id == controller.AttentionId);
                 marker.EnableInClassList("blocked", Group(candidate, state) == 2);
@@ -203,7 +206,8 @@ namespace CityFlow.Presentation.UI
                 string id = node.Definition.Id;
                 var option = candidateOptions[id];
                 string status = Status(candidate, state);
-                option.text = $"{id} · {node.Definition.Kind.ToString().ToUpperInvariant()} · {candidate.Distance:0} m · ΔY {candidate.HeightDifference:+0;-0;0}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
+                string role = node.Definition is RelayNodeDefinition relay ? $"RELAY ↑{relay.MaximumRise:0.#}m" : node.Definition.Kind.ToString().ToUpperInvariant();
+                option.text = $"{id} · {role} · {candidate.Distance:0} m · ΔY {candidate.HeightDifference:+0;-0;0}\nIN {node.IncomingUsed}/{node.Definition.MaxIncoming} · {status}";
                 option.EnableInClassList("chosen",id == controller.AttentionId);
                 option.EnableInClassList("blocked",candidate.Failure != ConnectionFailure.None);
                 option.style.display = DisplayStyle.Flex;

@@ -119,7 +119,7 @@ tick後だけの通知に限定せず、Pause中の同期コマンドの次の�
 
 ## Nodeの定義と配置
 
-`NodeDefinition`はID・位置と共通の読み取り契約を持つ抽象型。`SourceNodeDefinition`はOUT上限・生成設定、`RelayNodeDefinition`はIN／OUT上限、`SinkNodeDefinition`はIN上限・目的色を持つ。Kindは型から決まり、SourceのINとSinkのOUTは構築引数を持たず、共通の上限照会には0を返す。生成設定はSource型にのみ存在する。
+`NodeDefinition`はID・位置と共通の読み取り契約を持つ抽象型。`SourceNodeDefinition`はOUT上限・生成設定、`RelayNodeDefinition`はIN／OUT上限とMaximumRise、`SinkNodeDefinition`はIN上限・目的色を持つ。Kindは型から決まり、SourceのINとSinkのOUTは構築引数を持たず、共通の上限照会には0を返す。生成設定はSource型にのみ存在する。
 
 配置も`NodePlacement`を基底とする3種類に分け、StageConfigurationの初期NodesとWaveのAdditionsを`SerializeReference`で保存する。UI ToolkitのPropertyDrawerで種類を選び、有効な設定項目だけを編集する。種類変更時はID・位置と両種別に共通する接続枠を保持し、Undoで元の設定へ戻せる。種類未選択の配置はLoad時に拒否する。
 
@@ -141,11 +141,15 @@ Source／RelayはBufferから古い順に出発可否を評価し、出られな
 
 v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。`MaximumAltitude = 0`ではこのGround制約を維持する。
 
-v0.2 Δ1では`StageDefinition.MaximumAltitude`を有効化する。XYZすべてをクリップして線分とクリアランス付き建物Boundsの交差を調べ、上越し・下通過・上昇下降を扱う。`LineRoute.Length`は全区間のVector3距離を合計し、PositionAt、輸送時間、推定Throughput、配送経路表へ共通で渡す。
+v0.2 Δ1はRelay直上の垂直区間と一定高度のXZ経路に限定する。`RelayNodeDefinition`／`RelayNodePlacement.MaximumRise`は配置位置からの上昇能力[m]で、未設定は0。Source／Sinkの高さは固定。`StageDefinition.ValidateConnectionRoute`が両端の型・高さ能力、斜め区間禁止、垂直区間の位置と全区間の衝突を検証する。Preview・新設・既存Line変更は同じ制約を通す。
 
-3D可視グラフはGround、端点、建物上面／下面の高さで角をサンプリングし、上面／下面の辺には端点投影と直線経路の交点も加える。3D距離を辺のコストとA*ヒューリスティックにする。有限グラフ上の最短候補であり、連続3D空間の厳密最短ではない。PLATEAUや大規模都市の性能保証は対象外。
+`ILineRoutePlanner`は座標だけでなく両端Node定義を受け取り、共通の高度範囲で候補高度を評価する。各水平面のXZ可視グラフ＋A*にRelay直上の垂直距離を加え、全長最小の候補を選ぶ。候補は共通範囲の端と建物上面／下面のクリアランス境界で、手動入力を固定レイヤーに制限しない。
 
-HeightLabは同じ6棟を使い、屋上と空中に初期Node／Wave追加Nodeを置く。上限高度はGroundから暫定60 m。既存WiringLab／Bootstrapは0のまま。手動編集では内側の制御点だけY入力でき、XZドラッグはそのYを保持する。端点はNode位置に固定。右ドラッグでOrbitし、候補には3D距離と符号付き高低差を表示する。入力欄のEnterは接続確定に渡さない。
+XYZの全区間とクリアランス付き建物Boundsとの交差を検証する。`LineRoute.Length`は垂直区間も合計し、PositionAt、輸送時間、推定Throughput、配送経路表へ共通で渡す。
+
+`LinePreviewService.SetRouteHeight`は水平経路の全点とRelay直上の折れ点をまとめて変更する。垂直区間と端点のXZは編集不可。手動で追加・移動する点は水平高度を維持する。無効な高さや衝突はPreviewのまま可視化し、確定時に再検証する。
+
+HeightLabは8mと18mの壁、6／10／22／26mのRelayで段階的な高さ制約を検証する。Source／Sinkには12mと24mの高所配置を含める。ステージ上限は30m。Waveは一括追加なので、同時出現Relayを経由する新規Sinkも、配列の並び順によらず既存Node群へ接続可能か検証する。WiringLab／Bootstrapは上限0を維持する。
 
 高さ有効時のLine中心線・FLOW位置は確定経路そのものを使い、Ground描画用の上方オフセットを適用しない。FLOWは直径0.8 mにして0.5 mクリアランス内へ収める。垂直区間の矢印・二重線は代替基準軸から横方向を算出する。
 
@@ -187,10 +191,10 @@ OverlayLayoutが画面端・Node・操作欄・他マーカーを避け、Overla
 | Source / Relay Buffer | 10 / 5 FLOW。SinkはBufferなし |
 | Line容量 / FLOW速度 | 3 FLOW / 8 m/s |
 | Source Overload猶予 | 5秒（容量以上から計時） |
-| HeightLab | 5 Node、0 Line、上限高度60 m。R1・BLUEは屋上、R2は空中。Waveも高さ付き |
+| HeightLab | 6 Node、0 Line、上限30 m。高さ8／18 mの壁と段階的なRelay能力。Waveで高所Source／Sinkを追加 |
 | WiringLab開始 | 5 Node、2色、0 Line。S1準備15秒 |
 | Source基本生成間隔 | S1/S3 3秒、S2 3.9秒。Bootstrapは0.75秒の負荷検証 |
-| Wave 2 / 3 / 4 | 60 / 120 / 180秒、生成間隔倍率0.9 / 0.75 / 0.6 |
+| Wave 2 / 3 / 4 | 60 / 120 / 180秒。WiringLab生成間隔倍率0.9 / 0.75 / 0.6、HeightLabは0.95 / 0.9 / 0.85 |
 | 追加Node | Wave 2: GREEN/S2、3: YELLOW/R3、4: PURPLE/S3 |
 | 追加Source準備 / 出現通知 | 20秒 / ゲーム時間12秒 |
 

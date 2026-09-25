@@ -92,6 +92,9 @@ namespace CityFlow.Presentation.UI
         }
         private static string GeometryReason(RouteFailure failure) => failure switch
         {
+            RouteFailure.SlopedSegment => "INVALID · Use horizontal runs and vertical Relay lifts",
+            RouteFailure.VerticalAtRelayOnly => "INVALID · Vertical movement is only allowed at endpoint Relays",
+            RouteFailure.RelayHeightLimit => "INVALID · Relay lift limit cannot reach this height",
             RouteFailure.Obstacle => "INVALID · Building collision",
             RouteFailure.OutsideArea => "INVALID · Outside walkable area",
             RouteFailure.GroundHeight => "INVALID · Ground height required",

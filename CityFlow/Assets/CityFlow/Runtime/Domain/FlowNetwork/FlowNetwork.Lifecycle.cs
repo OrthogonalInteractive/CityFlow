@@ -31,7 +31,7 @@ namespace CityFlow.Domain.FlowNetwork
             LineRoute route;
             try { route=new LineRoute(points); } catch(ArgumentException) { return false; }
             if (route.Points[0] != line.Source.Definition.Position || route.Points[route.Points.Count-1] != line.Destination.Definition.Position ||
-                !stage.IsRouteWalkable(route,Settings.Clearance)) return false;
+                stage.ValidateConnectionRoute(line.Source.Definition, line.Destination.Definition, route.Points, Settings.Clearance, out _) != RouteFailure.None) return false;
             InvalidateSnapshot();
             InvalidateRouting();
             line.PendingRoute=route; line.Status=LineStatus.RouteChangePending; CompleteDrainedLines(); return true;

@@ -2,12 +2,13 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using CityFlow.Domain.Spatial;
 
 namespace CityFlow.Application.Routing
 {
     public interface ILineRoutePlanner
     {
-        LineRouteResult Generate(Vector3 start, Vector3 end);
-        LineRouteResult Validate(IReadOnlyList<Vector3> points);
+        LineRouteResult Generate(NodeDefinition source, NodeDefinition destination);
+        LineRouteResult Validate(NodeDefinition source, NodeDefinition destination, IReadOnlyList<Vector3> points);
     }
 }

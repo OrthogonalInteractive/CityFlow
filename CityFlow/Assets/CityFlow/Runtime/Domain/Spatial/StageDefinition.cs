@@ -46,6 +46,9 @@ namespace CityFlow.Domain.Spatial
                      source.GenerationInterval <= 0 || double.IsNaN(source.GenerationDelay) ||
                      double.IsInfinity(source.GenerationDelay) || source.GenerationDelay < 0))
                     throw new ArgumentException("Sources require a positive generation interval and nonnegative preparation time.");
+                if (node is RelayNodeDefinition relay && (!Finite(relay.MaximumRise) || relay.MaximumRise < 0 ||
+                    !Finite(relay.Position.y + relay.MaximumRise)))
+                    throw new ArgumentException("Relay lift capacity must be finite and nonnegative.");
                 bool sink = node.Kind == FlowNetwork.NodeKind.Sink;
                 if (sink != node.SinkColor.HasValue || (node.SinkColor.HasValue &&
                     !Enum.IsDefined(typeof(FlowNetwork.FlowColor), node.SinkColor.Value)))
@@ -73,6 +76,31 @@ namespace CityFlow.Domain.Spatial
                 (!AllowsHeight || (point.y >= b.min.y-clearance && point.y <= b.max.y+clearance))) ? RouteFailure.Obstacle : RouteFailure.None;
         }
 
+        public float ConnectionCeiling(NodeDefinition node) => Mathf.Min(CeilingHeight,
+            node.Position.y + (node is RelayNodeDefinition relay ? relay.MaximumRise : 0));
+
+        public RouteFailure ValidateConnectionRoute(NodeDefinition source, NodeDefinition destination,
+            IReadOnlyList<Vector3> points, float clearance, out int invalidSegment)
+        {
+            RouteFailure failure = ValidateRoute(points, clearance, out invalidSegment);
+            if (failure != RouteFailure.None) return failure;
+            if (points[0] != source.Position || points[points.Count - 1] != destination.Position)
+                return RouteFailure.EndpointMismatch;
+            if (!AllowsHeight) return RouteFailure.None;
+            for (int i = 1; i < points.Count; i++)
+            {
+                if (points[i].y == points[i - 1].y) continue;
+                bool fromRelay = i == 1 && source is RelayNodeDefinition;
+                bool toRelay = i == points.Count - 1 && destination is RelayNodeDefinition;
+                bool withinSource = fromRelay && points[i].y >= source.Position.y && points[i].y <= ConnectionCeiling(source);
+                bool withinDestination = toRelay && points[i - 1].y >= destination.Position.y && points[i - 1].y <= ConnectionCeiling(destination);
+                if (withinSource || withinDestination) continue;
+                invalidSegment = i - 1;
+                return fromRelay || toRelay ? RouteFailure.RelayHeightLimit : RouteFailure.VerticalAtRelayOnly;
+            }
+            return RouteFailure.None;
+        }
+
         public bool IsRouteWalkable(LineRoute route, float clearance) =>
             ValidateRoute(route.Points, clearance, out _) == RouteFailure.None;
 
@@ -87,6 +115,10 @@ namespace CityFlow.Domain.Spatial
                 if (i > 0 && (points[i]-points[i-1]).sqrMagnitude <= 0)
                 { invalidSegment = i-1; return RouteFailure.InvalidPoints; }
             }
+            for (int i = 1; i < points.Count; i++)
+                if (points[i].y != points[i - 1].y &&
+                    (points[i].x != points[i - 1].x || points[i].z != points[i - 1].z))
+                { invalidSegment = i - 1; return RouteFailure.SlopedSegment; }
             for (int i = 1; i < points.Count; i++)
                 foreach (Bounds building in Buildings)
                 {

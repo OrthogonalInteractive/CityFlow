@@ -2,10 +2,10 @@
 
 using System;
 using System.Linq;
-using CityFlow.Application.Connections;
 using CityFlow.Application.Routing;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Infrastructure.Configuration;
 using CityFlow.Infrastructure.Routing;
 using NUnit.Framework;
 using UnityEngine;
@@ -15,137 +15,134 @@ namespace CityFlow.Tests.EditMode
     public sealed class HeightRoutingTests
     {
         private static readonly Vector3 A = new(-15, 0, 0), B = new(15, 0, 0);
-        private static StageDefinition Stage(Vector3 start, Vector3 end, params Bounds[] buildings) =>
-            new(0, new Rect(-40, -40, 80, 80), buildings, new NodeDefinition[] {
-                new SourceNodeDefinition("A", start, generationInterval: 1000),
-                new SinkNodeDefinition("B", end, FlowColor.Red) }, maximumAltitude: 40);
+        private static RelayNodeDefinition Relay(string id, Vector3 position, float rise = 30) => new(id, position, maximumRise: rise);
+        private static StageDefinition Stage(NodeDefinition a, NodeDefinition b, params Bounds[] buildings) =>
+            new(0, new Rect(-40, -40, 80, 80), buildings, new[] { a, b }, 40);
         private static FlowNetwork Network(StageDefinition stage) => new(stage, new NetworkSettings(10, 5, 3, 1, 0.5f));
 
-        [Test] public void PolylineUsesThreeDimensionalLengthAndInterpolation()
+        [Test] public void VerticalAndPlanarSegmentsUseTheirActualLengthAndInterpolation()
         {
-            var route = new LineRoute(new[] { Vector3.zero, new Vector3(3, 4, 0), new Vector3(3, 8, 0) });
-            Assert.That(route.Length, Is.EqualTo(9).Within(1e-6));
-            Assert.That(route.PositionAt(2.5), Is.EqualTo(new Vector3(1.5f, 2, 0)));
-            Assert.That(route.PositionAt(7), Is.EqualTo(new Vector3(3, 6, 0)));
+            var route = new LineRoute(new[] { Vector3.zero, new Vector3(0, 4, 0), new Vector3(3, 4, 0) });
+            Assert.That(route.Length, Is.EqualTo(7));
+            Assert.That(route.PositionAt(2), Is.EqualTo(new Vector3(0, 2, 0)));
+            Assert.That(route.PositionAt(5), Is.EqualTo(new Vector3(1, 4, 0)));
         }
 
-        [Test] public void RoofAndAirNodesAreValidButBuildingInteriorIsNot()
+        [Test] public void RoofNodesAndAltitudeBoundsKeepTheirSpatialConstraints()
         {
-            var building = new Bounds(new Vector3(0, 3, 0), new Vector3(8, 6, 8));
-            var stage = Stage(A, new Vector3(0, 7, 0), building);
+            var stage = Stage(Relay("A", A), new SinkNodeDefinition("B", new Vector3(0, 7, 0), FlowColor.Red),
+                new Bounds(new Vector3(0, 3, 0), new Vector3(8, 6, 8)));
             Assert.DoesNotThrow(() => stage.Validate(0.5f));
-            Assert.That(stage.ValidatePoint(new Vector3(0, 3, 0), 0.5f), Is.EqualTo(RouteFailure.Obstacle));
             Assert.That(stage.IsWalkable(new Vector3(0, 6.4f, 0), 0.5f), Is.False);
-        }
-
-        [Test] public void VolumeChecksAllowOverpassAndUnderpassButRejectSlantedPenetration()
-        {
-            var stage = Stage(A, B, new Bounds(new Vector3(0, 3, 0), new Vector3(8, 6, 8)));
-            var planner = new LineRoutePlanner(stage, 0.5f);
-            Assert.That(planner.Validate(new[] { A, new Vector3(-5, 7, 0), new Vector3(5, 7, 0), B }).IsValid, Is.True);
-            var blocked = planner.Validate(new[] { A, new Vector3(8, 10, 0), B });
-            Assert.That(blocked.Failure, Is.EqualTo(RouteFailure.Obstacle));
-            Assert.That(blocked.InvalidSegment, Is.Zero);
-            var floating = Stage(A, B, new Bounds(new Vector3(0, 15, 0), new Vector3(8, 10, 8)));
-            Assert.That(new LineRoutePlanner(floating, 0.5f).Generate(A, B).Route!.Length, Is.EqualTo(30));
-        }
-
-        [Test] public void AltitudeBoundsRejectUndergroundAndAboveCeiling()
-        {
-            var stage = Stage(A, B);
             Assert.That(stage.IsWalkable(new Vector3(0, -0.01f, 0), 0.5f), Is.False);
             Assert.That(stage.IsWalkable(new Vector3(0, 40.01f, 0), 0.5f), Is.False);
             Assert.That(stage.IsWalkable(new Vector3(0, 40, 0), 0.5f), Is.True);
         }
 
         [TestCase(6f, 60f, true)]
-        [TestCase(35f, 8f, false)]
-        public void AutomaticRouteComparesOverpassWithSideDetour(float height, float width, bool overpass)
+        [TestCase(25f, 8f, false)]
+        public void AutomaticRouteComparesVerticalLiftCostWithGroundDetour(float height, float width, bool overpass)
         {
-            var stage = Stage(A, B, new Bounds(new Vector3(0, height / 2, 0), new Vector3(8, height, width)));
+            var a = Relay("A", A); var b = Relay("B", B);
+            var stage = Stage(a, b, new Bounds(new Vector3(0, height / 2, 0), new Vector3(8, height, width)));
             var planner = new LineRoutePlanner(stage, 0.5f);
-            var result = planner.Generate(A, B);
+            var result = planner.Generate(a, b);
             Assert.That(result.IsValid, Is.True);
             Assert.That(result.Route!.Points.Any(p => p.y > height), Is.EqualTo(overpass));
-            Assert.That(stage.IsRouteWalkable(result.Route, 0.5f), Is.True);
-            Assert.That(planner.Generate(A, B).Route!.Points, Is.EqualTo(result.Route.Points));
+            Assert.That(planner.Validate(a, b, result.Route.Points).IsValid, Is.True);
+            Assert.That(planner.Generate(a, b).Route!.Points, Is.EqualTo(result.Route.Points));
+            foreach (var pair in result.Route.Points.Zip(result.Route.Points.Skip(1), (x, y) => (x, y)))
+                Assert.That(pair.x.y == pair.y.y || (pair.x.x == pair.y.x && pair.x.z == pair.y.z), Is.True);
         }
 
-        [Test] public void CeilingAndFullWidthWallCanMakeAConnectionImpossible()
+        [TestCase(6f, 10f, false)] [TestCase(10f, 6f, false)] [TestCase(10f, 10f, true)]
+        public void BothEndpointLiftLimitsConstrainCrossingAFullWidthWall(float fromRise, float toRise, bool reachable)
         {
-            var stage = Stage(A, B, new Bounds(new Vector3(0, 25, 0), new Vector3(8, 50, 90)));
-            Assert.That(new LineRoutePlanner(stage, 0.5f).Generate(A, B).Failure, Is.EqualTo(RouteFailure.SearchFailed));
+            var a = Relay("A", A, fromRise); var b = Relay("B", B, toRise);
+            var planner = new LineRoutePlanner(Stage(a, b,
+                new Bounds(new Vector3(0, 4, 0), new Vector3(8, 8, 90))), 0.5f);
+            Assert.That(planner.Generate(a, b).IsValid, Is.EqualTo(reachable));
         }
 
-        [TestCase(false)] [TestCase(true)]
-        public void SlopedTransportUsesTheSameThreeDimensionalRouteAndTime(bool descending)
+        [Test] public void RelayLimitIsRelativeToItsPlacementAndStillClampedByTheStage()
         {
-            Vector3 start = descending ? new Vector3(3, 4, 0) : Vector3.zero;
-            Vector3 end = descending ? Vector3.zero : new Vector3(3, 4, 0);
-            var stage = Stage(start, end);
+            var a = Relay("A", new Vector3(-15, 20, 0), 10);
+            var b = new SinkNodeDefinition("B", new Vector3(15, 30, 0), FlowColor.Red);
+            var planner = new LineRoutePlanner(Stage(a, b), 0.5f);
+            Assert.That(planner.Generate(a, b).Route!.Points, Is.EqualTo(new[] { a.Position, new Vector3(-15, 30, 0), b.Position }));
+            Assert.That(planner.Generate(a, new SinkNodeDefinition("C", new Vector3(15, 31, 0), FlowColor.Red)).Failure,
+                Is.EqualTo(RouteFailure.RelayHeightLimit));
+            var high = Relay("H", A, 100);
+            var stage = Stage(high, Relay("L", B, 100));
+            Assert.That(stage.ConnectionCeiling(high), Is.EqualTo(40));
+        }
+
+        [TestCase(-1f)] [TestCase(float.NaN)] [TestCase(float.PositiveInfinity)]
+        public void InvalidRelayLiftLimitsCannotEnterTheStage(float rise)
+        {
+            Assert.Throws<ArgumentException>(() => Stage(Relay("A", A, rise), Relay("B", B)).Validate(0.5f));
+        }
+
+        [Test] public void SourceFeedsRaisedRelayColumnAtItsOwnFixedHeight()
+        {
+            var source = new SourceNodeDefinition("S", new Vector3(-15, 12, 0));
+            var relay = Relay("R", B, 12);
+            var sink = new SinkNodeDefinition("D", new Vector3(25, 0, 0), FlowColor.Red);
+            var stage = new StageDefinition(0, new Rect(-40, -40, 80, 80), Array.Empty<Bounds>(), new NodeDefinition[] { source, relay, sink }, 40);
+            var result = new LineRoutePlanner(stage, 0.5f).Generate(source, relay);
+            Assert.That(result.Route!.Points, Is.EqualTo(new[] { source.Position, new Vector3(15, 12, 0), relay.Position }));
+        }
+
+        [Test] public void HeightChangesInTheMiddleAndAtSinksAreRejectedEvenWithAxisAlignedSegments()
+        {
+            var a = Relay("A", A); var b = Relay("B", B);
+            var planner = new LineRoutePlanner(Stage(a, b), 0.5f);
+            Assert.That(planner.Validate(a, b, new[] { A, new Vector3(0, 0, 0), new Vector3(0, 10, 0), new Vector3(15, 10, 0), B }).Failure,
+                Is.EqualTo(RouteFailure.VerticalAtRelayOnly));
+            var sink = new SinkNodeDefinition("S", B, FlowColor.Red);
+            Assert.That(planner.Validate(a, sink, new[] { A, A + Vector3.up * 10, B + Vector3.up * 10, B }).Failure,
+                Is.EqualTo(RouteFailure.VerticalAtRelayOnly));
+        }
+
+        [Test] public void LiftColumnCannotPassThroughAnOverhang()
+        {
+            var a = Relay("A", A); var b = new SinkNodeDefinition("B", new Vector3(15, 15, 0), FlowColor.Red);
+            var planner = new LineRoutePlanner(Stage(a, b,
+                new Bounds(new Vector3(-15, 7, 0), new Vector3(6, 4, 6))), 0.5f);
+            Assert.That(planner.Generate(a, b).Failure, Is.EqualTo(RouteFailure.SearchFailed));
+        }
+
+        [Test] public void LiftedRelayRouteTransportsFlowsAndDrainsBeforeChangingHeight()
+        {
+            var source = new SourceNodeDefinition("S", new Vector3(-25, 0, 0));
+            var a = Relay("A", A); var b = Relay("B", B);
+            var sink = new SinkNodeDefinition("D", new Vector3(25, 0, 0), FlowColor.Red);
+            var stage = new StageDefinition(0, new Rect(-40, -40, 80, 80), Array.Empty<Bounds>(), new NodeDefinition[] { source, a, b, sink }, 40);
             var network = Network(stage);
-            using var preview = new LinePreviewService(network, new LineRoutePlanner(stage, 0.5f));
-            preview.Generate("A", "B");
-            Assert.That(preview.Current!.Length, Is.EqualTo(5));
-            Assert.That(preview.Current.TravelTime, Is.EqualTo(5));
-            Assert.That(preview.Current.Throughput, Is.EqualTo(0.6).Within(1e-6));
-            Assert.That(preview.TryConfirm(out _), Is.EqualTo(ConnectionFailure.None));
-            network.GenerateFlow("A", FlowColor.Red); network.RouteWaitingFlows(); network.AdvanceInFlight(2.5);
-            var line = network.Snapshot().Lines.Single();
-            Assert.That(line.Route.PositionAt(line.InFlight.Single().Distance), Is.EqualTo(new Vector3(1.5f, 2, 0)));
-            network.AdvanceInFlight(2.5);
+            network.TryConnect("S", "A", new[] { source.Position, A });
+            var lifted = new[] { A, A + Vector3.up * 10, B + Vector3.up * 10, B };
+            int id = network.TryConnect("A", "B", lifted).LineId.GetValueOrDefault();
+            network.TryConnect("B", "D", new[] { B, sink.Position });
+            network.GenerateFlow("S", FlowColor.Red); network.RouteWaitingFlows(); network.AdvanceInFlight(10); network.RouteWaitingFlows();
+            network.AdvanceInFlight(5);
+            var flight = network.Snapshot().Lines.Single(l => l.Id == id).InFlight.Single();
+            Assert.That(new LineRoute(lifted).PositionAt(flight.Distance), Is.EqualTo(A + Vector3.up * 5));
+            Assert.That(network.RequestRouteChange(id, new[] { A, A + Vector3.up * 20, B + Vector3.up * 20, B }), Is.True);
+            Assert.That(network.Snapshot().Lines.Single(l => l.Id == id).Route.Length, Is.EqualTo(50));
+            network.AdvanceInFlight(45);
+            Assert.That(network.Snapshot().Lines.Single(l => l.Id == id).Route.Length, Is.EqualTo(70));
+            network.RouteWaitingFlows(); network.AdvanceInFlight(10);
             Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1));
         }
 
-        [Test] public void ManualHeightEditingPreservesYAndRejectsCollisionsWithoutChangingNetwork()
+        [Test] public void RaisedWaveRelayRetainsItsLiftLimitInConnectionValidation()
         {
-            var stage = Stage(A, B);
-            var network = Network(stage);
-            using var preview = new LinePreviewService(network, new LineRoutePlanner(stage, 0.5f));
-            preview.Generate("A", "B");
-            preview.InsertPoint(0, new Vector3(0, 10, 0));
-            Assert.That(preview.Current!.Points[1].y, Is.EqualTo(10));
-            preview.MovePoint(1, new Vector3(2, 20, 1));
-            Assert.That(preview.Current!.Points[1], Is.EqualTo(new Vector3(2, 20, 1)));
-            Assert.That(preview.MovePoint(0, Vector3.one), Is.False);
-            preview.MovePoint(1, new Vector3(2, 41, 1));
-            Assert.That(preview.Current.CanConfirm, Is.False);
-            Assert.That(preview.TryConfirm(out _), Is.EqualTo(ConnectionFailure.InvalidRoute));
-            Assert.That(network.Snapshot().Lines, Is.Empty);
-        }
-
-        [Test] public void CandidateDistanceBandsIncludeHeightAndVerticalConnectionsWork()
-        {
-            var stage = Stage(Vector3.zero, new Vector3(0, 35, 0));
-            var network = Network(stage);
-            using var preview = new LinePreviewService(network, new LineRoutePlanner(stage, 0.5f));
-            using var session = new ConnectionSession(network, preview, 20, 30);
-            session.Begin("A");
-            Assert.That(session.Candidates().Single().Distance, Is.EqualTo(35));
-            Assert.That(session.Candidates().Single().Band, Is.EqualTo(DistanceBand.Far));
-            session.SelectTarget("B");
-            Assert.That(session.Confirm(), Is.EqualTo(ConnectionFailure.None));
-        }
-
-        [Test] public void RaisedWaveNodesKeepHeightRulesWhenAddedToNetwork()
-        {
-            var network = Network(Stage(A, B));
-            Assert.That(network.TryAddNodes(new NodeDefinition[] {
-                new RelayNodeDefinition("ROOF", new Vector3(0, 20, 0)) }), Is.True);
-            Assert.That(network.TryConnect("A", "ROOF", new[] { A, new Vector3(0, 20, 0) }).Succeeded, Is.True);
-        }
-
-        [Test] public void HeightRouteChangeWaitsForFlightsBeforeChangingTheirPolyline()
-        {
-            var network = Network(Stage(A, B));
-            int id = network.TryConnect("A", "B", new[] { A, B }).LineId.GetValueOrDefault();
-            network.GenerateFlow("A", FlowColor.Red); network.RouteWaitingFlows(); network.AdvanceInFlight(5);
-            Assert.That(network.RequestRouteChange(id, new[] { A, new Vector3(0, 10, 0), B }), Is.True);
-            Assert.That(network.Snapshot().Lines.Single().Route.Length, Is.EqualTo(30));
-            Assert.That(network.Snapshot().Lines.Single().InFlight.Single().Distance, Is.EqualTo(5));
-            network.AdvanceInFlight(25);
-            Assert.That(network.Snapshot().Lines.Single().Route.Length, Is.GreaterThan(30));
-            Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(1));
+            var a = Relay("A", A);
+            var network = Network(Stage(a, Relay("B", B)));
+            var added = Relay("W", new Vector3(0, 10, 0), 5);
+            Assert.That(network.TryAddNodes(new NodeDefinition[] { added }), Is.True);
+            Assert.That(network.TryConnect("A", "W", new[] { A, A + Vector3.up * 10, added.Position }).Succeeded, Is.True);
+            Assert.That(network.RequestRouteChange(1, new[] { A, A + Vector3.up * 16, new Vector3(0, 16, 0), added.Position }), Is.False);
         }
     }
 }

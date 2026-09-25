@@ -32,6 +32,8 @@ namespace CityFlow.Presentation.Overview
                     warning = node.IsBufferFull ? $"{Math.Max(0, settings.OverloadGrace - node.OverloadSeconds):0.0}s TO GAME OVER" :
                         node.Buffer.Count >= node.BufferCapacity.Value * 0.8 ? "BUFFER NEARLY FULL · ADD AN EXIT" : "";
                 }
+                if (node.Definition is RelayNodeDefinition relay)
+                    activity = $"LIFT +{relay.MaximumRise:0.##} m · Y {relay.Position.y:0.##}–{relay.Position.y + relay.MaximumRise:0.##} m";
                 string incoming = string.Join(", ", state.Lines.Where(l => l.DestinationId == node.Definition.Id && l.InFlight.Any(f => f.IsStopped)).Select(l => l.SourceId));
                 string outgoing = string.Join(", ", state.Lines.Where(l => l.SourceId == node.Definition.Id).Select(l => l.DestinationId));
                 bool isSource = node.Definition.Kind == NodeKind.Source;

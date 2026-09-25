@@ -93,8 +93,8 @@ namespace CityFlow.Tests.EditMode
         private sealed class ChangingPlanner : ILineRoutePlanner
         {
             public bool Blocked;
-            public LineRouteResult Generate(Vector3 a,Vector3 b)=>new LineRouteResult(new LineRoute(new[]{a,b}));
-            public LineRouteResult Validate(System.Collections.Generic.IReadOnlyList<Vector3> points)=>Blocked?
+            public LineRouteResult Generate(NodeDefinition a,NodeDefinition b)=>new LineRouteResult(new LineRoute(new[]{a.Position,b.Position}));
+            public LineRouteResult Validate(NodeDefinition source, NodeDefinition destination, System.Collections.Generic.IReadOnlyList<Vector3> points)=>Blocked?
                 new LineRouteResult(RouteFailure.Obstacle,0):new LineRouteResult(new LineRoute(points));
         }
         [Test] public void ConfirmRevalidatesGeometryAndKeepsInvalidPreviewForAnotherChoice()

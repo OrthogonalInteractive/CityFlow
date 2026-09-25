@@ -28,7 +28,7 @@ namespace CityFlow.Application.Routing
             NodeDefinition? to = network.NodeDefinitions.FirstOrDefault(n=>n.Id == destinationId);
             if (from == null || to == null)
             { Publish(sourceId,destinationId,Array.Empty<Vector3>(),new LineRouteResult(RouteFailure.InvalidPoints)); return; }
-            LineRouteResult result = planner.Generate(from.Position,to.Position);
+            LineRouteResult result = planner.Generate(from,to);
             Publish(sourceId,destinationId,result.Route?.Points ?? new[] { from.Position,to.Position },result);
         }
         public bool BeginLineEdit(int lineId)
@@ -36,7 +36,9 @@ namespace CityFlow.Application.Routing
             LineSnapshot? line=network.Snapshot().Lines.FirstOrDefault(l=>l.Id==lineId);
             if (line == null || line.Status != LineStatus.Running) return false;
             EditingLineId=lineId;
-            Publish(line.SourceId,line.DestinationId,line.Route.Points,planner.Validate(line.Route.Points)); return true;
+            var from = network.NodeDefinitions.Single(n => n.Id == line.SourceId);
+            var to = network.NodeDefinitions.Single(n => n.Id == line.DestinationId);
+            Publish(line.SourceId,line.DestinationId,line.Route.Points,planner.Validate(from, to, line.Route.Points)); return true;
         }
         public void UpdatePoints(IReadOnlyList<Vector3> points)
         {
@@ -44,7 +46,7 @@ namespace CityFlow.Application.Routing
             NodeDefinition? from = network.NodeDefinitions.FirstOrDefault(n=>n.Id == Current.SourceId);
             NodeDefinition? to = network.NodeDefinitions.FirstOrDefault(n=>n.Id == Current.DestinationId);
             LineRouteResult result = points.Count >= 2 && from != null && to != null &&
-                points[0] == from.Position && points[points.Count-1] == to.Position ? planner.Validate(points) :
+                points[0] == from.Position && points[points.Count-1] == to.Position ? planner.Validate(from, to, points) :
                 new LineRouteResult(RouteFailure.EndpointMismatch);
             Publish(Current.SourceId,Current.DestinationId,points,result);
         }
@@ -58,21 +60,61 @@ namespace CityFlow.Application.Routing
                 snapshot.Nodes.FirstOrDefault(n=>n.Definition.Id==sourceId),snapshot.Nodes.FirstOrDefault(n=>n.Definition.Id==destinationId),network.Settings,EditingLineId.HasValue);
             changed.OnNext(Current);
         }
+        public float MinimumRouteHeight => Source is NodeDefinition from && Destination is NodeDefinition to ? Mathf.Max(from.Position.y, to.Position.y) : 0;
+        public float MaximumRouteHeight => Source is NodeDefinition from && Destination is NodeDefinition to
+            ? Mathf.Min(network.CeilingHeight, Mathf.Min(Top(from), Top(to))) : 0;
+        public bool CanAdjustRouteHeight => SupportsHeight && MaximumRouteHeight > MinimumRouteHeight;
+        public float RouteHeight => Current == null || Current.Points.Count < 2 ? MinimumRouteHeight :
+            Current.Points.Count == 2 ? Mathf.Max(Current.Points[0].y, Current.Points[1].y) :
+            Current.Points[FirstPlanarIndex].y;
+
+        private static float Top(NodeDefinition node) => node.Position.y + (node is RelayNodeDefinition relay ? relay.MaximumRise : 0);
+        private NodeDefinition? Source => network.NodeDefinitions.FirstOrDefault(n => n.Id == Current?.SourceId);
+        private NodeDefinition? Destination => network.NodeDefinitions.FirstOrDefault(n => n.Id == Current?.DestinationId);
+        private int FirstPlanarIndex => Current != null && Current.Points.Count > 2 && Current.Points[0].y != Current.Points[1].y ? 1 : 0;
+        private int LastPlanarIndex => Current == null ? 0 : Current.Points.Count > 2 &&
+            Current.Points[Current.Points.Count - 1].y != Current.Points[Current.Points.Count - 2].y ? Current.Points.Count - 2 : Current.Points.Count - 1;
+
+        public bool CanMovePoint(int index) => Current != null && index > FirstPlanarIndex && index < LastPlanarIndex;
+        public bool CanInsertPoint(int segment) => Current != null && segment >= FirstPlanarIndex && segment < LastPlanarIndex &&
+            Current.Points[segment].y == Current.Points[segment + 1].y;
+
+        public bool SetRouteHeight(float height)
+        {
+            if (Current == null || !CanAdjustRouteHeight || Source is not NodeDefinition from || Destination is not NodeDefinition to ||
+                float.IsNaN(height) || float.IsInfinity(height)) return false;
+            var points = new List<Vector3> { from.Position };
+            void Add(Vector3 point) { if (points[points.Count - 1] != point) points.Add(point); }
+            Add(new Vector3(from.Position.x, height, from.Position.z));
+            for (int i = FirstPlanarIndex + 1; i < LastPlanarIndex; i++)
+                Add(new Vector3(Current.Points[i].x, height, Current.Points[i].z));
+            Add(new Vector3(to.Position.x, height, to.Position.z));
+            Add(to.Position);
+            UpdatePoints(points);
+            return true;
+        }
+
         public bool InsertPoint(int segment, Vector3 position)
         {
-            if (Current == null || segment < 0 || segment >= Current.Points.Count-1) return false;
-            var points = Current.Points.ToList(); if (!SupportsHeight) position.y = points[0].y;
-            points.Insert(segment+1,position); UpdatePoints(points); return true;
+            if (Current == null || !CanInsertPoint(segment)) return false;
+            var points = Current.Points.ToList();
+            position.y = points[segment].y;
+            points.Insert(segment + 1, position);
+            UpdatePoints(points);
+            return true;
         }
         public bool MovePoint(int index, Vector3 position)
         {
-            if (Current == null || index <= 0 || index >= Current.Points.Count-1) return false;
-            var points = Current.Points.ToArray(); if (!SupportsHeight) position.y = points[0].y;
-            points[index] = position; UpdatePoints(points); return true;
+            if (Current == null || !CanMovePoint(index)) return false;
+            var points = Current.Points.ToArray();
+            position.y = points[index].y;
+            points[index] = position;
+            UpdatePoints(points);
+            return true;
         }
         public bool RemovePoint(int index)
         {
-            if (Current == null || index <= 0 || index >= Current.Points.Count-1) return false;
+            if (Current == null || !CanMovePoint(index)) return false;
             var points = Current.Points.ToList(); points.RemoveAt(index); UpdatePoints(points); return true;
         }
         public void Regenerate()
@@ -80,7 +122,7 @@ namespace CityFlow.Application.Routing
             if (Current == null) return;
             var from=network.NodeDefinitions.Single(n=>n.Id==Current.SourceId);
             var to=network.NodeDefinitions.Single(n=>n.Id==Current.DestinationId);
-            var result=planner.Generate(from.Position,to.Position);
+            var result=planner.Generate(from,to);
             Publish(from.Id,to.Id,result.Route?.Points ?? new[]{from.Position,to.Position},result);
         }
         public void Cancel() { EditingLineId = null; Current = null; changed.OnNext(null); }

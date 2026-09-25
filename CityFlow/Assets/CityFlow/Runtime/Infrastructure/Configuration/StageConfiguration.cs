@@ -41,11 +41,16 @@ namespace CityFlow.Infrastructure.Configuration
             {
                 if(wave.StartSeconds<=previous) throw new ArgumentException("Wave times must increase."); previous=wave.StartSeconds;
                 new StageDefinition(initial.GroundHeight,initial.WalkableArea,initial.Buildings,known.Concat(wave.Additions),initial.MaximumAltitude).Validate(clearance);
-                foreach(var node in wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1))
+                bool Reachable(NodeDefinition from, NodeDefinition to) =>
+                    from.MaxOutgoing > 0 && to.MaxIncoming > 0 && planner.Generate(from, to).IsValid;
+                var pending = wave.Additions.ToList();
+                // A Wave arrives atomically; a new Relay may provide access to another new Node.
+                while (pending.Count > 0)
                 {
-                    if(!known.Any(n=>planner.Generate(n.Position,node.Position).IsValid))
-                        throw new ArgumentException($"Node {node.Id} requires a valid route to an existing Node.");
-                    known.Add(node);
+                    var next = pending.FirstOrDefault(node => known.Any(n => Reachable(n, node) || Reachable(node, n)));
+                    if (next == null) throw new ArgumentException("Wave Nodes require a valid connection to the existing stage.");
+                    known.Add(next);
+                    pending.Remove(next);
                 }
             }
             return Array.AsReadOnly(waves);
