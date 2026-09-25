@@ -213,15 +213,17 @@ Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S
 
 ## 高さ方向を試す（v0.2 Δ1）
 
-`Assets/CityFlow/Scenes/HeightLab.unity` を開いてPlayする。WiringLabと同じ6棟・初期5 Node・0 Lineで、R1とBLUEは屋上、R2は空中に配置している。Waveで追加するNodeも高さを持つ。設定は`HeightStage.asset`。
+`Assets/CityFlow/Scenes/HeightLab.unity`を開いてPlayする。6 Node・0 Lineから開始し、高さ8m／18mの壁で区切られた都市を配線する。設定は`HeightStage.asset`。
 
-- Source／Relayから候補に注目すると、3D距離と高低差を表示し、横迂回・上越しを探索する。
-- **Edit route** ボタンから編集へ入り、**Shift+クリック**で制御点を追加して、選択点の**HEIGHT Y (m)**を入力する。値は絶対Y座標。入力欄からフォーカスを外すと反映され、Lineの確定は **Apply Line** ボタンで行う。
-- ハンドルのドラッグは選択点のYを保ってXZを動かす。右ドラッグで斜めから確認し、**Apply Line**で確定する。端点はNodeに固定。
-- 地下・上限外・建物を貫く区間は赤く表示され、確定できない。長さ・移動時間・推定Throughputは同じ3D経路から計算する。
+- 高度変更はRelay直上の垂直区間だけ。間は一定高度のXZ経路となり、高さ方向の斜め配線は作れない。
+- Relayの`MaximumRise`は配置位置から上へ伸ばせる距離[m]。始点・終点の双方の制限が効く。Source／Sinkは配置Yで水平接続する。
+- 初期のR1は6m、R2／R3は10m。R1は8mの壁を越えられず、R2→R3で低い壁を越える。S1→REDはGroundで接続でき、BLUEへはR2／R3の中継が必要。
+- Wave 2でGREEN（Y=12m）とR4（22m）、Wave 3でYELLOWとR5（26m）、Wave 4でPURPLE（Y=24m）と高所Source S2（Y=12m）を追加する。R4／R5で18mの壁を越え、S2は12mへ届くR4などで受け取る。
+- **Edit route**から編集し、**ROUTE Y (m)**で水平部分全体の高度を入力する。入力欄からフォーカスを外すと反映される。Shift＋クリック・ドラッグは水平部分のXZ編集。Relay直上の折れ点は固定する。
+- **Apply Line**で確定、**Cancel／Esc**で取消。赤いPreviewは高さ制限や建物衝突により確定できない。右ドラッグで立体形状を確認できる。
 
-`StageConfiguration.MaximumAltitude`はGroundからの上限[m]で、HeightLabでは暫定60。0なら従来のGround専用となり、WiringLab／Bootstrapの挙動を維持する。NodeのPosition.yも範囲内で指定し、屋根からクリアランスを確保する。
+`MaximumAltitude`はGroundからのステージ上限[m]で、HeightLabは暫定30。0ならGround専用となり、WiringLab／Bootstrapの配線ルールを維持する。数値・配置・Wave時間はレベル比較用の暫定値。
 
-探索は有限サンプルの3D可視グラフ＋A*で、連続空間の厳密最短ではない。今回の導入は高さ方向だけで、Port Unit・Width・複数候補・方向反転・PLATEAUは未導入。[検証と画面](docs/Height-Routing-2026-09-23.md)を参照。
+各水平面でGroundと同じXZ可視グラフ＋A*を使い、垂直距離込みの全長で候補を比較する。Port Unit・Width・複数候補・方向反転は未導入。PLATEAUはSDKと独立した確認シーンのみ導入済みで、ゲームには未統合。[配置・検証・画面](docs/Relay-Lift-2026-09-25.md)を参照。
 
 並行開発時は別worktreeへUnityプロジェクトを用意し、`uloop launch /絶対パス/CityFlow`で別Editorを起動する。その後も全コマンドに`--project-path /絶対パス/CityFlow`を指定し、既存Editorへ送らない。
