@@ -8,12 +8,12 @@
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive layout-obstacle">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
-            <ui:Button name="pause-toggle" text="Pause [Esc]" />
+            <ui:Button name="pause-toggle" text="Pause" />
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement name="connection-toast" class="panel connection-toast interactive layout-obstacle">
             <ui:Label name="connection-notice" class="detail-text" />
-            <ui:Button name="undo-connection" text="Undo [Ctrl+Z / ⌘Z]" />
+            <ui:Button name="undo-connection" text="Undo" />
         </ui:VisualElement>
         <ui:VisualElement class="panel summary-panel layout-obstacle">
             <ui:VisualElement class="metrics">
@@ -31,13 +31,13 @@
         <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="route-editor" class="panel route-editor interactive layout-obstacle">
             <ui:Label text="GROUND / MANUAL ROUTE" class="section-title" />
-            <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag numbered handles: move on Ground&#10;Select a handle + Delete: remove&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
+            <ui:Label text="Shift + click: add a point to nearest segment&#10;Drag numbered handles: move on Ground&#10;Select a handle, then click Remove selected point&#10;Endpoints stay fixed on Nodes.&#10;WASD / middle drag: pan · Wheel: zoom" class="detail-text" />
             <ui:Label name="edit-route-feedback" class="detail-text route-feedback" />
             <ui:Label name="route-point-detail" class="band-hint" />
-            <ui:Button name="route-remove" text="Remove selected point [Delete]" />
+            <ui:Button name="route-remove" text="Remove selected point" />
             <ui:Button name="route-regenerate" text="Regenerate automatic route" />
-            <ui:Button name="route-apply" text="Apply Line [Enter]" />
-            <ui:Button name="route-cancel" text="Cancel [Backspace]" />
+            <ui:Button name="route-apply" text="Apply Line" />
+            <ui:Button name="route-cancel" text="Cancel [Esc]" />
         </ui:VisualElement>
         <ui:VisualElement name="connection-markers" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="connection-workspace" class="connection-workspace" picking-mode="Ignore">
@@ -47,8 +47,8 @@
                 <ui:VisualElement name="line-actions">
                     <ui:Label name="line-action-detail" class="detail-text" />
                     <ui:Button name="line-edit" text="Edit selected Line" />
-                    <ui:Button name="line-delete" text="Reserve deletion" />
-                    <ui:Button name="line-cancel" text="Cancel pending change" />
+                    <ui:Button name="line-delete" text="Delete" />
+                    <ui:Button name="line-cancel" text="Cancel deletion" />
                 </ui:VisualElement>
                 <ui:VisualElement class="connection-only">
                     <ui:Label name="connection-bands" class="band-hint" />
@@ -60,12 +60,12 @@
                     </ui:VisualElement>
                     <ui:Label name="connection-count" class="band-hint" />
                     <ui:Label name="candidate-detail" class="detail-text candidate-detail" />
-                    <ui:Label name="connection-help" text="Hover / Tab: preview a route.&#10;Click a Node or candidate: connect.&#10;E: edit route before connecting." class="band-hint" />
-                    <ui:Button name="connect-review" text="Review in Overview [V]" />
-                    <ui:Button name="connect-cancel" text="Cancel connection [Backspace]" />
+                    <ui:Label name="connection-help" text="Hover: preview a route.&#10;Click a Node or candidate: connect.&#10;Use Edit Ground route before connecting." class="band-hint" />
+                    <ui:Button name="connect-review" text="Review in Overview" />
+                    <ui:Button name="connect-cancel" text="Cancel connection [Esc]" />
                     <ui:Label name="route-feedback" class="detail-text route-feedback" />
-                    <ui:Button name="connect-confirm" text="Confirm Line [Enter]" />
-                    <ui:Button name="route-edit" text="Edit Ground route [E]" />
+                    <ui:Button name="connect-confirm" text="Confirm Line" />
+                    <ui:Button name="route-edit" text="Edit Ground route" />
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="candidate-list-panel" class="panel candidate-list-panel interactive layout-obstacle">

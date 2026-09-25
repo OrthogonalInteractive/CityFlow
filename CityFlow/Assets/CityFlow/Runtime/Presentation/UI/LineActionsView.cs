@@ -67,7 +67,8 @@ namespace CityFlow.Presentation.UI
             root.Q<Button>("line-edit").SetEnabled(running);
             root.Q<Button>("line-delete").SetEnabled(running);
             root.Q<Button>("line-cancel").SetEnabled(!running);
-            string state = line.Status == LineStatus.DeletePending ? "DELETE PENDING" :
+            root.Q<Button>("line-cancel").text = line.Status == LineStatus.RouteChangePending ? "Cancel route change" : "Cancel deletion";
+            string state = line.Status == LineStatus.DeletePending ? "DELETING" :
                 line.Status == LineStatus.RouteChangePending ? "ROUTE CHANGE PENDING" : "RUNNING";
             string wait = line.InFlight.Any(f => f.IsStopped) ? $"WAITING · {line.DestinationId} Buffer space" : "Draining along the current route";
             root.Q<Label>("line-action-detail").text = $"{line.SourceId} → {line.DestinationId} / {state}\nIN-FLIGHT {line.InFlight.Count}/{line.Capacity}" +

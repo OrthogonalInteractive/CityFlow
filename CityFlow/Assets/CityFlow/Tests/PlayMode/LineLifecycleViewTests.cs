@@ -23,7 +23,7 @@ namespace CityFlow.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
             Object.FindAnyObjectByType<SimulationDriver>().enabled=false;
         }
-        private static void Submit(Button b) { b.Focus(); using var e=NavigationSubmitEvent.GetPooled(); b.SendEvent(e); }
+        private static void Submit(Button b) => UiPointer.Click(b);
         private static int Connect(ConnectionSession session,string from,string to)
         { Assert.That(session.Begin(from),Is.True); session.SelectTarget(to); Assert.That(session.Confirm(),Is.EqualTo(ConnectionFailure.None)); return session.LastCreatedLineId!.Value; }
         [UnityTest] public IEnumerator DeleteShowsBlockedReceiverCancelKeepsFlightsAndDrainRemovesRenderer()
@@ -36,8 +36,9 @@ namespace CityFlow.Tests.PlayMode
             var before=n.Snapshot().Lines.Single().InFlight.Single();
             Object.FindAnyObjectByType<OverviewController>().Select(OverviewTarget.Line(id)); yield return null;
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
+            Assert.That(root.Q<Button>("line-delete").text, Is.EqualTo("Delete"));
             Submit(root.Q<Button>("line-delete")); yield return null;
-            Assert.That(root.Q<Label>("line-action-detail").text,Does.Contain("DELETE PENDING").And.Contain("Buffer space"));
+            Assert.That(root.Q<Label>("line-action-detail").text,Does.Contain("DELETING").And.Contain("Buffer space"));
             Assert.That(n.Snapshot().Lines.Single().Status,Is.EqualTo(LineStatus.DeletePending));
             Submit(root.Q<Button>("line-cancel")); yield return null;
             Assert.That(n.Snapshot().Lines.Single().InFlight.Single().Flow.Id,Is.EqualTo(before.Flow.Id));

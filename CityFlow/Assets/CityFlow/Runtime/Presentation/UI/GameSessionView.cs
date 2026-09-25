@@ -134,8 +134,8 @@ namespace CityFlow.Presentation.UI
         private string Hint(NetworkSnapshot state)
         {
             if (simulation == null || network == null || connectionCamera == null) return "";
-            string pauseAction = simulation.IsPaused ? "Esc: resume" : "Esc: pause";
-            string recovery = simulation.IsPaused ? "Paused · Connect matching Sinks · Esc to resume" : "Esc to pause and connect matching Sinks";
+            string pauseAction = simulation.IsPaused ? "Resume button: continue" : "Pause button: stop time";
+            string recovery = simulation.IsPaused ? "Paused · Connect matching Sinks · Click Resume to resume" : "Click Pause and connect matching Sinks";
             var source = state.Nodes.Where(n => n.Definition.Kind == NodeKind.Source && n.BufferCapacity.HasValue)
                 .OrderByDescending(n => n.IsBufferFull).ThenByDescending(n => n.OverloadSeconds)
                 .ThenByDescending(n => (double)n.Buffer.Count / n.BufferCapacity.GetValueOrDefault(1)).FirstOrDefault();
@@ -143,12 +143,12 @@ namespace CityFlow.Presentation.UI
                 return $"{source.Definition.Id}: {Math.Max(0, network.Settings.OverloadGrace - source.OverloadSeconds):0.0}s TO GAME OVER · {recovery}";
             if (source != null && source.Buffer.Count >= source.BufferCapacity * 0.8)
                 return $"{source.Definition.Id} Buffer nearly full · {recovery}";
-            if (connectionCamera.IsEditing) return $"Shift + click: add point · Drag: move · Enter: apply · Backspace: cancel · {pauseAction}";
-            if (connectionCamera.IsNode360) return $"Hover: preview · Click: connect · E: edit route · Right drag: look · Backspace: cancel · {pauseAction}";
+            if (connectionCamera.IsEditing) return $"Shift + click: add point · Drag: move · Apply Line button: apply · Esc: cancel · {pauseAction}";
+            if (connectionCamera.IsNode360) return $"Hover: preview · Click: connect · Edit Ground route button: edit · Right drag: look · Esc: cancel · {pauseAction}";
             var preparing = state.Nodes.FirstOrDefault(n => simulation.SourceStartRemaining(n.Definition.Id) > 0);
             if (preparing != null) return $"{preparing.Definition.Id} starts in {Math.Ceiling(simulation.SourceStartRemaining(preparing.Definition.Id)):0}s · Click to connect";
             if (state.Lines.Count == 0) return $"Click S1, then a matching Sink to connect · {pauseAction}";
-            return $"Hover: inspect · Click Node: connect · Shift + click Line: edit · F: focus hovered item · {pauseAction}";
+            return $"Hover: inspect · Click Node: connect · Shift + click Line: edit · F: focus hovered item · Esc: clear selection · {pauseAction}";
         }
         private void Unbind()
         {

@@ -51,7 +51,7 @@ namespace CityFlow.Presentation.Overview
             if (line == null) return new OverviewDetailText("Hover a Node or Line for details.");
             int stopped = line.InFlight.Count(f => f.IsStopped);
             double travel = line.Route.Length / settings.FlowSpeed;
-            string status = line.Status == LineStatus.DeletePending ? "DELETION PENDING · DASHED" :
+            string status = line.Status == LineStatus.DeletePending ? "DELETING · DASHED" :
                 line.Status == LineStatus.RouteChangePending ? "ROUTE CHANGE PENDING · DOUBLE LINE" : "RUNNING";
             return new OverviewDetailText($"{line.SourceId} → {line.DestinationId}",
                 $"IN-FLIGHT {line.InFlight.Count}/{line.Capacity} ({100d * line.InFlight.Count / line.Capacity:0}%)",

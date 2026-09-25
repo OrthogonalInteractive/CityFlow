@@ -45,19 +45,9 @@ namespace CityFlow.Presentation.Connections
             cityView = view;
             document = hud;
             actions = new InputActionMap("Connection");
-            var undo = actions.AddAction("Undo", InputActionType.Button);
-            undo.AddCompositeBinding("ButtonWithOneModifier").With("Modifier", "<Keyboard>/ctrl").With("Button", "<Keyboard>/z");
-            undo.AddCompositeBinding("ButtonWithOneModifier").With("Modifier", "<Keyboard>/meta").With("Button", "<Keyboard>/z");
-            undo.performed += _ => UndoConnection();
-            actions.AddAction("Begin",InputActionType.Button,"<Keyboard>/c").performed += _ => BeginSelected();
-            actions.AddAction("Confirm",InputActionType.Button,"<Keyboard>/enter").performed += _ => { if (session.IsActive) session.Confirm(); };
-            actions.AddAction("Cancel",InputActionType.Button,"<Keyboard>/backspace").performed += _ => { if (session.IsActive) session.Cancel(); };
-            actions.AddAction("Review",InputActionType.Button,"<Keyboard>/v").performed += _ => ToggleOverview();
-            actions.AddAction("Next",InputActionType.Button,"<Keyboard>/tab").performed += _ => FocusNext();
+            actions.AddAction("Cancel", InputActionType.Button, "<Keyboard>/escape").performed += _ => CancelSelection();
             actions.AddAction("Focus",InputActionType.Button,"<Keyboard>/f").performed += _ =>
             { if (IsNode360 && AttentionId != null) FocusTarget(AttentionId); };
-            actions.AddAction("Choose",InputActionType.Button,"<Keyboard>/space").performed += _ =>
-            { if (IsNode360 && AttentionId != null) session.SelectTarget(AttentionId); };
             actions.AddAction("ClickTarget",InputActionType.Button,"<Mouse>/leftButton").performed += context =>
             {
                 if (!IsNode360 || Time.frameCount == enteredFrame || pointerInput == null) return;
@@ -127,6 +117,12 @@ namespace CityFlow.Presentation.Connections
                 if(id!=null) SetAttention(id);
             }
         }
+        public void CancelSelection()
+        {
+            if (session?.IsActive == true) session.Cancel();
+            if (overview != null) overview.ClearSelection();
+        }
+
         public void BeginSelected()
         {
             if (overview?.Selected.NodeId == null || session == null) return;
@@ -231,12 +227,6 @@ namespace CityFlow.Presentation.Connections
             yaw = Mathf.Atan2(direction.x,direction.z) * Mathf.Rad2Deg;
             pitch = -Mathf.Atan2(direction.y,new Vector2(direction.x,direction.z).magnitude) * Mathf.Rad2Deg;
             pitch = Mathf.Clamp(pitch,-80,80); ApplyNodePose();
-        }
-        private void FocusNext()
-        {
-            if (!IsNode360 || session == null) return;
-            var ids = session.Candidates().Where(c=>c.Node.Definition.Id!=session.SourceId).Select(c => c.Node.Definition.Id).ToArray();
-            if (ids.Length > 0) FocusTarget(ids[(Array.IndexOf(ids,AttentionId)+1) % ids.Length]);
         }
         public bool IsOccluded(string id)
         {

@@ -53,6 +53,7 @@ namespace CityFlow.Presentation.UI
         private void OnDisable()
         {
             if (overview != null) overview.IsPointerBlocked = null;
+            if (elements != null) elements.Root.UnregisterCallback<NavigationSubmitEvent>(BlockActionSubmission, TrickleDown.TrickleDown);
             elements = null;
             nodeLabels.Clear();
         }
@@ -61,6 +62,9 @@ namespace CityFlow.Presentation.UI
             if (document == null || stage == null || network == null) return;
             VisualElement root = document.rootVisualElement;
             if (root == null) return;
+            if (elements != null) elements.Root.UnregisterCallback<NavigationSubmitEvent>(BlockActionSubmission, TrickleDown.TrickleDown);
+            // Actions require a pointer click; focused buttons must not execute through Enter or gamepad submit.
+            root.RegisterCallback<NavigationSubmitEvent>(BlockActionSubmission, TrickleDown.TrickleDown);
             elements = new Elements(root);
             if (overview != null) overview.IsPointerBlocked = PointerBlocked;
             VisualElement labels = Required<VisualElement>(root, "node-labels");
@@ -89,6 +93,8 @@ namespace CityFlow.Presentation.UI
             });
             Refresh(snapshot);
         }
+        private static void BlockActionSubmission(NavigationSubmitEvent e) => e.StopImmediatePropagation();
+
         private bool PointerBlocked(Vector2 screen)
         {
             if (document == null || document.rootVisualElement.panel == null) return false;

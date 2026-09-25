@@ -73,6 +73,10 @@ Domainを別の.NET専用プロジェクトへ移植すること自体を目標�
 
 ## 時間、Pause、再現性
 
+Pause／Resumeは画面内ボタンだけで切り替える。Escは`NodeConnectionController.CancelSelection`で配線セッションを取り消し、Overviewの選択・フォーカスを解除する。ボタン取消も同じ入口を使い、カメラを元へ戻して時間状態を維持する。確定・編集・削除・Undoのキー割当を廃止し、`ValidationHud`でUI ToolkitのNavigationSubmitも止める。クリックは有効で、UIDocument再生成時はイベントを結び直す。
+
+プレイヤー向け文言はDelete／DELETING／Cancel deletion。DomainのDeletePendingと排出待ち・取消の契約は変更しない。
+
 Applicationのシミュレーション更新入口に明示的な時間差分を渡し、Domainで `Time.deltaTime` やグローバル乱数を直接参照しない。生成色のランダム選択は差し替え可能な乱数源を入力にする。配送先は乱数を使わず決定する。
 
 Pauseはシミュレーション更新を止める。生成・移動・受け渡し・Wave・Node追加・Overloadタイマーは同時に停止する。一方、入力・カメラ・ホバー・Previewは表示側の時間で動かす。`Time.timeScale = 0` だけをPauseの契約にしない。

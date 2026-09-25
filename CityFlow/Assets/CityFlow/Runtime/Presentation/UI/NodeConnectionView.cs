@@ -46,7 +46,7 @@ namespace CityFlow.Presentation.UI
             if (document == null || network == null || session == null || controller == null) return;
             root = document.rootVisualElement;
             ButtonAction("undo-connection", controller.UndoConnection);
-            ButtonAction("connect-cancel",session.Cancel);
+            ButtonAction("connect-cancel",controller.CancelSelection);
             ButtonAction("connect-confirm",() => session.Confirm());
             ButtonAction("connect-review",controller.ToggleOverview);
             ButtonAction("route-edit",controller.BeginEditing);
@@ -90,9 +90,10 @@ namespace CityFlow.Presentation.UI
                 overview.Selected.NodeId != null ? $"{overview.Selected.NodeId} → NEW CONNECTION" : "Click a Node to start wiring";
             root.Q("connect-selection").userData = session.IsActive && session.SourceId != null ? OverviewTarget.Node(session.SourceId) : default(OverviewTarget);
             root.Q("connect-selection").pickingMode = PickingMode.Position;
-            root.Q("connection-panel").style.display = session.IsActive || overview.Selected.LineId.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
+            root.Q("connection-panel").style.display = session.IsActive || overview.Selected.LineId.HasValue
+                ? new StyleEnum<DisplayStyle>(StyleKeyword.Null) : DisplayStyle.None;
             root.Q<Label>("connect-mode").text = controller.IsNode360 ? "NODE 360 / CONNECTION" : "OVERVIEW / CONNECTION";
-            root.Q<Button>("connect-review").text = controller.IsNode360 ? "Review in Overview [V]" : "Return to Node 360 [V]";
+            root.Q<Button>("connect-review").text = controller.IsNode360 ? "Review in Overview" : "Return to Node 360";
             var state = preview.Current;
             root.Q<Button>("connect-confirm").SetEnabled(session.IsActive && state?.CanConfirm == true);
             root.Q<Label>("connection-bands").text = $"NEAR ≤ {session.NearLimit:0.#} m / MID ≤ {session.MidLimit:0.#} m / FAR > {session.MidLimit:0.#} m";
@@ -105,7 +106,7 @@ namespace CityFlow.Presentation.UI
             var candidates = session.Candidates();
             ConnectionCandidate? attention = candidates.FirstOrDefault(c => c.Node.Definition.Id == controller.AttentionId);
             root.Q<Label>("candidate-detail").text = attention != null ? ConnectionReadout.Candidate(attention,state) :
-                "Hover a marker or press Tab to inspect a candidate.\nHover previews / Click connects.";
+                "Hover a marker or candidate to inspect it.\nHover previews / Click connects.";
             root.Q<Label>("connection-count").text = $"{candidates.Count} CANDIDATES / {session.Filter.ToString().ToUpperInvariant()}";
             if (!controller.IsNode360) return;
             RenderCandidateList(candidates,state);

@@ -23,8 +23,13 @@ namespace CityFlow.Tests.PlayMode
 {
     public sealed class NodeConnectionTests
     {
+        private Mouse[] mice = System.Array.Empty<Mouse>();
+        [TearDown] public void RestoreMice()
+        { foreach (var mouse in mice) if (mouse.added) InputSystem.EnableDevice(mouse); }
         [UnitySetUp] public IEnumerator Load()
         {
+            mice = InputSystem.devices.OfType<Mouse>().Where(m => m.enabled).ToArray();
+            foreach (var mouse in mice) InputSystem.DisableDevice(mouse);
             yield return SceneManager.LoadSceneAsync("Bootstrap",LoadSceneMode.Single); yield return null;
             Object.FindAnyObjectByType<SimulationDriver>().enabled=false;
         }
@@ -33,8 +38,7 @@ namespace CityFlow.Tests.PlayMode
             var c=Object.FindAnyObjectByType<NodeConnectionController>();
             Assert.That(c,Is.Not.Null,"Bootstrap must compose the Node 360 connection flow."); return c;
         }
-        private static void Submit(Button button)
-        { button.Focus(); using var ev=NavigationSubmitEvent.GetPooled(); button.SendEvent(ev); }
+        private static void Submit(Button button) => UiPointer.Click(button);
         [UnityTest] public IEnumerator Node360SeparatesPanelsFromCityAndRestoresOpaqueBuildings()
         {
             var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>();
@@ -131,7 +135,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q<Button>("candidate-BLUE").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
             Assert.That(p.Current,Is.SameAs(preview)); Submit(root.Q<Button>("connect-cancel")); yield return null;
             Assert.That(p.Current,Is.Null); Assert.That(camera.transform.position,Is.EqualTo(before));
-            Assert.That(camera.transform.rotation,Is.EqualTo(rotation)); Assert.That(overview.Selected.NodeId,Is.EqualTo("R1"));
+            Assert.That(camera.transform.rotation,Is.EqualTo(rotation)); Assert.That(overview.Selected.IsEmpty,Is.True);
             overview.Pan(Vector2.zero); Assert.That(camera.transform.position,Is.EqualTo(before),"The internal Overview pivot must also be restored.");
         }
         [UnityTest] public IEnumerator WiringLabStartsUnconnectedAndConfirmedSourceLineTransportsFlow()
@@ -218,7 +222,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(label, Is.Not.Null);
             Assert.That(label.text, Does.Contain("RED").And.Contain("cannot start"));
         }
-        [UnityTest] public IEnumerator NewConnectionCanBeUndoneWithControlZWhilePaused()
+        [UnityTest] public IEnumerator NewConnectionUsesUndoButtonWhilePausedAndControlZDoesNothing()
         {
             var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
             var network = scope.Container.Resolve<FlowNetwork>();
@@ -239,6 +243,8 @@ namespace CityFlow.Tests.PlayMode
             {
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.LeftCtrl, Key.Z));
                 yield return null; yield return null;
+                Assert.That(network.Snapshot().Lines.Count, Is.EqualTo(count + 1));
+                UiPointer.Click(undo); yield return null;
                 Assert.That(network.Snapshot().Lines.Count, Is.EqualTo(count));
                 Assert.That(scope.Container.Resolve<ConnectionSession>().CanUndoLastConnection, Is.False);
             }
@@ -249,7 +255,7 @@ namespace CityFlow.Tests.PlayMode
                 InputSystem.settings.backgroundBehavior = background;
             }
         }
-        [UnityTest] public IEnumerator KeyboardCanBeginLookConfirmAndCancelWithoutFocusDependentInput()
+        [UnityTest] public IEnumerator KeyboardCanLookButConfirmationUsesButtonAndEscapeCancels()
         {
             var c=Controller(); var overview=Object.FindAnyObjectByType<OverviewController>(); overview.Select(OverviewTarget.Node("R1"));
 #if UNITY_EDITOR
@@ -261,17 +267,23 @@ namespace CityFlow.Tests.PlayMode
             try
             {
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.C)); yield return null; yield return null;
+                Assert.That(c.IsNode360,Is.False); c.BeginSelected();
                 Assert.That(c.IsNode360,Is.True); Quaternion rotation=Camera.main.transform.rotation;
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.RightArrow)); yield return null; yield return null;
                 Assert.That(Camera.main.transform.rotation,Is.Not.EqualTo(rotation));
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState()); yield return null;
                 var s=Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<ConnectionSession>(); s.SelectTarget("BLUE");
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.Enter)); yield return null; yield return null;
+                Assert.That(s.IsActive,Is.True); Assert.That(s.LastCreatedLineId,Is.Null);
+                c.ToggleOverview(); yield return null;
+                Submit(Object.FindAnyObjectByType<UIDocument>().rootVisualElement.Q<Button>("connect-confirm")); yield return null;
                 Assert.That(s.IsActive,Is.False); Assert.That(s.LastCreatedLineId,Is.Not.Null);
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState()); yield return null;
-                InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.C)); yield return null; yield return null;
+                c.BeginSelected(); yield return null;
                 Assert.That(s.IsActive,Is.True);
                 InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.Backspace)); yield return null; yield return null;
+                Assert.That(s.IsActive,Is.True);
+                InputSystem.QueueStateEvent(keyboard,new KeyboardState(Key.Escape)); yield return null; yield return null;
                 Assert.That(s.IsActive,Is.False); Assert.That(c.IsNode360,Is.False);
             }
             finally

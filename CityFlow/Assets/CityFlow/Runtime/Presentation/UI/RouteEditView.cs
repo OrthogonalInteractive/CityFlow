@@ -29,9 +29,6 @@ namespace CityFlow.Presentation.UI
         {
             preview=service; session=connection; controller=cameraController; overview=input; sceneCamera=camera;
             document=GetComponent<UIDocument>(); actions=new InputActionMap("Route editing");
-            actions.AddAction("Edit",InputActionType.Button,"<Keyboard>/e").performed += _ =>
-            { if (preview.Current != null) controller.BeginEditing(); };
-            actions.AddAction("Remove",InputActionType.Button,"<Keyboard>/delete").performed += _ => Remove();
             actions.AddAction("Insert",InputActionType.Button,"<Mouse>/leftButton").performed += _ =>
             {
                 if (controller.IsEditing && Time.frameCount > controller.EditingStartedFrame && Mouse.current != null && Keyboard.current?.shiftKey.isPressed == true)
@@ -45,7 +42,7 @@ namespace CityFlow.Presentation.UI
             Unbind(); if (document == null || preview == null || session == null) return;
             root=document.rootVisualElement;
             Button("route-remove",Remove); Button("route-regenerate",()=>{ preview.Regenerate(); selected=-1; });
-            Button("route-apply",()=>session.Confirm()); Button("route-cancel",session.Cancel);
+            Button("route-apply",()=>session.Confirm()); Button("route-cancel",()=>controller?.CancelSelection());
             actions?.Enable();
         }
         private void Button(string name,Action callback)

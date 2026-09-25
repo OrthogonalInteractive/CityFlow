@@ -84,6 +84,13 @@ namespace CityFlow.Presentation.Overview
             if (point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
             { HoverScreenPosition = point; Hovered = blocked ? default : Pick(point); lastPointer = point; }
         }
+        public void ClearSelection()
+        {
+            Focused = default;
+            Hovered = default;
+            Select(default);
+        }
+
         public void Select(OverviewTarget target)
         {
             if (!Focused.Equals(target)) Focused = default;

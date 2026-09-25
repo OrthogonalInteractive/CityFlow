@@ -24,8 +24,7 @@ namespace CityFlow.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
             Object.FindAnyObjectByType<SimulationDriver>().enabled=false;
         }
-        private static void Submit(Button button)
-        { button.Focus(); using var e=NavigationSubmitEvent.GetPooled(); button.SendEvent(e); }
+        private static void Submit(Button button) => UiPointer.Click(button);
         [UnityTest] public IEnumerator ManualEditorKeepsEndpointsValidatesAndAppliesVisibleRoute()
         {
             var scope=Object.FindAnyObjectByType<CityFlowLifetimeScope>(); var session=scope.Container.Resolve<ConnectionSession>();

@@ -24,6 +24,8 @@
 - パッケージはバージョンまたはGitのタグ・コミットを固定する。UPMが生成する `CityFlow/Packages/packages-lock.json` も管理する。
 - PLATEAU SDKはv0.3で導入する。SDK固有型をDomain・Applicationへ公開しない。
 - InputはInput Systemで扱い、旧 `UnityEngine.Input` を新規使用しない。
+- 時間停止・再開、確定、編集、削除、Undoは画面内ボタンで操作する。Escは360・経路編集・選択のキャンセル専用とし、時間を変更しない。Enter／BackspaceやボタンのキーボードSubmitで処理を実行しない。カメラ操作とShift＋クリックは維持する。
+- プレイヤー向けのLine操作名は「削除」（Delete）。FLOWを排出してから完了する不変条件は維持し、画面に「削除予約」（Reserve deletion）を表示しない。
 
 ## DDDと依存方向
 

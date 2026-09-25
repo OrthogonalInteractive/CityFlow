@@ -128,38 +128,40 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 
 ## Ground経路Preview
 
-独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Eで手動編集できる。PreviewだけではLine・接続枠を消費しない。
+独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Edit Ground routeボタンで手動編集できる。PreviewだけではLine・接続枠を消費しない。
 
 ## Node 360で接続する
 
 Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は3 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
 
-1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。**C**でも選択Nodeから開始できる。Connectボタンは不要。
+1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。Connectボタンは不要。
 2. 右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
-3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバー、または **Tab** で候補に注目すると、自動Previewが表示される。無効な候補も理由を確認できる。
-4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **E** で手動編集、**V** でOverviewの経路確認も可能。
-5. **Enter**でも確定、**Backspace**で取消できる。取消は接続枠を消費しない。
+3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバーして候補に注目すると、自動Previewが表示される。無効な候補も理由を確認できる。
+4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **Edit Ground route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
+5. Overviewの経路確認では **Confirm Line** ボタンで確定する。**Cancel connection** ボタンまたは **Esc** で取り消し、元のOverviewへ戻る。取消は接続枠を消費しない。
 
-EscはPause／再開に使い、接続取消には使用しない。Node 360でも輸送は進行する。
+Escは選択や編集中Previewのキャンセル専用。Node 360でも、Pauseボタンを押すまでは輸送が進行する。
 
 ## Ground経路を手動編集する
 
-Node 360で接続先を選び、**Edit Ground route / E** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Delete** で削除する。A/Bの端点とGround高さは固定。
+Node 360で接続先を選び、**Edit Ground route** を押す。真上の見下ろし表示で **Shift+クリック** すると最寄り区間へ制御点を追加する。番号付きハンドルをドラッグして移動し、選択して **Remove selected point** ボタンで削除する。A/Bの端点とGround高さは固定。
 
-**Regenerate automatic route** で自動経路へ戻し、**Apply Line / Enter** で確定、**Cancel / Backspace** で配線全体を取り消す。建物を横切る区間は赤色と理由を表示し、適用不可になる。WASD/中ボタンドラッグとホイールで編集中もPan/Zoomできる。
+**Regenerate automatic route** で自動経路へ戻し、**Apply Line** で確定、**Cancel** ボタンまたは **Esc** で配線全体を取り消す。建物を横切る区間は赤色と理由を表示し、適用不可になる。WASD/中ボタンドラッグとホイールで編集中もPan/Zoomできる。
 
 ## 運行中Lineの変更
 
-Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常のLineクリックでは、**Edit selected Line / Reserve deletion / Cancel pending change** が表示される。編集適用または削除予約で新規流入を止め、既存FLOWが終点へ届くまで待つ。終点満杯時は **Buffer space** 待ちを表示する。完了前は取消できる。空のLineは即時完了する。接続枠は削除完了まで占有し、経路変更では維持する。
+Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常のLineクリックでは、**Edit selected Line / Delete / Cancel deletion** が表示される。編集適用またはDeleteボタンで新規流入を止め、既存FLOWが終点へ届くまで待つ。終点満杯時は **Buffer space** 待ちを表示する。完了前は取消できる。空のLineは即時完了する。接続枠は削除完了まで占有し、経路変更では維持する。
 
 ## Pause中に配線する
 
-**Esc / Pause** で生成・輸送・Overload猶予・ゲーム経過時間をまとめて停止し、再度 **Esc / Resume** で再開する。停止中もカメラ、ホバー、配線、手動編集、削除予約・取消を操作できる。Escは編集を取り消さない。FLOWが残る予約処理は再開後に進む。
+画面内の **Pause** ボタンで生成・輸送・Overload猶予・ゲーム経過時間をまとめて停止し、**Resume** ボタンで再開する。停止中もカメラ、ホバー、配線、手動編集、削除予約・取消を操作できる。Escで編集を取り消してもPause状態は維持する。FLOWが残る予約処理は再開後に進む。
+
+アクションは画面ボタン・候補クリックへ集約し、C／E／V／Tab／Space／Delete／Ctrl+Zの割当は使わない。Enter／Backspaceも使わず、ボタンにフォーカスがあってもEnterで実行しない。WASD・矢印・F・Home等のカメラ操作とShift＋クリックは維持する。
 
 ## 配線0からゲーム性を確認する
 
 1. `Assets/CityFlow/Scenes/WiringLab.unity` を開いてPlayする。今までと同じ簡易都市で、初期Lineは0本。
-2. S1からRED・BLUEへ接続する。最初はSourceに15秒の準備があり、**Esc**で時間を止めて配線してもよい。
+2. S1からRED・BLUEへ接続する。最初はSourceに15秒の準備があり、**Pause** ボタンで時間を止めて配線してもよい。
 3. 60 / 120 / 180秒にWaveが進み、緑 / 黄 / 紫のSinkやSource・Relayが加わる。追加通知をクリックすると出現Nodeへ寄れる。追加Sourceは20秒準備し、既存ネットワークとFLOWは維持される。
 4. 接続枠・距離・固定容量・直結優先・最短距離Routingを見ながら、配線追加・経路編集・削除予約で混雑を解消する。Wave進行に伴い生成間隔は基本値の0.9 / 0.75 / 0.6倍になる。
 5. SourceのOverloadが猶予を超えると結果を表示する。**Retry** で同じ都市を配線0から再試行する。
@@ -171,7 +173,7 @@ Sourceでは生成時のリングと、脇に並ぶ色付きの待機FLOWを確�
 FLOWの移動速度は視認性確認用の暫定 **8 m/s**（従来20 m/s）。表示だけでなく実際の移動速度を下げているため、Lineの回転と容量回復も遅くなる。最終的な速度・生成量・猶予の組み合わせは [Issue #13](https://github.com/OrthogonalInteractive/CityFlow/issues/13) の比較プレイで決める。
 
 
-作成直後の空Lineは6秒以内なら **Undo / Ctrl+Z（MacはCmd+Zも可）** で取り消せる。FLOWが入ったLineや、編集・削除予約の巻き戻しには使わない。
+作成直後の空Lineは6秒以内なら **Undo** ボタンで取り消せる。FLOWが入ったLineや、編集・削除予約の巻き戻しには使わない。
 
 ## FLOWの送り先とBufferの基本設定
 

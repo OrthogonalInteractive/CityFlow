@@ -40,8 +40,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(drawing, Is.Not.Null); Assert.That(drawing.GetComponentsInChildren<LineRenderer>().Length, Is.GreaterThan(0));
             Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(count));
             var cancel = root.Q<Button>("connect-cancel");
-            cancel.Focus();
-            using (var submit = NavigationSubmitEvent.GetPooled()) cancel.SendEvent(submit);
+            UiPointer.Click(cancel);
             yield return null;
             Assert.That(preview.Current, Is.Null); Assert.That(GameObject.Find("Ground Route Preview"), Is.Null);
             Assert.That(n.Snapshot().Lines.Count, Is.EqualTo(count));

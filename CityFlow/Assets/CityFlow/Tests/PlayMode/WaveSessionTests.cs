@@ -60,7 +60,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(controller.AttentionId,Is.EqualTo("GREEN"));
             Assert.That(preview.Current?.DestinationId,Is.EqualTo("GREEN")); Assert.That(preview.Current!.CanConfirm,Is.True);
             Assert.That(network.Snapshot().Lines.Count,Is.EqualTo(2),"Selecting a candidate must only create a Preview.");
-            green.Focus(); using(var e=NavigationSubmitEvent.GetPooled()) green.SendEvent(e); yield return null;
+            UiPointer.Click(green); yield return null;
             Assert.That(network.Snapshot().Lines.Any(l=>l.SourceId=="S1" && l.DestinationId=="GREEN"),Is.True);
             Assert.That(root.Q("candidate-list-panel").resolvedStyle.display,Is.EqualTo(DisplayStyle.None));
         }
@@ -102,8 +102,8 @@ namespace CityFlow.Tests.PlayMode
             string text=root.Q<Label>("result-detail").text;
             Assert.That(text,Does.Contain($"WAVE {result.Wave}").And.Contain(CityFlow.Presentation.UI.HudClock.Format(result.SurvivalSeconds)).And.Contain($"DELIVERED {result.Delivered}").And.Contain("S1"));
             Assert.That(root.Q<Label>("elapsed-value").text,Is.EqualTo(CityFlow.Presentation.UI.HudClock.Format(result.SurvivalSeconds)));
-            var oldScope=scope.GetEntityId(); var button=root.Q<Button>("retry-session"); button.Focus();
-            using(var e=NavigationSubmitEvent.GetPooled()) button.SendEvent(e);
+            var oldScope=scope.GetEntityId(); var button=root.Q<Button>("retry-session");
+            UiPointer.Click(button);
             CityFlowLifetimeScope? next=null;
             for(int i=0;i<120;i++)
             {
