@@ -19,6 +19,7 @@
 | Visual Studio Editor（VS Code連携・C#プロジェクト生成） | 2.0.27 |
 | NuGetForUnity / CLI | 4.5.0 |
 | uloop CLI / Unity CLI Loop | 3.5.1 / 3.6.3 |
+| PLATEAU SDK for Unity | 4.3.0（SDKセットアップのみ） |
 
 Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依存取得用ネットワーク、CLI復元を使う場合は.NET SDKも必要。
 
@@ -40,6 +41,12 @@ R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従�
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
 Editor内では `NuGet > Restore Packages` でも復元可能。
 `CityFlow/Assets/packages.config` の変更時は復元を再実行する。復元された `CityFlow/Assets/Packages` はGit管理対象外。
+
+### PLATEAU SDK
+
+PLATEAU SDKは公式Gitリポジトリの `v4.3.0` タグに固定する。初回のUPM復元には **Git LFS** が必要なため、Unityを開く前に `git lfs version` が成功することを確認する。SDKの取得と依存解決はUnity Package Managerが行い、生成された `Packages/packages-lock.json` も管理する。
+
+SDKのセットアップを先行し、都市データの取り込み・実在都市ステージのゲーム統合はv0.3の作業として扱う。環境条件、自動化できる範囲、検証結果は [PLATEAU SDKセットアップ](docs/PLATEAU-Setup.md) を参照。
 
 ### VS CodeとC#プロジェクトファイル
 

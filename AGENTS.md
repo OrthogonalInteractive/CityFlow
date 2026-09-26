@@ -3,7 +3,7 @@
 ## 仕様と作業範囲
 
 - ゲーム仕様の基準は `City-Flow-Specification.md`。作業前に対象バージョンと該当節を読む。
-- 現在の実装対象は **v0.1とv0.2 Δ1（高さ方向）**。v0.2の残りとv0.3は差分仕様であり、先行実装しない。
+- 現在の実装対象は **v0.1とv0.2 Δ1（高さ方向）**。v0.2の残りとv0.3は差分仕様であり、先行実装しない。ただし、2026-09-26の指示によりPLATEAU SDKの導入・互換性検証を先行する。都市データの取り込みとゲームへの統合は別途扱う。
 - 「補完案」「暫定値」「未決定」を確定事項と区別する。変更・採否は文書とテストに残す。
 - アーキテクチャは `docs/Architecture.md`、テスト方針は `docs/Testing.md`、起動方法は `README.md` を参照する。
 - Unityプロジェクトのルートはリポジトリ直下の `CityFlow/`。`Assets`、`Packages`、`ProjectSettings` はその配下に置き、さらに入れ子のUnityプロジェクトを作らない。
@@ -22,7 +22,7 @@
 - Unity側の変更後は、まず `uloop --project-path CityFlow compile`、次に関連テストを `uloop --project-path CityFlow run-tests` で実行し、`uloop --project-path CityFlow get-logs` でConsoleを確認する。
 - R3はNuGet側のコアとUPM側のUnity連携を両方導入する。`CityFlow/Assets/packages.config` と `CityFlow/Packages/manifest.json` を一緒に確認する。
 - パッケージはバージョンまたはGitのタグ・コミットを固定する。UPMが生成する `CityFlow/Packages/packages-lock.json` も管理する。
-- PLATEAU SDKはv0.3で導入する。SDK固有型をDomain・Applicationへ公開しない。
+- PLATEAU SDKは **v4.3.0** に固定する。実在都市ステージはv0.3で実装し、SDK固有型をDomain・Applicationへ公開しない。セットアップ範囲と検証結果は `docs/PLATEAU-Setup.md` を参照する。
 - InputはInput Systemで扱い、旧 `UnityEngine.Input` を新規使用しない。
 - 時間停止・再開、確定、編集、削除、Undoは画面内ボタンで操作する。Escは360・経路編集・選択のキャンセル専用とし、時間を変更しない。Enter／BackspaceやボタンのキーボードSubmitで処理を実行しない。カメラ操作とShift＋クリックは維持する。
 - プレイヤー向けのLine操作名は「削除」（Delete）。FLOWを排出してから完了する不変条件は維持し、画面に「削除予約」（Reserve deletion）を表示しない。

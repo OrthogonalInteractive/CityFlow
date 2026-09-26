@@ -59,6 +59,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-26のPLATEAU SDK 4.3.0導入後は、全EditMode **171/171**、全PlayMode **64/64**成功。Unity 6000.4.7f1 / macOS arm64でコンパイルと最終ConsoleのError/Warning **0**、SDKネイティブライブラリによる座標の投影・逆変換も成功した。都市データの取り込み・ゲーム統合・Playerビルドは未検証。[セットアップ報告](PLATEAU-Setup.md)を参照。
+
 2026-09-25の`codex/v02-height`を`main`（`8842dc8`）にrebaseした後の検証は、全EditMode **171/171**、全PlayMode **64/64**成功。ボタン操作・Escキャンセル・Node 360初期方向・候補ポップアップ抑制・ミニカメラと高さ編集を併合した。高さ編集後の合成クリック座標がUI Toolkitに残り候補ホバーが失敗するケースを再現し、テスト内でPointerMoveとMouse.currentの座標を同期して解消した。高さ入力＋ホバーの組合せ **7/7**、操作ヒントのボタン名調整後の関連HUD **4/4**でも確認。コンパイル・最終テスト後ConsoleのError/Warning **0**。HeightLabの屋上R1からBLUEへのPreview・ミニカメラも実画面で確認した。
 
 2026-09-25のNode 360ミニカメラは、全PlayMode **61/61**成功。接続元中心・北上固定、候補／視線変更とPause、Overview・編集・Game Overでの描画停止、メインカメラへの非干渉、UIDocumentの再生成、シーン破棄時のCamera／RenderTexture解放を確認した。コンパイル・最終ConsoleともError/Warning **0**。1600×900と1036×757の実画面は [ミニカメラの対応報告](Node-Minimap-2026-09-25.md) を参照。
@@ -87,4 +89,4 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 途中のRed/Greenは [検証履歴](history/Testing-v01.md#2026-09-22-ux改善進行中) に残している。
 
-#12 / #13の人による比較プレイ、難度パラメータの最終採用は未完了。Unity Editor内を対象とし、Playerビルド・PLATEAU・大規模都市の性能は検証対象外。高さ方向はv0.2 Δ1として専用HeightLabで検証する。
+#12 / #13の人による比較プレイ、難度パラメータの最終採用は未完了。Unity Editor内を対象とし、Playerビルド・PLATEAU都市データの取り込み・大規模都市の性能は検証対象外。高さ方向はv0.2 Δ1として専用HeightLabで検証する。
