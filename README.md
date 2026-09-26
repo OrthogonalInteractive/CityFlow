@@ -19,7 +19,7 @@
 | Visual Studio Editor（VS Code連携・C#プロジェクト生成） | 2.0.27 |
 | NuGetForUnity / CLI | 4.5.0 |
 | uloop CLI / Unity CLI Loop | 3.5.1 / 3.6.3 |
-| PLATEAU SDK for Unity | 4.3.0（SDKセットアップのみ） |
+| PLATEAU SDK for Unity | 4.3.0（東京駅周辺の都市データ確認用） |
 
 Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依存取得用ネットワーク、CLI復元を使う場合は.NET SDKも必要。
 
@@ -46,7 +46,7 @@ Editor内では `NuGet > Restore Packages` でも復元可能。
 
 PLATEAU SDKは公式Gitリポジトリの `v4.3.0` タグに固定する。初回のUPM復元には **Git LFS** が必要なため、Unityを開く前に `git lfs version` が成功することを確認する。SDKの取得と依存解決はUnity Package Managerが行い、生成された `Packages/packages-lock.json` も管理する。
 
-SDKのセットアップを先行し、都市データの取り込み・実在都市ステージのゲーム統合はv0.3の作業として扱う。環境条件、自動化できる範囲、検証結果は [PLATEAU SDKセットアップ](docs/PLATEAU-Setup.md) を参照。
+SDKのセットアップと、提供された千代田区2025年度CityGMLによる独立した `TokyoStationInspection` シーンを先行する。Sceneビューで東京駅周辺の建物・道路・地形を確認できる。ゲーム統合はv0.3の作業として扱う。[SDKセットアップ](docs/PLATEAU-Setup.md)、[東京駅周辺の確認シーン・再生成手順](docs/PLATEAU-TokyoStation.md)を参照。
 
 ### VS CodeとC#プロジェクトファイル
 

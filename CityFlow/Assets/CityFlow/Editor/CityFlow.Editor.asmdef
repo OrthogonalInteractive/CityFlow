@@ -2,6 +2,9 @@
   "name": "CityFlow.Editor",
   "rootNamespace": "CityFlow.Editor",
   "references": [
+    "PLATEAU.Runtime",
+    "libplateau",
+    "UniTask",
     "CityFlow.Composition",
     "Unity.InputSystem",
     "Unity.RenderPipelines.Universal.Runtime",

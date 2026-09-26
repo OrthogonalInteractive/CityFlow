@@ -107,7 +107,7 @@ FLOWが残るLineの削除・経路切替は再開後に進める。既に空の
 
 PLATEAU SDKの型や座標系はInfrastructureのアダプターに閉じ込め、ゲーム側へUnityローカル座標と障害物形状を渡す。**1 Unity unit = 1 m** を基準にする。簡易都市も同じ境界を使って比較検証を残す。
 
-2026-09-26にPLATEAU SDK 4.3.0のセットアップを先行した。都市データとアダプターは未導入で、自作asmdefにSDK参照を追加していない。導入範囲と環境検証は [PLATEAU SDKセットアップ](PLATEAU-Setup.md) を参照。
+2026-09-26にPLATEAU SDK 4.3.0のセットアップと、東京駅周辺の独立した都市データ確認シーンを先行した。`CityFlow.Editor`だけがSDKとlibplateauを参照し、SDKのインポート・アセット保存APIでシーンを作成する。ゲーム用アダプターは未実装で、Domain・Application・既存ゲームの空間判定へSDK依存を追加していない。[SDKセットアップ](PLATEAU-Setup.md)と[東京駅周辺の確認シーン](PLATEAU-TokyoStation.md)を参照。
 
 Port Unit、Width、方向反転はv0.2で仕様に沿って導入する。v0.1の接続本数を架空のPortモデルに置き換えて先取りしない。
 

@@ -6,6 +6,7 @@
 *.meta text eol=lf whitespace=-trailing-space
 *.unity text eol=lf whitespace=-trailing-space
 *.asset text eol=lf whitespace=-trailing-space
+*.mat text eol=lf whitespace=-trailing-space
 *.prefab text eol=lf
 *.shader text eol=lf
 *.shadergraph text eol=lf
