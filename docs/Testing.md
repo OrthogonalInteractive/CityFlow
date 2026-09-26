@@ -60,6 +60,9 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-26の東京駅の屋上・3 Waveゲームは、全EditMode **199/199**、東京駅PlayMode **2/2**成功。2→3→5色への進行、実測屋上と駅舎の両側への配置、Relay高さ制限と駅舎横断、全Sourceの全色配送、3固定シードでの5分運行とFLOW保存、最終Wave継続・Pause・Line保持・Game Over・Retry・Home復帰を確認。コンパイル・最終ConsoleのError／Warning **0**。実画面と検証方法は[東京駅3 Waveゲーム](PLATEAU-TokyoStation.md)を参照。ExpansionLabのPlayModeテストは実行していない。
+
+
 2026-09-26の`codex/tokyo-station-nodes`を`main`（`3c7868d`）へrebaseした後は、全EditMode **193/193**、関連PlayMode **18/18**成功。都市Rendererの利用とRelay高さホログラム・領域拡張を両立するよう描画初期化とCompositionの競合を解消し、両シーンのBuild Settings登録を維持した。東京駅シーンと再生成処理にRelayマテリアル参照を補完した。東京駅の配線・配送・都市透過／復元、HeightLabのホログラム・高さ操作、Overview・接続フォーカス・ミニカメラを回帰確認した。コンパイルError／Warning **0**、テスト後Console Error **0**。PLATEAU橋梁メッシュの500 m超の三角形に関する既知Warning **1**は残る。ExpansionLabのPlayModeテストは実行していない。
 
 2026-09-26の`ExpansionLab`と#19は全EditMode **192/192**成功。新規9件で領域拡張6件とレベル配置・到達性・負荷設計3件を確認した。Relay帯の均等配置と、Wave追加で負荷が下がる旧設定の失敗を先に確認してから調整した。中央集中／外周Sink活用×固定3シードのDomainシミュレーションを実行し、終盤のRelay満杯・Source過負荷を比較した。コンパイル・画面確認後ConsoleのError/Warning **0**。**このシーンのPlayModeテストは追加・実行していない。** uloopでの画面確認では初期・中盤・最大領域と1600×900／1036×757の表示を記録した。[設定・評価結果](ExpansionLab-2026-09-26.md)を参照。

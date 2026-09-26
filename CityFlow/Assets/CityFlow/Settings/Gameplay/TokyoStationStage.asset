@@ -12,92 +12,271 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c8893b7f99574561977daea09de00ef, type: 3}
   m_Name: TokyoStationStage
   m_EditorClassIdentifier: CityFlow.Infrastructure::CityFlow.Infrastructure.Configuration.StageConfiguration
-  Waves: []
+  Waves:
+  - StartSeconds: 60
+    IntervalScale: 0.95
+    ExpandsArea: 0
+    WalkableArea:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    Additions:
+    - rid: 4226161529555780244
+    - rid: 4226161529555780245
+    - rid: 4226161529555780246
+  - StartSeconds: 120
+    IntervalScale: 0.9
+    ExpandsArea: 0
+    WalkableArea:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 0
+      height: 0
+    Additions:
+    - rid: 4226161529555780247
+    - rid: 4226161529555780248
+    - rid: 4226161529555780249
+    - rid: 4226161529555780250
   Lines: []
   GroundHeight: 3.7
-  MaximumAltitude: 0
+  MaximumAltitude: 220
   WalkableArea:
     serializedVersion: 2
-    x: -230
-    y: -40
-    width: 105
-    height: 125
+    x: -355
+    y: -90
+    width: 600
+    height: 195
+  ExpandsWithWaves: 0
+  MaximumArea:
+    serializedVersion: 2
+    x: -355
+    y: -90
+    width: 600
+    height: 195
   Buildings:
+  - m_Center: {x: -102.67143, y: 4.7445, z: 40.749245}
+    m_Extent: {x: 3.3449974, y: 1.4554999, z: 2.9075012}
+  - m_Center: {x: -3.41543, y: 10.9795, z: 11.28775}
+    m_Extent: {x: 47.815002, y: 7.7495003, z: 159.25}
+  - m_Center: {x: -135.09543, y: 7.215, z: 95.962746}
+    m_Extent: {x: 5.834999, y: 4.285, z: 5.864998}
+  - m_Center: {x: 27.57957, y: 11.9485, z: 7.2027435}
+    m_Extent: {x: 52.31, y: 8.7185, z: 203.435}
+  - m_Center: {x: 248.76657, y: 31.6975, z: -55.047256}
+    m_Extent: {x: 17.566994, y: 28.6075, z: 24.224998}
+  - m_Center: {x: -140.04044, y: 5.3894997, z: 101.37775}
+    m_Extent: {x: 4.5199966, y: 2.3105, z: 6.080002}
+  - m_Center: {x: -247.48042, y: 4.5290003, z: 3.0577447}
+    m_Extent: {x: 1, y: 1.7710001, z: 1.22}
+  - m_Center: {x: -62.71093, y: 15.264999, z: 8.625252}
+    m_Extent: {x: 43.7595, y: 11.861, z: 137.0075}
   - m_Center: {x: -219.28543, y: 4.1095, z: -10.502255}
     m_Extent: {x: 2.3150024, y: 1.2905, z: 5.79}
   - m_Center: {x: -97.13544, y: 22.135, z: -5.510254}
     m_Extent: {x: 54.295002, y: 19.205, z: 157.192}
   - m_Center: {x: -223.42044, y: 4.565, z: 0.1277448}
     m_Extent: {x: 1.1800003, y: 1.6349999, z: 1.37}
+  - m_Center: {x: -163.25743, y: 4.45, z: -59.109253}
+    m_Extent: {x: 5.4100037, y: 1.45, z: 1.3599987}
+  - m_Center: {x: -399.03543, y: 39.131, z: 31.457747}
+    m_Extent: {x: 46.475006, y: 36.141003, z: 33.320004}
+  - m_Center: {x: 73.47457, y: 11.814, z: -24.182251}
+    m_Extent: {x: 75.415, y: 8.4140005, z: 206.44}
+  - m_Center: {x: 145.65356, y: 5.285, z: -16.693254}
+    m_Extent: {x: 11.308998, y: 1.8149999, z: 6.9339995}
+  - m_Center: {x: 140.36206, y: 11.8415, z: 68.34474}
+    m_Extent: {x: 3.623497, y: 8.3515005, z: 7.4319973}
+  - m_Center: {x: -350.3004, y: 4.82, z: 71.52275}
+    m_Extent: {x: 2.680008, y: 1.4800001, z: 2.7150002}
+  - m_Center: {x: 187.51358, y: 6.2445, z: 3.702745}
+    m_Extent: {x: 5.8949966, y: 2.8555002, z: 5.81}
+  - m_Center: {x: 192.14658, y: 4.5445, z: 10.028745}
+    m_Extent: {x: 3.1399994, y: 1.1554999, z: 2.71}
+  - m_Center: {x: -218.89044, y: 4.41, z: -80.16725}
+    m_Extent: {x: 5.8199997, y: 1.6899999, z: 2.085003}
+  - m_Center: {x: -247.02643, y: 4.3295, z: 68.388245}
+    m_Extent: {x: 2.8759995, y: 1.2705, z: 2.3805008}
+  - m_Center: {x: -358.58542, y: 24.7455, z: -135.67226}
+    m_Extent: {x: 29.845001, y: 21.9955, z: 53.23}
   - m_Center: {x: -147.33943, y: 6.645, z: -55.289753}
     m_Extent: {x: 25.64, y: 3.6550002, z: 46.6405}
+  - m_Center: {x: 148.58757, y: 10.419, z: 95.082245}
+    m_Extent: {x: 2.1779938, y: 6.7419996, z: 2.8274994}
+  - m_Center: {x: 196.67957, y: 93.309, z: 138.14075}
+    m_Extent: {x: 29.809998, y: 89.939, z: 48.367004}
   - m_Center: {x: -218.62042, y: 3.909, z: -40.957253}
     m_Extent: {x: 3.4699936, y: 1.191, z: 5.3150005}
+  - m_Center: {x: 128.77457, y: 11.719999, z: 26.742744}
+    m_Extent: {x: 2.9750023, y: 8.18, z: 6.215}
+  - m_Center: {x: -255.77542, y: 104.155495, z: 151.00275}
+    m_Extent: {x: 48.945, y: 101.3655, z: 55.965}
+  - m_Center: {x: 230.48706, y: 12.3585, z: -84.71576}
+    m_Extent: {x: 17.832497, y: 9.2085, z: 18.466503}
   - m_Center: {x: -169.07443, y: 2.241, z: -18.221256}
     m_Extent: {x: 4.8050003, y: 1.459, z: 3.224}
+  - m_Center: {x: 136.87708, y: 11.848, z: 57.144245}
+    m_Extent: {x: 2.5835037, y: 8.313, z: 3.977501}
+  - m_Center: {x: -57.331932, y: 10.1755, z: -3.5842552}
+    m_Extent: {x: 38.2695, y: 6.6955004, z: 112.046005}
+  - m_Center: {x: -16.843931, y: 11.4715, z: 14.820747}
+    m_Extent: {x: 49.7865, y: 8.216499, z: 159.163}
+  - m_Center: {x: 122.454575, y: 9.46, z: -0.67725563}
+    m_Extent: {x: 7.4330025, y: 6.24, z: 18.973}
+  - m_Center: {x: 146.41457, y: 4.2825003, z: -79.95726}
+    m_Extent: {x: 7.7350006, y: 0.64950013, z: 4.744999}
+  - m_Center: {x: 144.86357, y: 11.798, z: 82.90924}
+    m_Extent: {x: 3.5339966, y: 8.291, z: 7.3425026}
+  - m_Center: {x: 132.74757, y: 10.6675, z: 43.919746}
+    m_Extent: {x: 2.3939972, y: 7.0975, z: 3.768999}
+  - m_Center: {x: 255.44456, y: 29.0045, z: -11.957254}
+    m_Extent: {x: 22.194992, y: 26.0325, z: 21.815}
+  - m_Center: {x: 152.19307, y: 11.6275, z: 106.73575}
+    m_Extent: {x: 2.7794952, y: 8.0675, z: 4.488003}
+  - m_Center: {x: 45.40457, y: 12.302501, z: 5.097748}
+    m_Extent: {x: 50.515, y: 9.0225, z: 207.78}
+  - m_Center: {x: -96.74293, y: 6.42, z: 111.23675}
+    m_Extent: {x: 25.9655, y: 3.4799998, z: 34.200005}
+  - m_Center: {x: -310.40045, y: 4.885, z: 85.82275}
+    m_Extent: {x: 2.6699982, y: 1.615, z: 2.625}
+  - m_Center: {x: -110.96093, y: 6.92, z: 20.043745}
+    m_Extent: {x: 4.001503, y: 3.38, z: 4.129}
+  - m_Center: {x: -224.36543, y: 4.5885, z: -54.142258}
+    m_Extent: {x: 2.9550018, y: 1.7115, z: 3.6999989}
+  - m_Center: {x: -207.64543, y: 4.24, z: -60.282257}
+    m_Extent: {x: 3.4850006, y: 1.4599999, z: 5.379999}
+  - m_Center: {x: -300.2954, y: 93.75851, z: -18.937256}
+    m_Extent: {x: 49.485, y: 91.2985, z: 55.205}
+  - m_Center: {x: 222.18958, y: 3.618, z: 64.80274}
+    m_Extent: {x: 3.090004, y: 0.28200006, z: 2.205}
+  - m_Center: {x: 94.85457, y: 16.1565, z: -132.28726}
+    m_Extent: {x: 49.195004, y: 12.936501, z: 113.665}
+  - m_Center: {x: 264.33957, y: 69.1095, z: 168.78224}
+    m_Extent: {x: 50.630005, y: 66.1895, z: 86.7245}
+  - m_Center: {x: 172.16557, y: 105.725, z: 33.237747}
+    m_Extent: {x: 53.436005, y: 102.674995, z: 56.54}
+  - m_Center: {x: 228.08307, y: 4.7705, z: -34.809254}
+    m_Extent: {x: 1.9205017, y: 1.6295, z: 5.165}
+  - m_Center: {x: 231.49457, y: 24.8355, z: -84.47226}
+    m_Extent: {x: 11.755005, y: 21.6615, z: 14.509998}
   - m_Center: {x: -149.88544, y: 4.115, z: -23.437256}
     m_Extent: {x: 2.984993, y: 1.4849999, z: 3.1949997}
+  - m_Center: {x: -37.72443, y: 9.7005, z: 5.564743}
+    m_Extent: {x: 40.775997, y: 6.2304997, z: 112.693}
+  - m_Center: {x: -253.37244, y: 4.315, z: 45.460243}
+    m_Extent: {x: 2.9220047, y: 1.285, z: 2.4925003}
+  - m_Center: {x: -221.76044, y: 8.424999, z: -60.992256}
+    m_Extent: {x: 9.82, y: 5.555, z: 12.159998}
+  - m_Center: {x: -215.28543, y: 8.49, z: -69.107254}
+    m_Extent: {x: 5.834999, y: 5.61, z: 6.6949997}
+  - m_Center: {x: -115.55243, y: 4.935, z: 1.2992446}
+    m_Extent: {x: 3.512001, y: 1.565, z: 3.1965}
+  - m_Center: {x: 134.78207, y: 9.832001, z: 50.427246}
+    m_Extent: {x: 1.7835007, y: 6.2920003, z: 1.7215004}
+  - m_Center: {x: -189.97043, y: 3.9884999, z: 106.07774}
+    m_Extent: {x: 2.209999, y: 1.2114999, z: 5.630001}
+  - m_Center: {x: 11.424568, y: 14.0845, z: 9.702744}
+    m_Extent: {x: 55.405, y: 10.8945, z: 205.425}
+  - m_Center: {x: -328.1104, y: 5.029, z: -64.617256}
+    m_Extent: {x: 5.2899933, y: 2.071, z: 3.6149998}
+  - m_Center: {x: 89.219574, y: 12.0095005, z: -29.12725}
+    m_Extent: {x: 77.8, y: 8.5595, z: 205.86499}
+  - m_Center: {x: 228.44406, y: 4.935, z: -52.606754}
+    m_Extent: {x: 2.3544998, y: 1.565, z: 4.8754997}
+  - m_Center: {x: 33.650536, y: 11.183275, z: 20.017975}
+    m_Extent: {x: 143.2905, y: 8.716618, z: 260.0058}
   - m_Center: {x: -166.21025, y: 0.6646545, z: -37.202717}
     m_Extent: {x: 16.65918, y: 3.7910845, z: 10.777341}
   Nodes:
-  - rid: 4226161553077436479
-  - rid: 4226161553077436480
-  - rid: 4226161553077436481
-  - rid: 4226161553077436482
-  - rid: 4226161553077436483
-  - rid: 4226161553077436484
-  - rid: 4226161553077436485
+  - rid: 4226161529555780251
+  - rid: 4226161529555780252
+  - rid: 4226161529555780253
+  - rid: 4226161529555780254
   references:
     version: 2
     RefIds:
-    - rid: 4226161553077436479
-      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
-      data:
-        Id: S1
-        Position: {x: -210, y: 3.7, z: -20}
-        MaxOutgoing: 6
-        GenerationInterval: 3
-        GenerationDelay: 45
-    - rid: 4226161553077436480
-      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
-      data:
-        Id: R1
-        Position: {x: -210, y: 3.7, z: 10}
-        MaxIncoming: 3
-        MaxOutgoing: 5
-        MaximumRise: 0
-    - rid: 4226161553077436481
-      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
-      data:
-        Id: RED
-        Position: {x: -180, y: 3.7, z: -5}
-        MaxIncoming: 3
-        SinkColor: 0
-    - rid: 4226161553077436482
-      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
-      data:
-        Id: BLUE
-        Position: {x: -155, y: 3.7, z: 10}
-        MaxIncoming: 3
-        SinkColor: 1
-    - rid: 4226161553077436483
-      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
-      data:
-        Id: YELLOW
-        Position: {x: -155, y: 3.7, z: 40}
-        MaxIncoming: 3
-        SinkColor: 2
-    - rid: 4226161553077436484
+    - rid: 4226161529555780244
       type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
       data:
         Id: GREEN
-        Position: {x: -180, y: 3.7, z: 60}
+        Position: {x: -125.25, y: 42.4, z: -79.1}
         MaxIncoming: 3
         SinkColor: 3
-    - rid: 4226161553077436485
+    - rid: 4226161529555780245
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S2
+        Position: {x: -324.2, y: 186.1, z: -26.7}
+        MaxOutgoing: 2
+        GenerationInterval: 12
+        GenerationDelay: 20
+    - rid: 4226161529555780246
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R2
+        Position: {x: -183, y: 3.7, z: 40}
+        MaxIncoming: 3
+        MaxOutgoing: 4
+        MaximumRise: 190
+    - rid: 4226161529555780247
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: YELLOW
+        Position: {x: 190.8, y: 209.4, z: 11.5}
+        MaxIncoming: 3
+        SinkColor: 2
+    - rid: 4226161529555780248
       type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
       data:
         Id: PURPLE
-        Position: {x: -210, y: 3.7, z: 40}
+        Position: {x: -210, y: 3.7, z: 65}
         MaxIncoming: 3
         SinkColor: 4
+    - rid: 4226161529555780249
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S3
+        Position: {x: 151.7, y: 209.4, z: 85.5}
+        MaxOutgoing: 2
+        GenerationInterval: 12
+        GenerationDelay: 20
+    - rid: 4226161529555780250
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R3
+        Position: {x: 125.3, y: 30.2, z: -75.15}
+        MaxIncoming: 3
+        MaxOutgoing: 3
+        MaximumRise: 185
+    - rid: 4226161529555780251
+      type: {class: SourceNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: S1
+        Position: {x: -207, y: 3.7, z: -24}
+        MaxOutgoing: 2
+        GenerationInterval: 3.6
+        GenerationDelay: 15
+    - rid: 4226161529555780252
+      type: {class: RelayNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: R1
+        Position: {x: -192, y: 3.7, z: 4}
+        MaxIncoming: 3
+        MaxOutgoing: 3
+        MaximumRise: 12
+    - rid: 4226161529555780253
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: RED
+        Position: {x: -178, y: 3.7, z: -3}
+        MaxIncoming: 3
+        SinkColor: 0
+    - rid: 4226161529555780254
+      type: {class: SinkNodePlacement, ns: CityFlow.Infrastructure.Configuration, asm: CityFlow.Infrastructure}
+      data:
+        Id: BLUE
+        Position: {x: -156, y: 3.7, z: 20}
+        MaxIncoming: 3
+        SinkColor: 1

@@ -217,6 +217,6 @@ Game OverではSessionResultにWave・生存時間・配送数・原因Sourceを
 
 ## 東京駅の小範囲ゲーム
 
-`TokyoStationWiringLab` は2026-09-26の追加指示による駅前の配線プロトタイプ。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、既存のDomain／Applicationを使う。共通Ground面と8個の障害物Boundsによる近似であり、地形追従や汎用PLATEAUアダプターは含めない。
+`TokyoStationWiringLab` は駅前でWave 3まで進む配線ゲーム。初期4ノード・2色から60秒で7ノード・3色、120秒で11ノード・5色へ進む。Wave 3以後も生存時間を競い、既存のSource Overloadで終了する。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、既存のDomain／Applicationを使う。建物メッシュの屋上を実測した固定配置と3D Renderer Boundsによる衝突近似を使い、既存のRelay高さ配線を適用する。Source／Sinkは高度固定、Relayは低所12 m・西側190 m・東側屋上から185 mの上昇能力を持つ。地形追従や汎用PLATEAUアダプターは含めない。
 
 Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには保存カメラのHome状態を渡し、F／Orbit後にも駅前の初期表示へ戻せる。

@@ -13,21 +13,62 @@
 
 ## TokyoStationWiringLabで遊ぶ
 
-`CityFlow/Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` を開いてPlayする。丸の内側の駅前にSource 1個、Relay 1個、Red／Blue／Yellow／Green／PurpleのSink 5個を配置し、配線0本から開始する。Hubは接続構成上の役割なので独立した種類としては配置しない。
+`CityFlow/Assets/CityFlow/Scenes/TokyoStationWiringLab.unity`を開いてPlayする。駅前の2色配線から始め、建物の屋上と駅舎の反対側へネットワークを伸ばす。初期Lineは0本。Wave 3を最終Waveとし、そのままSource OverloadによるGame Overまで生存時間を競う。
 
-- Source／RelayをクリックしてNode 360へ入り、候補をクリックして配線する。`S1 → R1` と `R1 → 各色Sink` で全色を配送できる。SourceからSinkへの直結も可能。
-- **Pause／Resume** で時間を切り替える。Pause中も配線・編集・削除・カメラ操作ができる。
-- Sourceは45秒の準備後、3秒間隔でFLOWを生成する。基本Buffer・Line容量・Source OverloadによるGame Over・Retryは既存ゲームと共通。一定Wave内で配線を試す小規模なプロトタイプとして、追加Waveは設定していない。
-- 右ドラッグでOrbit、WASD／中ドラッグでPan、ホイールでZoom。Fで対象へフォーカス、Homeで駅前の初期俯瞰へ戻る。Escは配線・選択の取消専用。
-- Shift＋Lineクリックで手動経路編集へ入り、Shift＋クリックで制御点を追加する。適用・削除は画面ボタンから行う。輸送中の変更・削除は排出を待つ既存ルールを使う。
+| 段階 | 開始 | 追加Nodeと役割 | 合計 |
+| --- | --- | --- | --- |
+| Wave 1 | 0秒 | 駅前のS1・R1・RED・BLUE。地上の配送を組む | 4個・2色 |
+| Wave 2 | 60秒 | 西側の高層屋上S2、駅舎屋上GREEN、高さ190 m対応のR2 | 7個・3色 |
+| Wave 3 | 120秒 | 反対側の高層屋上S3／YELLOW、東側屋上R3、駅前PURPLE | 11個・5色 |
 
-### 範囲と暫定値
+Source／Sinkの接続高度は配置Yに固定する。屋上のSourceはその高さでRelayへ送り、Relay直上で下降させる。屋上のSinkへは対応Relay直上で上昇してから水平に配線する。駅舎を横断するLineもこのルールを使い、途中での昇降・斜め配線は許可しない。
 
-ゲームの範囲はX=-230〜-125 m、Z=-40〜85 mの105 × 125 m。7個のノードはその内部へまとめる。共通GroundはY=3.7 m、高さ配線は無効。ノードの大きさ・FLOW・Line・UIは既存ゲームと共通にしている。
+- Source OUTは2本。R1は低所用で、R2・R3には受け持てる高さと接続枠の違いがある。既存LineとFLOWを維持しながら経路を増やす。
+- S1は15秒、新規S2／S3は出現から20秒準備し、その後に生成間隔1回分を経て最初のFLOWが生まれる。新色は対応Sinkの登場後に生成対象へ加わる。
+- Source／RelayをクリックしてNode 360へ入り、候補をクリックして配線する。Pause／Resumeで時間を操作し、停止中も配線・編集・削除・カメラ操作ができる。
+- 右ドラッグでOrbit、WASD／中ドラッグでPan、ホイールでZoom。Fでホバー対象へフォーカス、Homeで両側の建物を含む全景へ戻る。新Nodeの出現マーカーからもフォーカスできる。
+- Shift＋Lineクリックで経路編集へ入り、高さの変更は画面のROUTE Yで行う。適用・削除・取消は画面ボタン、Escは配線・選択の取消専用。
 
-都市の道路・地形メッシュをそのまま表示し、ゲームの配線は共通の水平面を使う。地面の起伏へ追従する完全な実在都市ステージではなく、駅前で配線と見た目を確認するための暫定構成。建物・橋梁の表示Boundsから範囲と交わる8個の直方体を障害物として保存する。全経路区間を同じ障害物で検証し、元メッシュより広く接続を制限する場合がある。
+### 配置と高さ
 
-設定は `Settings/Gameplay/TokyoStationStage.asset` と `TokyoStationGameplay.asset`。Source OUTは6、Relay IN/OUTは3/5、Sink INは3。Source／RelayのBufferは10/5、Line容量は3、FLOW速度は12 m/s。準備時間・配置・カメラ・障害物近似・速度は、このシーン専用の調整値。
+屋上は表示メッシュの頂点と下向きRaycastで実測し、建物上面から約1 m上へ配置した。建物のBounds上限より少なくとも0.5 mのクリアランスを保つ。
+
+| Wave | Node | X / Y / Z [m] | 配置・能力 |
+| --- | --- | --- | --- |
+| 1 | S1 | -207 / 3.7 / -24 | 駅前Source |
+| 1 | R1 | -192 / 3.7 / 4 | 上昇12 m、IN/OUT 3/3 |
+| 1 | RED / BLUE | -178 / 3.7 / -3、-156 / 3.7 / 20 | 駅前Sink |
+| 2 | S2 | -324.2 / 186.1 / -26.7 | 西側の屋上185.057 m |
+| 2 | GREEN | -125.25 / 42.4 / -79.1 | 駅舎の屋上41.34 m |
+| 2 | R2 | -183 / 3.7 / 40 | 上昇190 m、IN/OUT 3/4 |
+| 3 | S3 | 151.7 / 209.4 / 85.5 | 反対側の屋上208.4 m |
+| 3 | YELLOW | 190.8 / 209.4 / 11.5 | 同じ反対側建物の別の屋上位置 |
+| 3 | R3 | 125.3 / 30.2 / -75.15 | 屋上29.086 mから上昇185 m、IN/OUT 3/3 |
+| 3 | PURPLE | -210 / 3.7 / 65 | 駅前Sink。高所SourceのFLOWを地上へ戻す |
+
+実測対象は西側`bldg_a98349a1-56c0-4ec4-b22c-abe49301bd04`、駅舎`bldg_6af58cef-669e-4aca-bc01-355e870d1ad5`、反対側`bldg_b5b4d7d4-a078-4ca9-8ec3-87e5bdc63cde`、R3足元`bldg_b3bff028-8dc1-4887-8895-3b37524b7226`。
+
+R1はGREENへ届かず、R2はYELLOW／S3の高度へ届かない。R2は西側屋上と駅舎、R3は東側の高層屋上を担当する。R2⇄R3で駅舎を越え、R2から地上のR1やPURPLEへ戻す構成が成立する。
+
+### 範囲と調整値
+
+範囲はX=-355〜245 m、Z=-90〜105 mの600 × 195 m。両側の高層建物を含めるため平面版から拡張し、Wave中の領域拡張は行わない。Ground Y=3.7 m、MaximumAltitude=220 m（絶対Y上限223.7 m）。カメラは(-55, 60, 10)を中心に俯角60度・orthographicSize 220で両側の屋上を表示する。
+
+| 項目 | 調整値 |
+| --- | --- |
+| S1基本生成間隔 | 3.6秒 |
+| S2／S3基本生成間隔 | 12秒 |
+| Wave 2 / 3生成倍率 | 0.95 / 0.9 |
+| Source／Relay Buffer | 10 / 5 FLOW |
+| Line容量・速度 | 3 FLOW・24 m/s |
+| Source Overload猶予 | 5秒 |
+| Source OUT / Sink IN | 2 / 3 |
+
+長い垂直区間・駅舎横断の実経路長を含めて生成間隔と速度を調整している。これらは難度調整値であり、人の操作を含む最終バランスは未確定。都市形状は元メッシュを維持し、配線判定には範囲内の建物・橋梁の3D Renderer Bounds 66個を使う。地形へ自動追従する汎用機能は追加していない。
+
+#### 配線の一例
+
+初期は`S1 → R1`、`R1 → RED / BLUE`。Wave 2で`S2 → R2`、`R1 ⇄ R2`、`R2 → GREEN`を追加。Wave 3で`S3 → R3`、`R2 ⇄ R3`、`R3 → YELLOW`、`R2 → PURPLE`を追加すれば、全Sourceから全色へ届く。双方向は別々の有向Lineとして作る。この12本は検証用の一例で、ゲーム開始時に自動配置しない。
 
 ### 都市の見た目と組み立て
 
@@ -42,11 +83,26 @@ Sceneビューを駅前へ戻す：
 uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.TokyoStationGameplaySetup.FocusStation();'
 ```
 
-初回セットアップ用の `TokyoStationGameplaySetup.Create()` は、ゲーム未設定のTokyoStationWiringLabを開いてuloopから実行する。既存のゲーム設定やシーンを上書きしない。通常のPlay時には不要。
+初回セットアップ用の `TokyoStationGameplaySetup.Create()` は、ゲーム未設定のTokyoStationWiringLabを開いてuloopから実行する。既存のゲーム設定やシーンを上書きしない。通常のPlay時には不要。既存のStageを本書の3 Wave配置へ戻す場合は`TokyoStationGameplaySetup.ApplyThreeWaveLayout()`をEdit Modeでuloopから実行する。東京駅シーンを開いて実行する。Node・Wave・初期Line・速度を更新し、現在の都市から対象範囲の障害物Boundsを再取得する。都市メッシュは変更しない。
 
 元のスタイル生成ツール `PlateauTokyoStationStyleSetup.Create()` は、派生シーン・`Art/PLATEAU/TokyoStationWiringLab`・`Art/Materials/TokyoStationWiringLab` が未作成の場合だけ使用する。都市形状・地物属性・Colliderは元のInspectionと共通で、見た目の詳細値は窓間隔3.2 × 4 m、輪郭の折れ角35度・最小長0.75 m。実際の窓配置を表すものではない。
 
-### ゲーム化の検証（2026-09-26）
+### 高さを使う3 Waveゲームの検証（2026-09-26）
+
+- Red：従来の高さ無効Stageでは屋上配置テストが失敗することを確認してから変更。
+- 全EditMode **199/199**、東京駅PlayMode **2/2**成功。コンパイルおよび最終ConsoleのError／Warningは**0**。
+- 屋上への配置、駅舎の両側への配置、Relay能力不足による拒否、対応Relayでの有効経路、駅舎を越える経路の3D衝突判定を検証。全Wave・全Source・全色を接続枠内で配送できる。
+- 固定シード1337／42／2026で、各Waveから10秒後に配線を補い5分間運行した。敗北なし、FLOW保存、Wave 3のまま継続することを確認。放置すればSource Overloadで終了する。
+- 実シーンでPause、4→7→11ノードへの追加、既存LineのID・経路の保持、Wave 3のHUD・追加マーカー、Game Over、Retryで4ノード・0 Lineへ戻ること、都市透過／復元、Home復帰を確認。
+- uloopから検証用の12本を段階的に配線し、明示tickで48／105／210秒へ進めた実画面を撮影。配送数は8／23／65。最終時点は74生成＝65配送＋9輸送中、待機0、敗北なし。人の操作速度を含む最終難度評価ではない。
+- 1600×900と1036×757で表示を確認し、屋上S3からYELLOWへのNode 360候補と有効Previewも確認。ExpansionLabのPlayModeテストは実行していない。
+
+![Wave 1：駅前の配線](screenshots/tokyo-station-wave1.png)
+![Wave 2：西側屋上と駅舎への配送](screenshots/tokyo-station-wave2.png)
+![Wave 3：両側の屋上を結ぶネットワーク](screenshots/tokyo-station-wave3.png)
+![Wave 3：反対側の屋上Sourceからの配線](screenshots/tokyo-station-wave3-node360.png)
+
+### 初回の7ノード配置の検証履歴（2026-09-26）
 
 - Red：専用StageConfigurationが存在しないため、新規EditModeテストが想定どおり失敗。
 - Green：コンパイルError／Warning 0、全EditMode **184/184**、全PlayMode **66/66**成功。

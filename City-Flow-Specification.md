@@ -13,7 +13,7 @@
 | v0.2 | 高さ方向・接続能力の拡張 | 簡易3D都市・高さ方向の配線を追加 | IN／OUTのPort Unit | Widthに応じた値 |
 | v0.3 | 実在都市への展開 | PLATEAU都市モデルを追加 | v0.2を継承 | v0.2を継承 |
 
-**2026-09-26の実装範囲追加：** `TokyoStationWiringLab` の駅前小範囲で、既存のGround配線・FLOW輸送・Pause・Game Overを使うプロトタイプを作成する。全種類のNodeと5色を初期配置し、追加Waveは設定しない。都市の起伏は表示用、障害物は表示Boundsの近似とし、v0.3全体の完成とは扱わない。暫定値と検証は `docs/PLATEAU-TokyoStation.md` に記録する。
+**2026-09-26の実装範囲追加・更新：** `TokyoStationWiringLab` を駅前の小範囲でWave 3まで進む配線ゲームとする。Wave 1はSource・Relay各1個と赤／青Sinkで未配線から始め、Wave 2でSource・Relay・緑Sink、Wave 3でSource・Relay・黄／紫Sinkを追加する。Wave 3を最終Waveとして、以後も同じネットワークを維持し、Source OverloadによるGame Overまで生存時間を競う。クリア画面やWave 4は設けない。建物の実測屋上と駅舎の反対側にSource／Sinkを置き、v0.2 Δ1のRelay直上の昇降と一定Yの水平経路を使う。Source／Sinkは配置高度固定、Relayは各屋上へ届くMaximumRiseを設定する。地形の一般的な追従は行わず、Groundを基準高度とし、建物の3D表示Boundsによる近似を継続する。開始時刻・生成速度などの調整値と検証は `docs/PLATEAU-TokyoStation.md` に記録する。
 
 v0.2とv0.3は差分仕様として読む。明記した追加・変更以外は、それぞれ直前のバージョンを引き継ぐ。
 
