@@ -59,6 +59,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-26の`TokyoStationWiringLab`派生シーンは、コンパイルError/Warning **0**、ProjectConfigurationTests（EditMode）**4/4**、ValidationCityTests（PlayMode）**2/2**成功。保存後の再読み込みで元の都市モデル3,866メッシュの参照・座標・有効状態と3,866個のColliderの一致を確認した。専用シェーダー診断エラー・欠落スクリプトは0。Scene／Gameビューで暗い配色・琥珀色の輪郭・窓グリッド・発光を確認。[派生シーンの検証と閲覧方法](PLATEAU-TokyoStation.md)を参照。
+
 2026-09-26の東京駅周辺の都市データ確認シーンは、ProjectConfigurationTests（EditMode）**4/4**、BootstrapTests（PlayMode）**2/2**成功。コンパイルError/Warning **0**。保存後のシーン再読み込みで5種類の都市モデル、3,866メッシュ、東京駅の建物ID4件を確認し、メッシュ欠落・非対応マテリアルは0。Scene／Gameビューの実画面も確認した。Console Error **0**、元データの橋梁に大きな三角形を含むMeshColliderのWarning **1**。都市の物理判定やゲーム統合は対象外。[検証報告](PLATEAU-TokyoStation.md)を参照。
 
 2026-09-26のPLATEAU SDK 4.3.0導入後は、全EditMode **171/171**、全PlayMode **64/64**成功。Unity 6000.4.7f1 / macOS arm64でコンパイルと最終ConsoleのError/Warning **0**、SDKネイティブライブラリによる座標の投影・逆変換も成功した。都市データの取り込み・ゲーム統合・Playerビルドは未検証。[セットアップ報告](PLATEAU-Setup.md)を参照。

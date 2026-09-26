@@ -48,6 +48,8 @@ PLATEAU SDKは公式Gitリポジトリの `v4.3.0` タグに固定する。初�
 
 SDKのセットアップと、提供された千代田区2025年度CityGMLによる独立した `TokyoStationInspection` シーンを先行する。Sceneビューで東京駅周辺の建物・道路・地形を確認できる。ゲーム統合はv0.3の作業として扱う。[SDKセットアップ](docs/PLATEAU-Setup.md)、[東京駅周辺の確認シーン・再生成手順](docs/PLATEAU-TokyoStation.md)を参照。
 
+`Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、同じ都市形状をWiringLab風の暗い配色・琥珀色の輪郭・窓グリッドで表示する別シーン。都市メッシュを共有し、Sceneビューで閲覧する。
+
 ### VS CodeとC#プロジェクトファイル
 
 VS Codeではリポジトリ直下の `CityFlow.code-workspace` を開く。このワークスペースはUnityプロジェクトの `CityFlow/` をルートとし、`CityFlow.slnx` を使用する。

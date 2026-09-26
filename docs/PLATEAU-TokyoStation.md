@@ -11,6 +11,32 @@
 - HierarchyはBuilding／Road／Relief／Vegetation／Bridgeに分かれる。種類ごとの表示を切り替えて地物を確認できる。
 - 東京駅の基準点へSceneビューを戻す：`uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationSetup.FocusStation();'`
 
+## WiringLab風の派生シーン
+
+`CityFlow/Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、2026-09-26の追加依頼に基づく見た目の比較用シーン。複製時の未保存状態も派生シーンに保存した。元の保存済みシーン、都市FBX、地物属性、Colliderを維持し、ゲームのNode・Line・FLOWは追加しない。
+
+- 建物・橋梁：WiringLabの`AmberObstacle`と同じ暗い色と琥珀色を使う。実形状の境界・折れ目を線メッシュで強調し、壁面には手続き的な窓グリッドを表示する。
+- 地形・道路：青灰色の地面と10 m／50 mグリッド。植生は控えめな緑。
+- 発光：WiringLabの`ObstacleGlow`を共用。カメラは暗い背景、平行投影、俯角55度、BloomとFXAAを使用する。
+- 元の都市メッシュを共用し、FBXや航空写真・建物テクスチャを複製しない。専用マテリアル5個、輪郭メッシュ2個、シェーダー2個を追加する。
+- 窓間隔3.2 × 4 m、輪郭抽出の折れ角35度・最小長0.75 mは、見た目を調整するための暫定値。窓グリッドは実際の窓配置を表さない。装飾にはColliderを追加しない。
+
+Sceneビューで移動・拡大する。俯瞰位置へ戻す場合は次を使う。Gameビューは確認用カメラの固定表示。
+
+```sh
+uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationStyleSetup.FocusStation();'
+```
+
+初回生成には、元の確認シーンがあり、派生シーンと`Art/PLATEAU/TokyoStationWiringLab`・`Art/Materials/TokyoStationWiringLab`がまだ存在しない状態で、次を実行する。既存の派生シーン・スタイルアセットは上書きしない。
+
+```sh
+uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationStyleSetup.Create();'
+```
+
+検証では、保存後の再読み込みで5種類・3,866メッシュの参照、ワールド座標、有効状態、3,866個のMeshColliderが元シーンと一致した。輪郭は294,263線分を2メッシュにまとめ、装飾Colliderは0。シェーダー診断エラー・欠落スクリプトは0。コンパイルError/Warning 0、ProjectConfigurationTests（EditMode）4/4、ValidationCityTests（PlayMode）2/2成功。SceneビューとPlay ModeのGameビューで表示を確認した。撮影初回はGameビュー未表示によるRenderTexture警告が出たが、Gameビュー表示後に画像取得が成功した。都市の物理判定は追加検証しておらず、元データの橋梁に関する注意点は下記の確認結果を参照する。
+
+追加Unityファイルは24個（`.meta`込み）、約52.3MB。最大はシーンの約33.4MBで、FBX・テクスチャ・既存シーン・既存のWiringLab用アセットの変更はない。
+
 ## データと範囲
 
 | 項目 | 内容 |
