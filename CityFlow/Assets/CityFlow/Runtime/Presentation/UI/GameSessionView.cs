@@ -95,6 +95,9 @@ namespace CityFlow.Presentation.UI
             var notice = root.Q<Label>("wave-notice");
             notice.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             notice.text = $"WAVE {simulation.Wave} / NEW NODES\n" + string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id));
+            if (simulation.LatestExpandedArea is Rect area)
+                notice.text = $"WAVE {simulation.Wave} / AREA {area.width:0} × {area.height:0} m\n" +
+                    (simulation.LatestAdditions.Count > 0 ? string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id)) : "NEW SPACE AVAILABLE");
             foreach (var marker in markers.Values) marker.style.display = DisplayStyle.None;
             foreach (var leader in leaders.Values) leader.Hide();
             if (!show || root.layout.width <= 0 || root.layout.height <= 0) return;

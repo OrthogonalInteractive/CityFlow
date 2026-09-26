@@ -2,6 +2,7 @@
   "name": "CityFlow.Editor",
   "rootNamespace": "CityFlow.Editor",
   "references": [
+    "CityFlow.Application",
     "PLATEAU.Runtime",
     "libplateau",
     "UniTask",

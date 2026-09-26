@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1000" viewBox="0 0 1800 1000">
+<rect width="1800" height="1000" fill="#101a27"/>
+<g font-family="Arial, sans-serif">
+<text x="60" y="68" font-size="32" fill="#dbe8f1" text-anchor="start" font-weight="bold">EXPANSION LAB</text>
+<text x="60" y="105" font-size="20" fill="#94b2c7" text-anchor="start" font-weight="normal">Curated gaps and increasing Relay pressure</text>
+<text x="60" y="160" font-size="18" fill="#dbe8f1" text-anchor="start" font-weight="normal">360 x 300 m  /  12 Sources + 20 Relays + 9 Sinks</text>
+<rect x="357.5" y="423.9" width="204.99999999999997" height="172.2" fill="none" stroke="#456579" stroke-width="1"/>
+<text x="362.5" y="590.0999999999999" font-size="12" fill="#8dafc4" text-anchor="start" font-weight="normal">W1</text>
+<rect x="328.8" y="399.3" width="262.4" height="221.39999999999998" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="300.1" y="374.70000000000005" width="319.79999999999995" height="270.59999999999997" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="271.4" y="350.1" width="377.2" height="319.79999999999995" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="242.70000000000002" y="325.5" width="434.59999999999997" height="368.99999999999994" fill="none" stroke="#456579" stroke-width="1"/>
+<text x="247.70000000000002" y="688.5" font-size="12" fill="#8dafc4" text-anchor="start" font-weight="normal">W5</text>
+<rect x="214.00000000000003" y="300.9" width="491.99999999999994" height="418.2" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="183.25" y="274.25" width="553.5" height="471.49999999999994" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="152.5" y="247.60000000000002" width="615.0" height="524.8" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="121.75000000000006" y="223.0" width="676.4999999999999" height="574.0" fill="none" stroke="#233749" stroke-width="1"/>
+<rect x="91.00000000000006" y="202.5" width="737.9999999999999" height="615.0" fill="none" stroke="#456579" stroke-width="1"/>
+<text x="96.00000000000006" y="811.5" font-size="12" fill="#8dafc4" text-anchor="start" font-weight="normal">W10</text>
+<circle cx="460.0" cy="510.0" r="86.1" fill="none" stroke="#526a7d" stroke-dasharray="3 7"/>
+<circle cx="460.0" cy="510.0" r="229.59999999999997" fill="none" stroke="#526a7d" stroke-dasharray="3 7"/>
+<rect x="392.35" y="489.5" width="16.4" height="28.699999999999996" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="513.3" y="487.45" width="16.4" height="28.699999999999996" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="310.35" y="471.05" width="20.5" height="77.89999999999999" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="589.15" y="471.05" width="20.5" height="77.89999999999999" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="416.95" y="647.35" width="86.1" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="416.95" y="356.25" width="86.1" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="255.00000000000003" y="315.25" width="24.599999999999998" height="28.699999999999996" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="640.4" y="676.05" width="24.599999999999998" height="28.699999999999996" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="486.65" y="473.1" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="416.95" y="471.05" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="451.8" y="501.8" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="771.5999999999999" y="762.15" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="129.95000000000005" y="220.95000000000005" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="796.2" y="216.85000000000002" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="722.4" y="725.25" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="156.60000000000002" y="452.6" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="201.70000000000005" y="233.25" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<rect x="744.95" y="251.70000000000005" width="16.4" height="16.4" fill="#594735" stroke="#997341" stroke-width="1"/>
+<path d="M 429.25 525.55 L 436.25 532.55 L 429.25 539.55 L 422.25 532.55 Z" fill="#ff7075"/>
+<text x="421.25" y="537.55" font-size="12" fill="#ff7075" text-anchor="end" font-weight="normal">R</text>
+<path d="M 490.75 527.6 L 497.75 534.6 L 490.75 541.6 L 483.75 534.6 Z" fill="#55aeef"/>
+<text x="482.75" y="539.6" font-size="12" fill="#55aeef" text-anchor="end" font-weight="normal">B</text>
+<path d="M 494.85 474.3 L 501.85 481.3 L 494.85 488.3 L 487.85 481.3 Z" fill="#f5dc69"/>
+<text x="486.85" y="486.3" font-size="12" fill="#f5dc69" text-anchor="end" font-weight="normal">Y</text>
+<path d="M 425.15 472.25 L 432.15 479.25 L 425.15 486.25 L 418.15 479.25 Z" fill="#61da9f"/>
+<text x="417.15" y="484.25" font-size="12" fill="#61da9f" text-anchor="end" font-weight="normal">G</text>
+<path d="M 460.0 503.0 L 467.0 510.0 L 460.0 517.0 L 453.0 510.0 Z" fill="#c783ef"/>
+<text x="452.0" y="515.0" font-size="12" fill="#c783ef" text-anchor="end" font-weight="normal">P</text>
+<circle cx="547.292131785" cy="497.731890497" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="555.292131785" y="501.731890497" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I01</text>
+<circle cx="531.235975005" cy="473.7034585" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="539.235975005" y="477.7034585" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I02</text>
+<circle cx="519.17652221" cy="441.925199" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="527.17652221" y="445.925199" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I03</text>
+<circle cx="386.48820950000004" cy="469.251757425" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="394.48820950000004" y="473.251757425" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I04</text>
+<circle cx="370.14324113500004" cy="502.138539747" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="378.14324113500004" y="506.138539747" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I05</text>
+<circle cx="382.46747562" cy="536.69658051" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="390.46747562" y="540.69658051" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I06</text>
+<circle cx="519.297147695" cy="580.667607995" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="527.297147695" y="584.667607995" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I08</text>
+<rect x="444.75" y="566.5" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="458.75" y="562.5" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S05 / W1</text>
+<circle cx="464.2915643" cy="591.887619" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="472.2915643" y="595.887619" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">I07</text>
+<rect x="508.29999999999995" y="410.7" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="522.3" y="406.7" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S08 / W2</text>
+<circle cx="598.633658545" cy="385.1736755" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="606.633658545" y="389.1736755" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O02</text>
+<circle cx="280.9968003" cy="418.79329133" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="288.9968003" y="422.79329133" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O05</text>
+<circle cx="298.79087902000003" cy="622.8798265" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="306.79087902000003" y="626.8798265" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O08</text>
+<rect x="274.6" y="603.4" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="288.6" y="599.4" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S04 / W4</text>
+<circle cx="655.2887287249999" cy="397.25" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="663.2887287249999" y="401.25" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O01</text>
+<rect x="660.0" y="365.6" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="674.0" y="361.6" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S09 / W5</text>
+<circle cx="228.5743602" cy="477.475227465" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="236.5743602" y="481.475227465" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O06</text>
+<rect x="418.1" y="318.45000000000005" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="432.1" y="314.45000000000005" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S11 / W6</text>
+<circle cx="555.3188705" cy="285.44285650000006" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="563.3188705" y="289.44285650000006" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O03</text>
+<circle cx="220.3049636" cy="565.33795707" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="228.3049636" y="569.33795707" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O07</text>
+<circle cx="315.3727255" cy="716.54919935" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="323.3727255" y="720.54919935" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O09</text>
+<circle cx="488.530520145" cy="713.00494" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="496.530520145" y="717.00494" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O11</text>
+<circle cx="588.1249795" cy="731.91902105" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="596.1249795" y="735.91902105" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O12</text>
+<rect x="186.45000000000005" y="716.15" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="200.45000000000005" y="712.15" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S01 / W7</text>
+<path d="M 162.75 749.0 L 169.75 756.0 L 162.75 763.0 L 155.75 756.0 Z" fill="#ff7075"/>
+<text x="172.75" y="761.0" font-size="12" fill="#ff7075" text-anchor="start" font-weight="normal">Red</text>
+<circle cx="464.329063802" cy="261.98777125000004" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="472.329063802" y="265.98777125000004" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O04</text>
+<circle cx="410.98476219500003" cy="740.5982864499999" r="5" fill="#8ab8d0" stroke="#101a27"/>
+<text x="418.98476219500003" y="744.5982864499999" font-size="11" fill="#8ab8d0" text-anchor="start" font-weight="normal">O10</text>
+<rect x="725.5999999999999" y="728.45" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="739.5999999999999" y="724.45" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S03 / W8</text>
+<rect x="159.8" y="455.8" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="173.8" y="451.8" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S07 / W8</text>
+<path d="M 779.8 763.3499999999999 L 786.8 770.3499999999999 L 779.8 777.3499999999999 L 772.8 770.3499999999999 Z" fill="#55aeef"/>
+<text x="789.8" y="775.3499999999999" font-size="12" fill="#55aeef" text-anchor="start" font-weight="normal">Blue</text>
+<rect x="479.6" y="777.65" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="493.6" y="773.65" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S02 / W9</text>
+<rect x="770.7" y="552.15" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="784.7" y="548.15" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S06 / W9</text>
+<rect x="204.90000000000003" y="236.45000000000005" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="218.90000000000003" y="232.45000000000005" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S10 / W9</text>
+<path d="M 138.15000000000003 222.15000000000003 L 145.15000000000003 229.15000000000003 L 138.15000000000003 236.15000000000003 L 131.15000000000003 229.15000000000003 Z" fill="#f5dc69"/>
+<text x="148.15000000000003" y="234.15000000000003" font-size="12" fill="#f5dc69" text-anchor="start" font-weight="normal">Yellow</text>
+<path d="M 804.4 218.05 L 811.4 225.05 L 804.4 232.05 L 797.4 225.05 Z" fill="#61da9f"/>
+<text x="814.4" y="230.05" font-size="12" fill="#61da9f" text-anchor="start" font-weight="normal">Green</text>
+<rect x="748.15" y="254.90000000000003" width="10" height="10" fill="#eef6fa" stroke="#101a27" stroke-width="1"/>
+<text x="762.15" y="250.90000000000003" font-size="12" fill="#dbe8f1" text-anchor="start" font-weight="normal">S12 / W10</text>
+<text x="460" y="390" font-size="13" fill="#e4b273" text-anchor="middle" font-weight="normal">102 deg gap</text>
+<text x="757" y="600" font-size="13" fill="#e4b273" text-anchor="middle" font-weight="normal">90 deg gap</text>
+<text x="76" y="865" font-size="15" fill="#98b2c5" text-anchor="start" font-weight="normal">Squares: Sources (one per 3 x 4 cell)    Circles: Relays    Diamonds: Sinks</text>
+<text x="76" y="892" font-size="15" fill="#98b2c5" text-anchor="start" font-weight="normal">Rings have deliberate clusters, different sparse sectors and variable heights.</text>
+<text x="965" y="160" font-size="18" fill="#dbe8f1" text-anchor="start" font-weight="normal">Busiest Relay Line: demand / nominal service</text>
+<line x1="965" y1="785.0" x2="1705" y2="785.0" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="790.0" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">0%</text>
+<line x1="965" y1="695.9375" x2="1705" y2="695.9375" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="700.9375" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">25%</text>
+<line x1="965" y1="606.875" x2="1705" y2="606.875" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="611.875" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">50%</text>
+<line x1="965" y1="517.8125" x2="1705" y2="517.8125" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="522.8125" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">75%</text>
+<line x1="965" y1="428.75" x2="1705" y2="428.75" stroke="#587183" stroke-width="1" stroke-dasharray="6 5"/>
+<text x="953" y="433.75" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">100%</text>
+<line x1="965" y1="339.6875" x2="1705" y2="339.6875" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="344.6875" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">125%</text>
+<line x1="965" y1="250.625" x2="1705" y2="250.625" stroke="#2c4153" stroke-width="1" stroke-dasharray=""/>
+<text x="953" y="255.625" font-size="14" fill="#91abbe" text-anchor="end" font-weight="normal">150%</text>
+<text x="965.0" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">1</text>
+<text x="1047.2222222222222" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">2</text>
+<text x="1129.4444444444443" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">3</text>
+<text x="1211.6666666666667" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">4</text>
+<text x="1293.888888888889" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">5</text>
+<text x="1376.111111111111" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">6</text>
+<text x="1458.3333333333333" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">7</text>
+<text x="1540.5555555555557" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">8</text>
+<text x="1622.7777777777778" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">9</text>
+<text x="1705.0" y="818" font-size="15" fill="#91abbe" text-anchor="middle" font-weight="normal">10</text>
+<text x="1335.0" y="850" font-size="16" fill="#91abbe" text-anchor="middle" font-weight="normal">Wave</text>
+<polyline points="965.00,735.95 1047.22,734.70 1129.44,730.50 1211.67,639.93 1293.89,628.77 1376.11,621.21 1458.33,446.49 1540.56,394.42 1622.78,346.93 1705.00,247.52" fill="none" stroke="#f2b273" stroke-width="3"/>
+<circle cx="965.0" cy="735.9529983997345" r="5" fill="#f2b273"/>
+<circle cx="1047.2222222222222" cy="734.69538574183" r="5" fill="#f2b273"/>
+<circle cx="1129.4444444444443" cy="730.5033283070059" r="5" fill="#f2b273"/>
+<circle cx="1211.6666666666667" cy="639.9259528066755" r="5" fill="#f2b273"/>
+<circle cx="1293.888888888889" cy="628.7664217667792" r="5" fill="#f2b273"/>
+<circle cx="1376.111111111111" cy="621.2067214506433" r="5" fill="#f2b273"/>
+<circle cx="1458.3333333333333" cy="446.4939014116924" r="5" fill="#f2b273"/>
+<circle cx="1540.5555555555557" cy="394.4160168097947" r="5" fill="#f2b273"/>
+<circle cx="1622.7777777777778" cy="346.9332657486756" r="5" fill="#f2b273"/>
+<circle cx="1705.0" cy="247.5203838949296" r="5" fill="#f2b273"/>
+<line x1="985" y1="196" x2="1020" y2="196" stroke="#f2b273" stroke-width="3" stroke-dasharray=""/>
+<text x="1032" y="201" font-size="16" fill="#f2b273" text-anchor="start" font-weight="normal">Central sinks only</text>
+<polyline points="965.00,735.95 1047.22,734.70 1129.44,730.50 1211.67,639.93 1293.89,628.77 1376.11,621.21 1458.33,446.49 1540.56,433.47 1622.78,386.76 1705.00,283.35" fill="none" stroke="#65d4ce" stroke-width="3"/>
+<circle cx="965.0" cy="735.9529983997345" r="5" fill="#65d4ce"/>
+<circle cx="1047.2222222222222" cy="734.69538574183" r="5" fill="#65d4ce"/>
+<circle cx="1129.4444444444443" cy="730.5033283070059" r="5" fill="#65d4ce"/>
+<circle cx="1211.6666666666667" cy="639.9259528066755" r="5" fill="#65d4ce"/>
+<circle cx="1293.888888888889" cy="628.7664217667792" r="5" fill="#65d4ce"/>
+<circle cx="1376.111111111111" cy="621.2067214506433" r="5" fill="#65d4ce"/>
+<circle cx="1458.3333333333333" cy="446.4939014116924" r="5" fill="#65d4ce"/>
+<circle cx="1540.5555555555557" cy="433.47441512881517" r="5" fill="#65d4ce"/>
+<circle cx="1622.7777777777778" cy="386.7575143169778" r="5" fill="#65d4ce"/>
+<circle cx="1705.0" cy="283.3523583019342" r="5" fill="#65d4ce"/>
+<line x1="985" y1="224" x2="1020" y2="224" stroke="#65d4ce" stroke-width="3" stroke-dasharray=""/>
+<text x="1032" y="229" font-size="16" fill="#65d4ce" text-anchor="start" font-weight="normal">Peripheral sinks connected</text>
+<text x="965" y="890" font-size="15" fill="#98b2c5" text-anchor="start" font-weight="normal">Routes: 3 FLOW per Line, 8 m/s, equal color demand.</text>
+<text x="965" y="917" font-size="15" fill="#98b2c5" text-anchor="start" font-weight="normal">Actual queues checked with 3 fixed seeds; no human wiring time modeled.</text>
+<text x="60" y="965" font-size="14" fill="#65879d" text-anchor="start" font-weight="normal">Authored evaluation layout  /  v0.2 height + Wave area expansion  /  2026-09-26</text>
+</g></svg>

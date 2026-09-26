@@ -13,22 +13,23 @@ namespace CityFlow.Domain.Spatial
         public float MaximumAltitude { get; }
         public bool AllowsHeight => MaximumAltitude > 0;
         public float CeilingHeight => GroundHeight + MaximumAltitude;
-        public Rect WalkableArea { get; }
+        public Rect WalkableArea { get; private set; }
+        public Rect MaximumArea { get; }
         public IReadOnlyList<Bounds> Buildings { get; }
         public IReadOnlyList<NodeDefinition> Nodes { get; }
         public StageDefinition(float groundHeight, Rect walkableArea, IEnumerable<Bounds> buildings,
-            IEnumerable<NodeDefinition> nodes, float maximumAltitude = 0)
+            IEnumerable<NodeDefinition> nodes, float maximumAltitude = 0, Rect? maximumArea = null)
         {
             MaximumAltitude = maximumAltitude;
             GroundHeight = groundHeight; WalkableArea = walkableArea;
+            MaximumArea = maximumArea ?? walkableArea;
             Buildings = Array.AsReadOnly(buildings.ToArray());
             Nodes = Array.AsReadOnly(nodes.ToArray());
         }
         public void Validate(float clearance)
         {
             if (!Finite(GroundHeight) || !Finite(MaximumAltitude) || MaximumAltitude < 0 || !Finite(CeilingHeight) || !Finite(clearance) || clearance < 0 ||
-                !Finite(WalkableArea.x) || !Finite(WalkableArea.y) || !Finite(WalkableArea.width) ||
-                !Finite(WalkableArea.height) || WalkableArea.width <= 0 || WalkableArea.height <= 0)
+                !ValidArea(WalkableArea) || !ValidArea(MaximumArea) || !Encloses(MaximumArea, WalkableArea))
                 throw new ArgumentException("Ground and clearance must be finite and define a positive area.");
             foreach (Bounds building in Buildings)
                 if (!Finite(building.center) || !Finite(building.size) ||
@@ -62,6 +63,19 @@ namespace CityFlow.Domain.Spatial
         }
 
         public bool IsWalkable(Vector3 point, float clearance) => ValidatePoint(point, clearance) == RouteFailure.None;
+
+        public bool CanExpandTo(Rect area) => ValidArea(area) && Encloses(area, WalkableArea) && Encloses(MaximumArea, area);
+
+        public void ExpandTo(Rect area)
+        {
+            if (!CanExpandTo(area)) throw new ArgumentException("Expansion must contain the current area and remain inside the authored maximum.", nameof(area));
+            WalkableArea = area;
+        }
+
+        private static bool ValidArea(Rect area) => Finite(area.x) && Finite(area.y) && Finite(area.width) &&
+            Finite(area.height) && Finite(area.xMax) && Finite(area.yMax) && area.width > 0 && area.height > 0;
+        private static bool Encloses(Rect outer, Rect inner) => outer.xMin <= inner.xMin && outer.yMin <= inner.yMin &&
+            outer.xMax >= inner.xMax && outer.yMax >= inner.yMax;
 
         public RouteFailure ValidatePoint(Vector3 point, float clearance)
         {

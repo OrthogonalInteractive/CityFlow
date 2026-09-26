@@ -23,14 +23,17 @@ namespace CityFlow.Application.Connections
         public bool IsActive => SourceId != null;
         public string? TargetId => preview.Current?.DestinationId;
         public DistanceBand Filter { get; private set; }
-        public float NearLimit { get; }
-        public float MidLimit { get; }
+        private readonly float nearLimit, midLimit;
+        private readonly float initialAreaDiagonal;
+        public float NearLimit => nearLimit * (network.WalkableArea.size.magnitude / initialAreaDiagonal);
+        public float MidLimit => midLimit * (network.WalkableArea.size.magnitude / initialAreaDiagonal);
         public int? LastCreatedLineId { get; private set; }
         public ConnectionSession(FlowNetwork network, LinePreviewService preview, float nearLimit = 30, float midLimit = 70)
         {
             if (!(nearLimit > 0) || !(midLimit > nearLimit) || float.IsInfinity(midLimit))
                 throw new ArgumentOutOfRangeException(nameof(nearLimit));
-            this.network = network; this.preview = preview; NearLimit = nearLimit; MidLimit = midLimit;
+            this.network = network; this.preview = preview; this.nearLimit = nearLimit; this.midLimit = midLimit;
+            initialAreaDiagonal = network.WalkableArea.size.magnitude;
             previewSubscription = preview.Changed.Subscribe(_ => changed.OnNext(Unit.Default));
         }
         private LineRoute? undoRoute;

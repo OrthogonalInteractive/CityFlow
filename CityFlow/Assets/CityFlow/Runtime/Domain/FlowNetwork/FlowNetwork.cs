@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CityFlow.Domain.Spatial;
+using CityFlow.Domain.Progression;
 using UnityEngine;
 
 namespace CityFlow.Domain.FlowNetwork
@@ -71,6 +72,7 @@ namespace CityFlow.Domain.FlowNetwork
         public NetworkSettings Settings { get; }
         public bool AllowsHeight => stage.AllowsHeight;
         public float CeilingHeight => stage.CeilingHeight;
+        public Rect WalkableArea => stage.WalkableArea;
         public IReadOnlyList<NodeDefinition> NodeDefinitions => cachedDefinitions ??= Array.AsReadOnly(nodes.Values.Select(n=>n.Definition).ToArray());
         public FlowNetwork(StageDefinition stage, NetworkSettings settings)
         {
@@ -79,13 +81,31 @@ namespace CityFlow.Domain.FlowNetwork
             stage.Validate(settings.Clearance);
             nodes = stage.Nodes.ToDictionary(n => n.Id, n => new NodeState(n));
         }
-        public void ValidateAdditionalNodes(IEnumerable<NodeDefinition> additions)
+        public void ValidateAdditionalNodes(IEnumerable<NodeDefinition> additions, Rect? expandedArea = null)
         {
-            new StageDefinition(stage.GroundHeight,stage.WalkableArea,stage.Buildings,NodeDefinitions.Concat(additions),stage.MaximumAltitude).Validate(Settings.Clearance);
+            Rect area = expandedArea ?? stage.WalkableArea;
+            if (!stage.CanExpandTo(area)) throw new ArgumentException("Invalid playable area expansion.");
+            new StageDefinition(stage.GroundHeight, area, stage.Buildings, NodeDefinitions.Concat(additions),
+                stage.MaximumAltitude, stage.MaximumArea).Validate(Settings.Clearance);
         }
-        public bool TryAddNodes(IReadOnlyList<NodeDefinition> additions)
+        public void ValidateWaveSchedule(IEnumerable<WaveDefinition> waves)
         {
-            try { ValidateAdditionalNodes(additions); } catch(ArgumentException) { return false; }
+            // Validate every unlock against a separate stage; the live session stays untouched.
+            var future = new StageDefinition(stage.GroundHeight, stage.WalkableArea, stage.Buildings,
+                NodeDefinitions, stage.MaximumAltitude, stage.MaximumArea);
+            foreach (WaveDefinition wave in waves)
+            {
+                future.ExpandTo(wave.ExpandedArea ?? future.WalkableArea);
+                future = new StageDefinition(future.GroundHeight, future.WalkableArea, future.Buildings,
+                    future.Nodes.Concat(wave.Additions), future.MaximumAltitude, future.MaximumArea);
+                future.Validate(Settings.Clearance);
+            }
+        }
+        public bool TryAddNodes(IReadOnlyList<NodeDefinition> additions, Rect? expandedArea = null)
+        {
+            try { ValidateAdditionalNodes(additions, expandedArea); } catch(ArgumentException) { return false; }
+            // Validate both changes before committing either. Existing transport objects are retained.
+            stage.ExpandTo(expandedArea ?? stage.WalkableArea);
             if (additions.Count > 0)
             {
                 InvalidateSnapshot();

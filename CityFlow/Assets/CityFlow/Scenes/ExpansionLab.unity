@@ -419,8 +419,8 @@ MonoBehaviour:
   obstacleSurface: {fileID: 2100000, guid: 03b094b10c8b442d9b8c0b695b619eae, type: 2}
   obstacleGlow: {fileID: 11400000, guid: 1d4a97bcb451048bcab97943ea5d46b2, type: 2}
   relayHeightSurface: {fileID: 2100000, guid: 14505867694e4444f8bd7111a17af1cf, type: 2}
-  gameplaySettings: {fileID: 11400000, guid: 9140afbb7db184feea49176fe3231e6e, type: 2}
-  stageConfiguration: {fileID: 11400000, guid: cc2efee4d28be4ea6ab573ae7ad3d8c1, type: 2}
+  gameplaySettings: {fileID: 11400000, guid: bc1a4692474724ba7961fb033f280f83, type: 2}
+  stageConfiguration: {fileID: 11400000, guid: aeb73b0d2e6ce4f1b9da7fc36559ce81, type: 2}
   hudLayout: {fileID: 9197481963319205126, guid: 96cf534f4d6b244d78814fa43e3b42dc, type: 3}
   hudPanelSettings: {fileID: 11400000, guid: 13a224993c8d94f958d6c3954c9d5e1c, type: 2}
 --- !u!4 &815804356

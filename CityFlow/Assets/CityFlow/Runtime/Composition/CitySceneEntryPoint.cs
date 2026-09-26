@@ -29,10 +29,12 @@ namespace CityFlow.Composition
         private readonly PanelSettings panelSettings;
         private readonly Material obstacleSurface;
         private readonly VolumeProfile obstacleGlow;
+        private readonly Material relayHeightSurface;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
             VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection,
-            Material obstacleSurface, VolumeProfile obstacleGlow)
+            Material obstacleSurface, VolumeProfile obstacleGlow, Material relayHeightSurface)
         {
+            this.relayHeightSurface = relayHeightSurface;
             this.obstacleSurface = obstacleSurface;
             this.obstacleGlow = obstacleGlow;
             this.connection = connection; this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
@@ -42,7 +44,7 @@ namespace CityFlow.Composition
         {
             city = new GameObject("Validation City");
             var view = city.AddComponent<ValidationCityView>();
-            view.Initialize(stage, network, obstacleSurface, obstacleGlow);
+            view.Initialize(stage, network, obstacleSurface, obstacleGlow, relayHeightSurface);
             city.AddComponent<SimulationDriver>().Initialize(simulation);
             var hud = new GameObject("Validation HUD");
             hud.SetActive(false);

@@ -6,6 +6,7 @@ using System.Linq;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
 using CityFlow.Domain.Progression;
+using UnityEngine;
 
 namespace CityFlow.Application.UseCases
 {
@@ -21,6 +22,7 @@ namespace CityFlow.Application.UseCases
         private IReadOnlyList<NodeDefinition> latestAdditions = Array.Empty<NodeDefinition>();
         public IReadOnlyList<NodeDefinition> LatestAdditions => latestAdditions;
         public double LastWaveSeconds { get; private set; }
+        public Rect? LatestExpandedArea { get; private set; }
         public double GenerationIntervalScale { get; private set; } = 1;
         public double? NextWaveSeconds => waveIndex < waves.Count ? waves[waveIndex].StartSeconds : (double?)null;
         private readonly Dictionary<string, double> nextGeneration = new Dictionary<string, double>();
@@ -44,7 +46,7 @@ namespace CityFlow.Application.UseCases
                 if(wave.StartSeconds<=previous) throw new ArgumentException("Wave times must be strictly increasing.",nameof(waves));
                 previous=wave.StartSeconds;
             }
-            network.ValidateAdditionalNodes(this.waves.SelectMany(w=>w.Additions));
+            network.ValidateWaveSchedule(this.waves);
             foreach(SourceNodeDefinition source in network.NodeDefinitions.OfType<SourceNodeDefinition>()) RegisterSource(source);
         }
 
@@ -90,10 +92,10 @@ namespace CityFlow.Application.UseCases
                     nextGeneration[id]=origin+Math.Max(0,nextGeneration[id]-origin)*wave.IntervalScale/GenerationIntervalScale;
                 }
                 GenerationIntervalScale=wave.IntervalScale;
-                if(!network.TryAddNodes(wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1).ToArray()))
+                if(!network.TryAddNodes(wave.Additions.OrderBy(n=>n.Kind==NodeKind.Sink ? 0 : 1).ToArray(), wave.ExpandedArea))
                     throw new InvalidOperationException("The authored Wave could not add its validated Nodes.");
                 foreach(var source in wave.Additions.OfType<SourceNodeDefinition>()) RegisterSource(source);
-                latestAdditions=wave.Additions; LastWaveSeconds=ElapsedSeconds; waveIndex++;
+                latestAdditions=wave.Additions; LatestExpandedArea=wave.ExpandedArea; LastWaveSeconds=ElapsedSeconds; waveIndex++;
             }
         }
         private void GenerateDueFlows()

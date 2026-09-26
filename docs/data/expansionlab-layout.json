@@ -1,0 +1,744 @@
+{
+  "nodes": [
+    {
+      "id": "C-RED",
+      "kind": "Sink",
+      "wave": 1,
+      "x": -15.0,
+      "y": 0.0,
+      "z": -11.0,
+      "rise": 0.0,
+      "color": "Red",
+      "interval": 0.0
+    },
+    {
+      "id": "C-BLUE",
+      "kind": "Sink",
+      "wave": 1,
+      "x": 15.0,
+      "y": 0.0,
+      "z": -12.0,
+      "rise": 0.0,
+      "color": "Blue",
+      "interval": 0.0
+    },
+    {
+      "id": "C-YELLOW",
+      "kind": "Sink",
+      "wave": 1,
+      "x": 17.0,
+      "y": 6.0,
+      "z": 14.0,
+      "rise": 0.0,
+      "color": "Yellow",
+      "interval": 0.0
+    },
+    {
+      "id": "C-GREEN",
+      "kind": "Sink",
+      "wave": 1,
+      "x": -17.0,
+      "y": 6.0,
+      "z": 15.0,
+      "rise": 0.0,
+      "color": "Green",
+      "interval": 0.0
+    },
+    {
+      "id": "C-PURPLE",
+      "kind": "Sink",
+      "wave": 1,
+      "x": 0.0,
+      "y": 12.0,
+      "z": 0.0,
+      "rise": 0.0,
+      "color": "Purple",
+      "interval": 0.0
+    },
+    {
+      "id": "I01",
+      "kind": "Relay",
+      "wave": 1,
+      "x": 42.5815277,
+      "y": 0.0,
+      "z": 5.98444366,
+      "rise": 10.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I02",
+      "kind": "Relay",
+      "wave": 1,
+      "x": 34.7492561,
+      "y": 0.0,
+      "z": 17.70563,
+      "rise": 18.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I03",
+      "kind": "Relay",
+      "wave": 1,
+      "x": 28.8665962,
+      "y": 0.0,
+      "z": 33.20722,
+      "rise": 24.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I04",
+      "kind": "Relay",
+      "wave": 1,
+      "x": -35.85941,
+      "y": 0.0,
+      "z": 19.8771915,
+      "rise": 14.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I05",
+      "kind": "Relay",
+      "wave": 1,
+      "x": -43.8325653,
+      "y": 0.0,
+      "z": 3.83485866,
+      "rise": 10.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I06",
+      "kind": "Relay",
+      "wave": 1,
+      "x": -37.8207436,
+      "y": 0.0,
+      "z": -13.0227222,
+      "rise": 22.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "I08",
+      "kind": "Relay",
+      "wave": 1,
+      "x": 28.9254379,
+      "y": 0.0,
+      "z": -34.4720039,
+      "rise": 16.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S05",
+      "kind": "Source",
+      "wave": 1,
+      "x": -5.0,
+      "y": 0.0,
+      "z": -30.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "I07",
+      "kind": "Relay",
+      "wave": 2,
+      "x": 2.093446,
+      "y": 0.0,
+      "z": -39.94518,
+      "rise": 26.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S08",
+      "kind": "Source",
+      "wave": 2,
+      "x": 26.0,
+      "y": 0.0,
+      "z": 46.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "O02",
+      "kind": "Relay",
+      "wave": 3,
+      "x": 67.6261749,
+      "y": 0.0,
+      "z": 60.89089,
+      "rise": 30.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O05",
+      "kind": "Relay",
+      "wave": 4,
+      "x": -87.318634,
+      "y": 0.0,
+      "z": 44.4910774,
+      "rise": 30.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O08",
+      "kind": "Relay",
+      "wave": 4,
+      "x": -78.6385956,
+      "y": 0.0,
+      "z": -55.06333,
+      "rise": 24.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S04",
+      "kind": "Source",
+      "wave": 4,
+      "x": -88.0,
+      "y": 0.0,
+      "z": -48.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "O01",
+      "kind": "Relay",
+      "wave": 5,
+      "x": 95.2627945,
+      "y": 0.0,
+      "z": 55.0,
+      "rise": 30.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S09",
+      "kind": "Source",
+      "wave": 5,
+      "x": 100.0,
+      "y": 0.0,
+      "z": 68.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "O06",
+      "kind": "Relay",
+      "wave": 6,
+      "x": -112.890556,
+      "y": 0.0,
+      "z": 15.8657427,
+      "rise": 18.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S11",
+      "kind": "Source",
+      "wave": 6,
+      "x": -18.0,
+      "y": 0.0,
+      "z": 91.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "O03",
+      "kind": "Relay",
+      "wave": 7,
+      "x": 46.49701,
+      "y": 0.0,
+      "z": 109.54007,
+      "rise": 24.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O07",
+      "kind": "Relay",
+      "wave": 7,
+      "x": -116.924408,
+      "y": 0.0,
+      "z": -26.9941254,
+      "rise": 18.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O09",
+      "kind": "Relay",
+      "wave": 7,
+      "x": -70.54989,
+      "y": 0.0,
+      "z": -100.755707,
+      "rise": 28.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O11",
+      "kind": "Relay",
+      "wave": 7,
+      "x": 13.9173269,
+      "y": 0.0,
+      "z": -99.0268,
+      "rise": 32.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O12",
+      "kind": "Relay",
+      "wave": 7,
+      "x": 62.49999,
+      "y": 0.0,
+      "z": -108.253181,
+      "rise": 30.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S01",
+      "kind": "Source",
+      "wave": 7,
+      "x": -131.0,
+      "y": 0.0,
+      "z": -103.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "SW-RED",
+      "kind": "Sink",
+      "wave": 8,
+      "x": -145.0,
+      "y": 0.0,
+      "z": -120.0,
+      "rise": 0.0,
+      "color": "Red",
+      "interval": 0.0
+    },
+    {
+      "id": "O04",
+      "kind": "Relay",
+      "wave": 8,
+      "x": 2.11173844,
+      "y": 0.0,
+      "z": 120.981575,
+      "rise": 24.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "O10",
+      "kind": "Relay",
+      "wave": 8,
+      "x": -23.9098721,
+      "y": 0.0,
+      "z": -112.486969,
+      "rise": 24.0,
+      "color": "",
+      "interval": 0.0
+    },
+    {
+      "id": "S03",
+      "kind": "Source",
+      "wave": 8,
+      "x": 132.0,
+      "y": 12.0,
+      "z": -109.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "S07",
+      "kind": "Source",
+      "wave": 8,
+      "x": -144.0,
+      "y": 12.0,
+      "z": 24.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "SE-BLUE",
+      "kind": "Sink",
+      "wave": 9,
+      "x": 156.0,
+      "y": 12.0,
+      "z": -127.0,
+      "rise": 0.0,
+      "color": "Blue",
+      "interval": 0.0
+    },
+    {
+      "id": "S02",
+      "kind": "Source",
+      "wave": 9,
+      "x": 12.0,
+      "y": 0.0,
+      "z": -133.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "S06",
+      "kind": "Source",
+      "wave": 9,
+      "x": 154.0,
+      "y": 0.0,
+      "z": -23.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "S10",
+      "kind": "Source",
+      "wave": 9,
+      "x": -122.0,
+      "y": 18.0,
+      "z": 131.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    },
+    {
+      "id": "NW-YELLOW",
+      "kind": "Sink",
+      "wave": 10,
+      "x": -157.0,
+      "y": 18.0,
+      "z": 137.0,
+      "rise": 0.0,
+      "color": "Yellow",
+      "interval": 0.0
+    },
+    {
+      "id": "NE-GREEN",
+      "kind": "Sink",
+      "wave": 10,
+      "x": 168.0,
+      "y": 24.0,
+      "z": 139.0,
+      "rise": 0.0,
+      "color": "Green",
+      "interval": 0.0
+    },
+    {
+      "id": "S12",
+      "kind": "Source",
+      "wave": 10,
+      "x": 143.0,
+      "y": 24.0,
+      "z": 122.0,
+      "rise": 0.0,
+      "color": "",
+      "interval": 12.0
+    }
+  ],
+  "buildings": [
+    {
+      "x": -29.0,
+      "y": 4.0,
+      "z": 3.0,
+      "width": 8.0,
+      "height": 8.0,
+      "depth": 14.0
+    },
+    {
+      "x": 30.0,
+      "y": 5.0,
+      "z": 4.0,
+      "width": 8.0,
+      "height": 10.0,
+      "depth": 14.0
+    },
+    {
+      "x": -68.0,
+      "y": 6.0,
+      "z": 0.0,
+      "width": 10.0,
+      "height": 12.0,
+      "depth": 38.0
+    },
+    {
+      "x": 68.0,
+      "y": 6.0,
+      "z": 0.0,
+      "width": 10.0,
+      "height": 12.0,
+      "depth": 38.0
+    },
+    {
+      "x": 0.0,
+      "y": 9.0,
+      "z": -71.0,
+      "width": 42.0,
+      "height": 18.0,
+      "depth": 8.0
+    },
+    {
+      "x": 0.0,
+      "y": 9.0,
+      "z": 71.0,
+      "width": 42.0,
+      "height": 18.0,
+      "depth": 8.0
+    },
+    {
+      "x": -94.0,
+      "y": 12.0,
+      "z": 88.0,
+      "width": 12.0,
+      "height": 24.0,
+      "depth": 14.0
+    },
+    {
+      "x": 94.0,
+      "y": 12.0,
+      "z": -88.0,
+      "width": 12.0,
+      "height": 24.0,
+      "depth": 14.0
+    },
+    {
+      "x": 17.0,
+      "y": 2.5,
+      "z": 14.0,
+      "width": 8.0,
+      "height": 5.0,
+      "depth": 8.0
+    },
+    {
+      "x": -17.0,
+      "y": 2.5,
+      "z": 15.0,
+      "width": 8.0,
+      "height": 5.0,
+      "depth": 8.0
+    },
+    {
+      "x": 0.0,
+      "y": 5.5,
+      "z": 0.0,
+      "width": 8.0,
+      "height": 11.0,
+      "depth": 8.0
+    },
+    {
+      "x": 156.0,
+      "y": 5.5,
+      "z": -127.0,
+      "width": 8.0,
+      "height": 11.0,
+      "depth": 8.0
+    },
+    {
+      "x": -157.0,
+      "y": 8.5,
+      "z": 137.0,
+      "width": 8.0,
+      "height": 17.0,
+      "depth": 8.0
+    },
+    {
+      "x": 168.0,
+      "y": 11.5,
+      "z": 139.0,
+      "width": 8.0,
+      "height": 23.0,
+      "depth": 8.0
+    },
+    {
+      "x": 132.0,
+      "y": 5.5,
+      "z": -109.0,
+      "width": 8.0,
+      "height": 11.0,
+      "depth": 8.0
+    },
+    {
+      "x": -144.0,
+      "y": 5.5,
+      "z": 24.0,
+      "width": 8.0,
+      "height": 11.0,
+      "depth": 8.0
+    },
+    {
+      "x": -122.0,
+      "y": 8.5,
+      "z": 131.0,
+      "width": 8.0,
+      "height": 17.0,
+      "depth": 8.0
+    },
+    {
+      "x": 143.0,
+      "y": 11.5,
+      "z": 122.0,
+      "width": 8.0,
+      "height": 23.0,
+      "depth": 8.0
+    }
+  ],
+  "waves": [
+    {
+      "wave": 1,
+      "seconds": 0,
+      "width": 100.0,
+      "depth": 84.0,
+      "nodes": 13,
+      "sources": 1,
+      "additions": [
+        "C-RED",
+        "C-BLUE",
+        "C-YELLOW",
+        "C-GREEN",
+        "C-PURPLE",
+        "I01",
+        "I02",
+        "I03",
+        "I04",
+        "I05",
+        "I06",
+        "I08",
+        "S05"
+      ]
+    },
+    {
+      "wave": 2,
+      "seconds": 90,
+      "width": 128.0,
+      "depth": 108.0,
+      "nodes": 15,
+      "sources": 2,
+      "additions": [
+        "I07",
+        "S08"
+      ]
+    },
+    {
+      "wave": 3,
+      "seconds": 180,
+      "width": 156.0,
+      "depth": 132.0,
+      "nodes": 16,
+      "sources": 2,
+      "additions": [
+        "O02"
+      ]
+    },
+    {
+      "wave": 4,
+      "seconds": 270,
+      "width": 184.0,
+      "depth": 156.0,
+      "nodes": 19,
+      "sources": 3,
+      "additions": [
+        "O05",
+        "O08",
+        "S04"
+      ]
+    },
+    {
+      "wave": 5,
+      "seconds": 360,
+      "width": 212.0,
+      "depth": 180.0,
+      "nodes": 21,
+      "sources": 4,
+      "additions": [
+        "O01",
+        "S09"
+      ]
+    },
+    {
+      "wave": 6,
+      "seconds": 450,
+      "width": 240.0,
+      "depth": 204.0,
+      "nodes": 23,
+      "sources": 5,
+      "additions": [
+        "O06",
+        "S11"
+      ]
+    },
+    {
+      "wave": 7,
+      "seconds": 540,
+      "width": 270.0,
+      "depth": 230.0,
+      "nodes": 29,
+      "sources": 6,
+      "additions": [
+        "O03",
+        "O07",
+        "O09",
+        "O11",
+        "O12",
+        "S01"
+      ]
+    },
+    {
+      "wave": 8,
+      "seconds": 630,
+      "width": 300.0,
+      "depth": 256.0,
+      "nodes": 34,
+      "sources": 8,
+      "additions": [
+        "SW-RED",
+        "O04",
+        "O10",
+        "S03",
+        "S07"
+      ]
+    },
+    {
+      "wave": 9,
+      "seconds": 720,
+      "width": 330.0,
+      "depth": 280.0,
+      "nodes": 38,
+      "sources": 11,
+      "additions": [
+        "SE-BLUE",
+        "S02",
+        "S06",
+        "S10"
+      ]
+    },
+    {
+      "wave": 10,
+      "seconds": 810,
+      "width": 360.0,
+      "depth": 300.0,
+      "nodes": 41,
+      "sources": 12,
+      "additions": [
+        "NW-YELLOW",
+        "NE-GREEN",
+        "S12"
+      ]
+    }
+  ]
+}

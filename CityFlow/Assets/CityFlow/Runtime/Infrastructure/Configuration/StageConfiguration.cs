@@ -28,6 +28,9 @@ namespace CityFlow.Infrastructure.Configuration
             public float StartSeconds;
             [Tooltip("Provisional multiplier of all Source generation intervals; lower means more FLOW.")]
             public float IntervalScale;
+            public bool ExpandsArea;
+            [Tooltip("Playable XZ rectangle after this Wave. Must contain the previous area.")]
+            public Rect WalkableArea;
             [SerializeReference] public NodePlacement[] Additions;
         }
         public WavePlacement[] Waves = Array.Empty<WavePlacement>();
@@ -35,12 +38,18 @@ namespace CityFlow.Infrastructure.Configuration
         {
             if(Waves==null) throw new ArgumentException("Wave schedule must be present.");
             var waves=Waves.Select(w=>new WaveDefinition(w.StartSeconds,w.IntervalScale,
-                (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n => (n ?? throw new ArgumentException("Wave Node placement must have a type.")).ToDefinition()))).ToArray();
-            var known=initial.Nodes.ToList(); var planner=new LineRoutePlanner(initial,clearance); double previous=0;
+                (w.Additions ?? throw new ArgumentException("Wave additions must be present.")).Select(n => (n ?? throw new ArgumentException("Wave Node placement must have a type.")).ToDefinition()),
+                w.ExpandsArea ? w.WalkableArea : (Rect?)null)).ToArray();
+            var known=initial.Nodes.ToList(); double previous=0;
+            var future = new StageDefinition(initial.GroundHeight, initial.WalkableArea, initial.Buildings,
+                initial.Nodes, initial.MaximumAltitude, initial.MaximumArea);
             foreach(var wave in waves)
             {
                 if(wave.StartSeconds<=previous) throw new ArgumentException("Wave times must increase."); previous=wave.StartSeconds;
-                new StageDefinition(initial.GroundHeight,initial.WalkableArea,initial.Buildings,known.Concat(wave.Additions),initial.MaximumAltitude).Validate(clearance);
+                future.ExpandTo(wave.ExpandedArea ?? future.WalkableArea);
+                future = new StageDefinition(initial.GroundHeight, future.WalkableArea, initial.Buildings,
+                    known.Concat(wave.Additions), initial.MaximumAltitude, initial.MaximumArea);
+                var planner = new LineRoutePlanner(future, clearance);
                 bool Reachable(NodeDefinition from, NodeDefinition to) =>
                     from.MaxOutgoing > 0 && to.MaxIncoming > 0 && planner.Generate(from, to).IsValid;
                 var pending = wave.Additions.ToList();
@@ -74,6 +83,9 @@ namespace CityFlow.Infrastructure.Configuration
         [Tooltip("Height above Ground allowed for Nodes and routes [m]. Zero preserves v0.1 Ground-only stages. Provisional v0.2 limit: 60 m.")]
         public float MaximumAltitude;
         public Rect WalkableArea = new Rect(-60, -45, 120, 90);
+        public bool ExpandsWithWaves;
+        [Tooltip("Authored maximum XZ area. Buildings are fixed before play; Waves only unlock space.")]
+        public Rect MaximumArea = new Rect(-180, -150, 360, 300);
         public Bounds[] Buildings = Array.Empty<Bounds>();
         [SerializeReference] public NodePlacement[] Nodes = Array.Empty<NodePlacement>();
 
@@ -81,7 +93,8 @@ namespace CityFlow.Infrastructure.Configuration
         {
             if (Buildings == null || Nodes == null || Nodes.Length == 0)
                 throw new ArgumentException("Stage arrays must be present and contain initial Nodes.");
-            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => (node ?? throw new ArgumentException("Node placement must have a type.")).ToDefinition()), MaximumAltitude);
+            var stage = new StageDefinition(GroundHeight, WalkableArea, Buildings, Nodes.Select(node => (node ?? throw new ArgumentException("Node placement must have a type.")).ToDefinition()),
+                MaximumAltitude, ExpandsWithWaves ? MaximumArea : WalkableArea);
             stage.Validate(clearance);
             return stage;
         }

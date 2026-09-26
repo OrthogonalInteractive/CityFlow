@@ -43,6 +43,7 @@ namespace CityFlow.Editor
             scope.SetConfiguration(settings, stage);
             ValidationHudSetup.Configure(scope);
             ObstacleAppearanceSetup.Configure(scope);
+            RelayAppearanceSetup.Configure(scope);
             EditorUtility.SetDirty(scope);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();

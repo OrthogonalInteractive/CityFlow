@@ -138,7 +138,8 @@ namespace CityFlow.Presentation.Overview
         public void Zoom(float delta)
         {
             if (sceneCamera == null) return;
-            sceneCamera.orthographicSize = Mathf.Clamp(sceneCamera.orthographicSize * Mathf.Exp(-delta * 0.15f), 8, 180);
+            float maximum = stage == null ? 180 : Mathf.Max(180, stage.WalkableArea.size.magnitude);
+            sceneCamera.orthographicSize = Mathf.Clamp(sceneCamera.orthographicSize * Mathf.Exp(-delta * 0.15f), 8, maximum);
         }
         public void Orbit(Vector2 delta)
         { yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }

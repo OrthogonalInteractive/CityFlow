@@ -213,6 +213,16 @@ Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S
 
 ## 高さ方向を試す（v0.2 Δ1）
 
+### 広域のレベル評価とWave領域拡張（#19）
+
+`Assets/CityFlow/Scenes/ExpansionLab.unity`は、100×84 mから360×300 mへWave 10まで拡張する評価用シーン。設定は`ExpansionStage.asset`／`ExpansionGameplay.asset`。中央5色Sink、四隅付近の4色Sink、二重のRelay帯、12区画に分散したSourceを使い、高さと遠距離輸送を比較する。配線0から始まり、90秒ごとに外側の空間とNodeが解放される。拡張時にカメラは移動せず、Homeで現在の全景を表示できる。
+
+このシーンのPlayModeテストは作成・実行しない。EditModeによるルール・配置検証と、uloopのPlayによる目視・操作確認を分ける。比較用の配線例はEditor評価コードにあり、シーンの初期配線へは保存しない。配置・数値・評価結果は[広域レベルの評価記録](docs/ExpansionLab-2026-09-26.md)を参照。
+
+Relayは内周102°・外周90°の空白を含む固定配置。Source生成間隔を12秒から5秒へ縮め、Relayの総負荷と集中負荷をWaveごとに高める。中央集中／外周分散の配線を固定3シードで比較している。これらの数値はゲーム性評価用の暫定値であり、プレイヤーの配線時間を含む難度は未確定。
+
+### 高さ配線の小規模検証
+
 `Assets/CityFlow/Scenes/HeightLab.unity`を開いてPlayする。6 Node・0 Lineから開始し、高さ8m／18mの壁で区切られた都市を配線する。設定は`HeightStage.asset`。
 
 - 高度変更はRelay直上の垂直区間だけ。間は一定高度のXZ経路となり、高さ方向の斜め配線は作れない。

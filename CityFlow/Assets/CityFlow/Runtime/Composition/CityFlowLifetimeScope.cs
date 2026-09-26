@@ -20,6 +20,7 @@ namespace CityFlow.Composition
     {
         [SerializeField] private Material? obstacleSurface;
         [SerializeField] private VolumeProfile? obstacleGlow;
+        [SerializeField] private Material? relayHeightSurface;
         [SerializeField] private GameplaySettings? gameplaySettings;
         [SerializeField] private StageConfiguration? stageConfiguration;
 
@@ -34,6 +35,8 @@ namespace CityFlow.Composition
         public void SetHudConfiguration(VisualTreeAsset layout, PanelSettings panelSettings)
         { hudLayout = layout; hudPanelSettings = panelSettings; }
 
+        public void SetRelayAppearance(Material surface) => relayHeightSurface = surface;
+
         public void SetConfiguration(GameplaySettings settings, StageConfiguration stage)
         {
             gameplaySettings = settings; stageConfiguration = stage;
@@ -46,6 +49,8 @@ namespace CityFlow.Composition
                 throw new InvalidOperationException("Bootstrap requires UI Toolkit layout and panel settings assets.");
             if (obstacleSurface == null || obstacleGlow == null)
                 throw new InvalidOperationException("The city requires an obstacle surface material and glow profile.");
+            if (relayHeightSurface == null)
+                throw new InvalidOperationException("The city requires a Relay height projection material.");
             builder.RegisterInstance(obstacleSurface);
             builder.RegisterInstance(obstacleGlow);
             builder.RegisterInstance(hudLayout);
@@ -62,7 +67,7 @@ namespace CityFlow.Composition
                 .WithParameter("nearLimit",stage.WalkableArea.size.magnitude * 0.25f)
                 .WithParameter("midLimit",stage.WalkableArea.size.magnitude * 0.5f);
             builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed),stageConfiguration.LoadWaves(stage,gameplaySettings.Clearance)));
-            builder.RegisterEntryPoint<CitySceneEntryPoint>();
+            builder.RegisterEntryPoint<CitySceneEntryPoint>().WithParameter("relayHeightSurface", relayHeightSurface);
         }
     }
 }

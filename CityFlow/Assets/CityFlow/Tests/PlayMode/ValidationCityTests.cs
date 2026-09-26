@@ -58,6 +58,8 @@ namespace CityFlow.Tests.PlayMode
 
             var view = Object.FindAnyObjectByType<ValidationCityView>();
             Assert.That(view.VisibleNodeCount, Is.EqualTo(stage.Nodes.Count));
+            Assert.That(view.GetComponentsInChildren<Renderer>().Any(renderer => renderer.name.StartsWith("Relay height ")), Is.False,
+                "Ground-only stages must not display a Relay lift range.");
             Assert.That(Object.FindObjectsByType<Renderer>().Length, Is.GreaterThan(20));
         }
     }

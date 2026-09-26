@@ -151,7 +151,13 @@ XYZの全区間とクリアランス付き建物Boundsとの交差を検証す�
 
 HeightLabは8mと18mの壁、6／10／22／26mのRelayで段階的な高さ制約を検証する。Source／Sinkには12mと24mの高所配置を含める。ステージ上限は30m。Waveは一括追加なので、同時出現Relayを経由する新規Sinkも、配列の並び順によらず既存Node群へ接続可能か検証する。WiringLab／Bootstrapは上限0を維持する。
 
+`ExpansionLab`は#19の領域拡張を評価する。`StageDefinition`は不変の最大領域・建物群と、単調に広がる現在の`WalkableArea`を持つ。`FlowNetwork.TryAddNodes`が拡張矩形と全Nodeを先に検証して一括反映し、既存Line・Buffer・In-Flightを作り直さない。`FlowSimulation`は生成・輸送と同じtickで解放し、Pause中は進行しない。設定読み込み・開始時には別の将来状態で全Waveを検証し、ライブ状態を先行して広げない。
+
+探索・Preview確定・Overviewは同じStageを参照する。`ConnectionSession`の距離帯は開始時の比率を現在の領域対角長へ適用する。`ValidationCityView`は地面・グリッド・建物Boundsを現在の矩形へ切り、固定された都市を徐々に表示する。建物の表示とColliderは同じ切り取ったBoundsになり、Domain上の障害物は開始前から固定する。Wave通知は寸法を表示するがカメラを強制移動しない。Homeはその時点の範囲をフレーミングする。
+
 高さ有効時のLine中心線・FLOW位置は確定経路そのものを使い、Ground描画用の上方オフセットを適用しない。FLOWは直径0.8 mにして0.5 mクリアランス内へ収める。垂直区間の矢印・二重線は代替基準軸から横方向を算出する。
+
+Relayの高さ能力は、配置Yから`StageDefinition.ConnectionCeiling`までの半透明な円柱で表示する。ステージ上限で切り詰め、能力0では柱を作らない。Wave追加も同じ描画経路を使う。直径4.8 m・1 m間隔の帯・上端の不透明度倍率0.45は暫定の見た目設定で、当たり判定・配線上限を変更しない。`Art/Materials/RelayHologram.mat`をCompositionから渡し、`ValidationCityView`が生成した表示を所有する。Colliderと影を持たず、Nodeの基部・Buffer表示を維持する。接続フォーカスでは色を減光し、Node 360では始点の柱も非表示にする。
 
 ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身とすべてのSourceを接続先候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
 

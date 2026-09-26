@@ -15,6 +15,12 @@ namespace CityFlow.Presentation.Rendering
     {
         private readonly List<Material> materials = new List<Material>();
         private StageDefinition? stage;
+        private Material? relayHeightSurface;
+        private GameObject? groundView;
+        private Rect drawnArea;
+        private readonly List<(GameObject View, bool AlongZ, float Coordinate)> gridViews = new();
+        private readonly Dictionary<Renderer, Bounds> buildingBounds = new();
+        private readonly List<GameObject> areaBorders = new();
         private readonly List<Renderer> buildings = new();
         private readonly List<Renderer> scenery = new();
         private readonly Dictionary<Renderer,Material> opaqueBuildings = new();
@@ -39,9 +45,11 @@ namespace CityFlow.Presentation.Rendering
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => nodeViews.Count;
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Material obstacleSurface, VolumeProfile obstacleGlow)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Material obstacleSurface,
+            VolumeProfile obstacleGlow, Material relayHeightSurface)
         {
             stage = definition;
+            this.relayHeightSurface = relayHeightSurface;
             network = flowNetwork;
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
@@ -49,7 +57,7 @@ namespace CityFlow.Presentation.Rendering
             sceneCamera.transform.LookAt(new Vector3(0, 0, 2));
             sceneCamera.orthographic = true;
             sceneCamera.orthographicSize = 70;
-            sceneCamera.farClipPlane = 500;
+            sceneCamera.farClipPlane = Mathf.Max(500, definition.MaximumArea.size.magnitude * 2);
             sceneCamera.clearFlags = CameraClearFlags.SolidColor;
             sceneCamera.backgroundColor = new Color(0.035f, 0.052f, 0.082f);
             Material ground = Material(new Color(0.075f, 0.11f, 0.15f));
@@ -61,24 +69,70 @@ namespace CityFlow.Presentation.Rendering
             volume.sharedProfile = obstacleGlow;
             Material grid = Material(new Color(0.11f, 0.17f, 0.22f));
             Rect area = definition.WalkableArea;
-            Cube("Ground", new Vector3(area.center.x, definition.GroundHeight - 0.4f, area.center.y),
+            groundView = Cube("Ground", new Vector3(area.center.x, definition.GroundHeight - 0.4f, area.center.y),
                 new Vector3(area.width, 0.8f, area.height), ground);
-            for (float x = area.xMin; x <= area.xMax; x += 10)
-                Cube("10 m grid", new Vector3(x, definition.GroundHeight + 0.01f, area.center.y), new Vector3(0.06f, 0.02f, area.height), grid);
-            for (float z = area.yMin; z <= area.yMax; z += 10)
-                Cube("10 m grid", new Vector3(area.center.x, definition.GroundHeight + 0.01f, z), new Vector3(area.width, 0.02f, 0.06f), grid);
+            for (float x = definition.MaximumArea.xMin; x <= definition.MaximumArea.xMax; x += 10)
+                gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), true, x));
+            for (float z = definition.MaximumArea.yMin; z <= definition.MaximumArea.yMax; z += 10)
+                gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), false, z));
+            if (definition.MaximumArea != area)
+            {
+                var border = Material(new Color(0.3f, 0.63f, 0.72f));
+                for (int i = 0; i < 4; i++)
+                {
+                    var edge = Cube("Unlocked area boundary", Vector3.zero, Vector3.one, border);
+                    var collider = edge.GetComponent<Collider>(); collider.enabled = false; Destroy(collider);
+                    areaBorders.Add(edge);
+                }
+            }
             foreach (Bounds b in definition.Buildings)
             {
-                buildings.Add(Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>());
+                var renderer = Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>();
+                buildings.Add(renderer); buildingBounds.Add(renderer, b);
             }
             foreach(Renderer renderer in buildings) opaqueBuildings.Add(renderer,renderer.sharedMaterial);
-            scenery.AddRange(GetComponentsInChildren<MeshRenderer>());
+            scenery.AddRange(GetComponentsInChildren<MeshRenderer>(true));
+            RefreshArea();
             CreateLines(flowNetwork.Snapshot());
             CreateNodes();
         }
+
+        private void RefreshArea()
+        {
+            if (stage == null || groundView == null || drawnArea == stage.WalkableArea) return;
+            Rect area = stage.WalkableArea; drawnArea = area;
+            groundView.transform.position = new Vector3(area.center.x, stage.GroundHeight - 0.4f, area.center.y);
+            groundView.transform.localScale = new Vector3(area.width, 0.8f, area.height);
+            foreach (var grid in gridViews)
+            {
+                float min = grid.AlongZ ? area.xMin : area.yMin, max = grid.AlongZ ? area.xMax : area.yMax;
+                grid.View.SetActive(grid.Coordinate >= min && grid.Coordinate <= max);
+                grid.View.transform.position = grid.AlongZ ? new Vector3(grid.Coordinate, stage.GroundHeight + 0.01f, area.center.y) :
+                    new Vector3(area.center.x, stage.GroundHeight + 0.01f, grid.Coordinate);
+                grid.View.transform.localScale = grid.AlongZ ? new Vector3(0.06f, 0.02f, area.height) : new Vector3(area.width, 0.02f, 0.06f);
+            }
+            foreach (var entry in buildingBounds)
+            {
+                Bounds authored = entry.Value;
+                float left = Mathf.Max(area.xMin, authored.min.x), right = Mathf.Min(area.xMax, authored.max.x);
+                float bottom = Mathf.Max(area.yMin, authored.min.z), top = Mathf.Min(area.yMax, authored.max.z);
+                entry.Key.gameObject.SetActive(right > left && top > bottom);
+                if (right <= left || top <= bottom) continue;
+                // The hidden part already exists in Domain; clipping only reveals immutable geometry.
+                entry.Key.transform.position = new Vector3((left + right) * 0.5f, authored.center.y, (bottom + top) * 0.5f);
+                entry.Key.transform.localScale = new Vector3(right - left, authored.size.y, top - bottom);
+            }
+            for (int i = 0; i < areaBorders.Count; i++)
+            {
+                bool alongZ = i < 2;
+                areaBorders[i].transform.position = new Vector3(alongZ ? (i == 0 ? area.xMin : area.xMax) : area.center.x,
+                    stage.GroundHeight + 0.03f, alongZ ? area.center.y : (i == 2 ? area.yMin : area.yMax));
+                areaBorders[i].transform.localScale = alongZ ? new Vector3(0.18f, 0.04f, area.height) : new Vector3(area.width, 0.04f, 0.18f);
+            }
+        }
         private void CreateNodes()
         {
-            if(network==null) return;
+            if (network == null || stage == null || relayHeightSurface == null) return;
             foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 if(nodeViews.ContainsKey(node.Id)) continue;
@@ -92,8 +146,32 @@ namespace CityFlow.Presentation.Rendering
                 marker.transform.localScale = new Vector3(3.3f, node.Kind == NodeKind.Sink ? 1.4f : 2.8f, 3.3f);
                 marker.GetComponent<Renderer>().sharedMaterial = Material(color);
                 GameObject pad = Cube("Node pad", node.Position + Vector3.up * 0.15f, new Vector3(6, 0.3f, 6), Material(color * 0.45f));
-                nodeViews.Add(node.Id,new[] { marker,pad });
+                var parts = new List<GameObject> { marker, pad };
+                float rise = stage.ConnectionCeiling(node) - node.Position.y;
+                if (node is RelayNodeDefinition && rise > 0)
+                    parts.Add(CreateRelayHeight(node, rise, relayHeightSurface));
+                nodeViews.Add(node.Id, parts.ToArray());
             }
+        }
+
+        private GameObject CreateRelayHeight(NodeDefinition node, float rise, Material surface)
+        {
+            var projection = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            projection.name = "Relay height " + node.Id;
+            projection.transform.SetParent(transform, false);
+            projection.transform.position = node.Position + Vector3.up * (rise * 0.5f);
+            // Unity's cylinder is two units tall. Its cap marks the exact connection ceiling.
+            projection.transform.localScale = new Vector3(4.8f, rise * 0.5f, 4.8f);
+            var collider = projection.GetComponent<Collider>();
+            collider.enabled = false;
+            Destroy(collider);
+            var renderer = projection.GetComponent<Renderer>();
+            renderer.sharedMaterial = surface;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.lightProbeUsage = LightProbeUsage.Off;
+            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            return projection;
         }
 
         private void CreateLines(NetworkSnapshot snapshot)
@@ -145,6 +223,7 @@ namespace CityFlow.Presentation.Rendering
         {
             if (network == null) return;
             NetworkSnapshot snapshot = network.Snapshot();
+            RefreshArea();
             Focus.Refresh(snapshot, selected.NodeId);
             CreateNodes();
             CreateLines(snapshot);

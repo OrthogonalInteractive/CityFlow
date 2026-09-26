@@ -418,6 +418,7 @@ MonoBehaviour:
   autoInjectGameObjects: []
   obstacleSurface: {fileID: 2100000, guid: 03b094b10c8b442d9b8c0b695b619eae, type: 2}
   obstacleGlow: {fileID: 11400000, guid: 1d4a97bcb451048bcab97943ea5d46b2, type: 2}
+  relayHeightSurface: {fileID: 2100000, guid: 14505867694e4444f8bd7111a17af1cf, type: 2}
   gameplaySettings: {fileID: 11400000, guid: 9140afbb7db184feea49176fe3231e6e, type: 2}
   stageConfiguration: {fileID: 11400000, guid: fbe90307290594f77bc7da06c2e576e1, type: 2}
   hudLayout: {fileID: 9197481963319205126, guid: 96cf534f4d6b244d78814fa43e3b42dc, type: 3}
