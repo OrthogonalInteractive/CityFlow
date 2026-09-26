@@ -46,9 +46,9 @@ Editor内では `NuGet > Restore Packages` でも復元可能。
 
 PLATEAU SDKは公式Gitリポジトリの `v4.3.0` タグに固定する。初回のUPM復元には **Git LFS** が必要なため、Unityを開く前に `git lfs version` が成功することを確認する。SDKの取得と依存解決はUnity Package Managerが行い、生成された `Packages/packages-lock.json` も管理する。
 
-SDKのセットアップと、提供された千代田区2025年度CityGMLによる独立した `TokyoStationInspection` シーンを先行する。Sceneビューで東京駅周辺の建物・道路・地形を確認できる。ゲーム統合はv0.3の作業として扱う。[SDKセットアップ](docs/PLATEAU-Setup.md)、[東京駅周辺の確認シーン・再生成手順](docs/PLATEAU-TokyoStation.md)を参照。
+SDKのセットアップと、提供された千代田区2025年度CityGMLによる独立した `TokyoStationInspection` シーンを先行する。Sceneビューで東京駅周辺の建物・道路・地形を確認できる。汎用的な実在都市ステージへの対応はv0.3の作業として扱う。[SDKセットアップ](docs/PLATEAU-Setup.md)、[東京駅周辺の確認シーン・再生成手順](docs/PLATEAU-TokyoStation.md)を参照。
 
-`Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、同じ都市形状をWiringLab風の暗い配色・琥珀色の輪郭・窓グリッドで表示する別シーン。都市メッシュを共有し、Sceneビューで閲覧する。
+`Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、同じ都市形状を暗い配色・琥珀色の輪郭・窓グリッドで表示する配線ゲーム。駅前105 × 125 mにSource・Relay・全5色のSinkを配置し、Playすると配線0本から遊べる。Sourceをクリックして候補へ配線し、Pause／Resumeで時間を操作する。都市の起伏は表示用とし、配線は共通Ground面を使う。
 
 ### VS CodeとC#プロジェクトファイル
 

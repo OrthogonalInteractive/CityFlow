@@ -213,3 +213,10 @@ Game OverではSessionResultにWave・生存時間・配送数・原因Sourceを
 - #12 / #13: 構成比較、人による操作感確認、生成間隔・速度・猶予の最終採用値。
 - #18: リバインド要件確定後のInputActionAsset化、Player対象化とShader保持、既存未追跡ファイルの管理判断。
 - セーブ／ロード、大規模都市の性能目標、PLATEAUの対象都市とSDKバージョン。
+
+
+## 東京駅の小範囲ゲーム
+
+`TokyoStationWiringLab` は2026-09-26の追加指示による駅前の配線プロトタイプ。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、既存のDomain／Applicationを使う。共通Ground面と8個の障害物Boundsによる近似であり、地形追従や汎用PLATEAUアダプターは含めない。
+
+Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには保存カメラのHome状態を渡し、F／Orbit後にも駅前の初期表示へ戻せる。

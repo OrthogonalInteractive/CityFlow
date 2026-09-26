@@ -7,12 +7,16 @@ Shader "CityFlow/City Inspection Surface"
         _PanelSize ("Grid spacing [m]", Vector) = (3.2, 4, 0, 0)
         _GridWidth ("Grid width [m]", Float) = 0.04
         _Ground ("Use ground grid", Float) = 0
+        [HideInInspector] _SrcBlend ("Source blend", Float) = 1
+        [HideInInspector] _DstBlend ("Destination blend", Float) = 0
+        [HideInInspector] _ZWrite ("Depth write", Float) = 1
     }
     SubShader
     {
         Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Opaque" "Queue" = "Geometry" }
         Cull Off
-        ZWrite On
+        Blend [_SrcBlend] [_DstBlend]
+        ZWrite [_ZWrite]
 
         HLSLINCLUDE
         #pragma target 3.5
@@ -70,7 +74,7 @@ Shader "CityFlow/City Inspection Surface"
             half fresnel = pow(1 - saturate(dot(normal, GetWorldSpaceNormalizeViewDir(input.positionWS))), 4);
             half3 tint = _BaseColor.rgb * illumination * lerp(0.82 + pane * 0.18, 1, _Ground);
             tint += half3(0.012, 0.024, 0.038) * fresnel * (1 - _Ground);
-            return half4(tint + _GridColor.rgb * detail, 1);
+            return half4(tint + _GridColor.rgb * detail, _BaseColor.a);
         }
         half4 DepthFragment(Varyings input) : SV_Target { return 0; }
         ENDHLSL

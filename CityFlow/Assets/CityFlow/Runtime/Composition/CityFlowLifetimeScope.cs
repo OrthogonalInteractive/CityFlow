@@ -2,6 +2,7 @@
 
 using System;
 using CityFlow.Domain.Spatial;
+using CityFlow.Presentation.Rendering;
 using CityFlow.Application.UseCases;
 using CityFlow.Application.Routing;
 using CityFlow.Application.Connections;
@@ -23,6 +24,9 @@ namespace CityFlow.Composition
         [SerializeField] private Material? relayHeightSurface;
         [SerializeField] private GameplaySettings? gameplaySettings;
         [SerializeField] private StageConfiguration? stageConfiguration;
+        [SerializeField] private AuthoredCityScenery? authoredScenery;
+
+        public void SetScenery(AuthoredCityScenery scenery) => authoredScenery = scenery;
 
         [SerializeField] private VisualTreeAsset? hudLayout;
         [SerializeField] private PanelSettings? hudPanelSettings;
@@ -67,7 +71,9 @@ namespace CityFlow.Composition
                 .WithParameter("nearLimit",stage.WalkableArea.size.magnitude * 0.25f)
                 .WithParameter("midLimit",stage.WalkableArea.size.magnitude * 0.5f);
             builder.RegisterInstance(new FlowSimulation(network, new SystemRandomSource(gameplaySettings.RandomSeed),stageConfiguration.LoadWaves(stage,gameplaySettings.Clearance)));
-            builder.RegisterEntryPoint<CitySceneEntryPoint>().WithParameter("relayHeightSurface", relayHeightSurface);
+            builder.RegisterEntryPoint<CitySceneEntryPoint>()
+                .WithParameter("relayHeightSurface", relayHeightSurface)
+                .WithParameter(typeof(AuthoredCityScenery), authoredScenery);
         }
     }
 }

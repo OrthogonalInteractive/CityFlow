@@ -30,11 +30,13 @@ namespace CityFlow.Composition
         private readonly Material obstacleSurface;
         private readonly VolumeProfile obstacleGlow;
         private readonly Material relayHeightSurface;
+        private readonly AuthoredCityScenery? authoredScenery;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
             VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection,
-            Material obstacleSurface, VolumeProfile obstacleGlow, Material relayHeightSurface)
+            Material obstacleSurface, VolumeProfile obstacleGlow, Material relayHeightSurface, AuthoredCityScenery? authoredScenery)
         {
             this.relayHeightSurface = relayHeightSurface;
+            this.authoredScenery = authoredScenery;
             this.obstacleSurface = obstacleSurface;
             this.obstacleGlow = obstacleGlow;
             this.connection = connection; this.preview = preview; this.stage = stage; this.network = network; this.simulation = simulation;
@@ -44,7 +46,7 @@ namespace CityFlow.Composition
         {
             city = new GameObject("Validation City");
             var view = city.AddComponent<ValidationCityView>();
-            view.Initialize(stage, network, obstacleSurface, obstacleGlow, relayHeightSurface);
+            view.Initialize(stage, network, obstacleSurface, obstacleGlow, relayHeightSurface, authoredScenery);
             city.AddComponent<SimulationDriver>().Initialize(simulation);
             var hud = new GameObject("Validation HUD");
             hud.SetActive(false);
@@ -55,7 +57,10 @@ namespace CityFlow.Composition
             Camera camera = Camera.main;
             if (camera == null) throw new InvalidOperationException("The HUD requires an overview camera.");
             var overview = city.AddComponent<OverviewController>();
-            overview.Initialize(stage, network, camera);
+            OverviewViewState? home = authoredScenery != null
+                ? new OverviewViewState(authoredScenery.OverviewFocus, camera.transform.eulerAngles.y, camera.transform.eulerAngles.x, camera)
+                : null;
+            overview.Initialize(stage, network, camera, home);
             var connectionController = city.AddComponent<NodeConnectionController>();
             connectionController.Initialize(connection, overview, stage, camera, view, document);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation, connectionController, camera);

@@ -19,6 +19,8 @@ namespace CityFlow.Presentation.Overview
         private Camera? sceneCamera;
         private Vector3 pivot;
         private float yaw = -10, pitch = 60;
+        private float cameraDistance = 220;
+        private OverviewViewState? homeView;
         private Vector2 lastPointer;
         private readonly Subject<(OverviewTarget Target, bool Edit)> clicked = new();
         public Observable<(OverviewTarget Target, bool Edit)> Clicked => clicked;
@@ -29,9 +31,11 @@ namespace CityFlow.Presentation.Overview
         public Vector2 HoverScreenPosition { get; private set; }
         public bool EditingRoute { get; set; }
         public Func<Vector2, bool>? IsPointerBlocked { get; set; }
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera, OverviewViewState? home = null)
         {
             stage = definition; network = flowNetwork; sceneCamera = camera;
+            homeView = home;
+            cameraDistance = home.HasValue ? Vector3.Distance(home.Value.Position, home.Value.Pivot) : 220;
             actions?.Dispose();
             actions = new InputActionMap("Overview");
             panInput = actions.AddAction("Pan", InputActionType.Value);
@@ -161,6 +165,7 @@ namespace CityFlow.Presentation.Overview
             Focused = default;
             Hovered = default;
             if (stage == null || sceneCamera == null) return;
+            if (!EditingRoute && homeView.HasValue) { RestoreView(homeView.Value); return; }
             pivot = new Vector3(stage.WalkableArea.center.x, stage.GroundHeight, stage.WalkableArea.center.y);
             yaw = EditingRoute ? 0 : -10; pitch = EditingRoute && !stage.AllowsHeight ? 90 : 60;
             sceneCamera.orthographicSize = Mathf.Max(stage.WalkableArea.height * 0.7f, stage.WalkableArea.width / sceneCamera.aspect * 0.7f);
@@ -170,7 +175,7 @@ namespace CityFlow.Presentation.Overview
         {
             if (sceneCamera == null) return;
             Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
-            sceneCamera.transform.SetPositionAndRotation(pivot + rotation * Vector3.back * 220, rotation);
+            sceneCamera.transform.SetPositionAndRotation(pivot + rotation * Vector3.back * cameraDistance, rotation);
         }
         public void BeginRouteView()
         {

@@ -1,6 +1,12 @@
 Shader "CityFlow/City Inspection Contour"
 {
-    Properties { [HDR] _BaseColor ("Contour emission", Color) = (3.2, 1.35, 0.25, 1) }
+    Properties
+    {
+        [HDR] _BaseColor ("Contour emission", Color) = (3.2, 1.35, 0.25, 1)
+        [HideInInspector] _SrcBlend ("Source blend", Float) = 1
+        [HideInInspector] _DstBlend ("Destination blend", Float) = 0
+        [HideInInspector] _ZWrite ("Depth write", Float) = 0
+    }
     SubShader
     {
         Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Opaque" "Queue" = "Geometry+10" }
@@ -8,7 +14,8 @@ Shader "CityFlow/City Inspection Contour"
         {
             Tags { "LightMode" = "UniversalForwardOnly" }
             Cull Off
-            ZWrite Off
+            Blend [_SrcBlend] [_DstBlend]
+            ZWrite [_ZWrite]
             ZTest LEqual
             Offset -1, -1
             HLSLPROGRAM

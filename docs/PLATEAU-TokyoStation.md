@@ -1,6 +1,6 @@
 # 東京駅周辺の都市データ確認シーン
 
-2026-09-26の依頼に基づく、提供されたCityGMLを確認するための独立したシーン。ゲームのSource・Relay・Sink、FLOW、Line Routing、Waveは組み込まない。既存のBootstrap／WiringLab／HeightLabと起動シーン設定を維持する。
+2026-09-26の依頼に基づき、提供されたCityGMLから都市確認用の `TokyoStationInspection` を作成。同日の追加依頼で、WiringLab風の派生シーン `TokyoStationWiringLab` の駅前を配線ゲームとして操作できるようにした。Inspectionは元の都市確認用シーンを維持する。
 
 ## 開く場所と操作
 
@@ -11,31 +11,55 @@
 - HierarchyはBuilding／Road／Relief／Vegetation／Bridgeに分かれる。種類ごとの表示を切り替えて地物を確認できる。
 - 東京駅の基準点へSceneビューを戻す：`uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationSetup.FocusStation();'`
 
-## WiringLab風の派生シーン
+## TokyoStationWiringLabで遊ぶ
 
-`CityFlow/Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、2026-09-26の追加依頼に基づく見た目の比較用シーン。複製時の未保存状態も派生シーンに保存した。元の保存済みシーン、都市FBX、地物属性、Colliderを維持し、ゲームのNode・Line・FLOWは追加しない。
+`CityFlow/Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` を開いてPlayする。丸の内側の駅前にSource 1個、Relay 1個、Red／Blue／Yellow／Green／PurpleのSink 5個を配置し、配線0本から開始する。Hubは接続構成上の役割なので独立した種類としては配置しない。
 
-- 建物・橋梁：WiringLabの`AmberObstacle`と同じ暗い色と琥珀色を使う。実形状の境界・折れ目を線メッシュで強調し、壁面には手続き的な窓グリッドを表示する。
-- 地形・道路：青灰色の地面と10 m／50 mグリッド。植生は控えめな緑。
-- 発光：WiringLabの`ObstacleGlow`を共用。カメラは暗い背景、平行投影、俯角55度、BloomとFXAAを使用する。
-- 元の都市メッシュを共用し、FBXや航空写真・建物テクスチャを複製しない。専用マテリアル5個、輪郭メッシュ2個、シェーダー2個を追加する。
-- 窓間隔3.2 × 4 m、輪郭抽出の折れ角35度・最小長0.75 mは、見た目を調整するための暫定値。窓グリッドは実際の窓配置を表さない。装飾にはColliderを追加しない。
+- Source／RelayをクリックしてNode 360へ入り、候補をクリックして配線する。`S1 → R1` と `R1 → 各色Sink` で全色を配送できる。SourceからSinkへの直結も可能。
+- **Pause／Resume** で時間を切り替える。Pause中も配線・編集・削除・カメラ操作ができる。
+- Sourceは45秒の準備後、3秒間隔でFLOWを生成する。基本Buffer・Line容量・Source OverloadによるGame Over・Retryは既存ゲームと共通。一定Wave内で配線を試す小規模なプロトタイプとして、追加Waveは設定していない。
+- 右ドラッグでOrbit、WASD／中ドラッグでPan、ホイールでZoom。Fで対象へフォーカス、Homeで駅前の初期俯瞰へ戻る。Escは配線・選択の取消専用。
+- Shift＋Lineクリックで手動経路編集へ入り、Shift＋クリックで制御点を追加する。適用・削除は画面ボタンから行う。輸送中の変更・削除は排出を待つ既存ルールを使う。
 
-Sceneビューで移動・拡大する。俯瞰位置へ戻す場合は次を使う。Gameビューは確認用カメラの固定表示。
+### 範囲と暫定値
+
+ゲームの範囲はX=-230〜-125 m、Z=-40〜85 mの105 × 125 m。7個のノードはその内部へまとめる。共通GroundはY=3.7 m、高さ配線は無効。ノードの大きさ・FLOW・Line・UIは既存ゲームと共通にしている。
+
+都市の道路・地形メッシュをそのまま表示し、ゲームの配線は共通の水平面を使う。地面の起伏へ追従する完全な実在都市ステージではなく、駅前で配線と見た目を確認するための暫定構成。建物・橋梁の表示Boundsから範囲と交わる8個の直方体を障害物として保存する。全経路区間を同じ障害物で検証し、元メッシュより広く接続を制限する場合がある。
+
+設定は `Settings/Gameplay/TokyoStationStage.asset` と `TokyoStationGameplay.asset`。Source OUTは6、Relay IN/OUTは3/5、Sink INは3。Source／RelayのBufferは10/5、Line容量は3、FLOW速度は12 m/s。準備時間・配置・カメラ・障害物近似・速度は、このシーン専用の調整値。
+
+### 都市の見た目と組み立て
+
+- 建物・橋梁は琥珀色の輪郭と窓グリッド、道路・地形は暗い青系のグリッド、植生は控えめな緑。元の都市FBXと輪郭メッシュを共用する。
+- `AuthoredCityScenery` が都市のRendererを既存ゲーム表示へ渡し、簡易都市の地面や直方体を重ねて生成しない。Domain／ApplicationへPLATEAU型を追加しない。
+- OverviewのNodeホバー／Fフォーカスで都市表示も減光する。Node 360では建物と輪郭を半透明にし、元のマテリアル配列・影設定へ復元する。Colliderは変更しない。
+- 保存済みシーンにはゲーム設定を割り当て済み。起動シーンの先頭を維持したままBuild Settingsに追加し、Game Over後のRetryで再読み込みできる。
+
+Sceneビューを駅前へ戻す：
 
 ```sh
-uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationStyleSetup.FocusStation();'
+uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.TokyoStationGameplaySetup.FocusStation();'
 ```
 
-初回生成には、元の確認シーンがあり、派生シーンと`Art/PLATEAU/TokyoStationWiringLab`・`Art/Materials/TokyoStationWiringLab`がまだ存在しない状態で、次を実行する。既存の派生シーン・スタイルアセットは上書きしない。
+初回セットアップ用の `TokyoStationGameplaySetup.Create()` は、ゲーム未設定のTokyoStationWiringLabを開いてuloopから実行する。既存のゲーム設定やシーンを上書きしない。通常のPlay時には不要。
 
-```sh
-uloop --project-path CityFlow execute-dynamic-code --code 'CityFlow.Editor.PlateauTokyoStationStyleSetup.Create();'
-```
+元のスタイル生成ツール `PlateauTokyoStationStyleSetup.Create()` は、派生シーン・`Art/PLATEAU/TokyoStationWiringLab`・`Art/Materials/TokyoStationWiringLab` が未作成の場合だけ使用する。都市形状・地物属性・Colliderは元のInspectionと共通で、見た目の詳細値は窓間隔3.2 × 4 m、輪郭の折れ角35度・最小長0.75 m。実際の窓配置を表すものではない。
 
-検証では、保存後の再読み込みで5種類・3,866メッシュの参照、ワールド座標、有効状態、3,866個のMeshColliderが元シーンと一致した。輪郭は294,263線分を2メッシュにまとめ、装飾Colliderは0。シェーダー診断エラー・欠落スクリプトは0。コンパイルError/Warning 0、ProjectConfigurationTests（EditMode）4/4、ValidationCityTests（PlayMode）2/2成功。SceneビューとPlay ModeのGameビューで表示を確認した。撮影初回はGameビュー未表示によるRenderTexture警告が出たが、Gameビュー表示後に画像取得が成功した。都市の物理判定は追加検証しておらず、元データの橋梁に関する注意点は下記の確認結果を参照する。
+### ゲーム化の検証（2026-09-26）
 
-追加Unityファイルは24個（`.meta`込み）、約52.3MB。最大はシーンの約33.4MBで、FBX・テクスチャ・既存シーン・既存のWiringLab用アセットの変更はない。
+- Red：専用StageConfigurationが存在しないため、新規EditModeテストが想定どおり失敗。
+- Green：コンパイルError／Warning 0、全EditMode **184/184**、全PlayMode **66/66**成功。
+- 専用テストで7個・全種類・5色・未配線開始・全SinkへのRelay経由の到達可能性・範囲・障害物・Build Settings登録を確認。実シーンではPause中の配線、再開後の5色配送、都市マテリアル全スロットの透過／復元、Collider保持、Home復帰を確認した。
+- uloopのInput Systemマウス入力でSource／Relayを選び、UI Toolkitのポインターイベントで候補・Pause／Resume・Retryを操作した。UI ToolkitはEventSystemを置かない構成のため、EventSystem向け`simulate-mouse-ui`は対象外。GameビューでNode 360と都市の透過表示を確認した。
+- 画面操作で6本のLineを作り、Resume後の自然進行でDELIVERED 12を確認。保存アセットの初期Lineは0本のまま。
+- 入力確認時、uloop 3.6.3の`MouseInputStateService.ApplyStateEvent`に起因するInput System Assertionを6件確認した。ゲーム実装の例外とは区別し、テスト本体は全件成功している。既存橋梁の大型三角形に関するPhysics警告も元データ由来の注意点として残る。
+- 元のPlay Mode設定へ戻した通常起動でも7ノード・配線0本を確認し、この最終起動ではConsole Error／Warningともに0件。
+- Inspectionシーンは元の保存データと一致。WiringLabの既存シーンブロックもカメラとSceneRoots以外は不変で、元の都市モデルやColliderを削除・再生成していない。
+
+![駅前の配線と配送](screenshots/tokyo-station-gameplay.png)
+
+![Node 360の配線候補と都市表示](screenshots/tokyo-station-node360.png)
 
 ## データと範囲
 

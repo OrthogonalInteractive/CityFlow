@@ -11,6 +11,7 @@
     "Unity.RenderPipelines.Universal.Runtime",
     "VContainer",
     "CityFlow.Domain",
+    "CityFlow.Presentation",
     "CityFlow.Infrastructure",
     "Unity.RenderPipelines.Core.Runtime"
   ],

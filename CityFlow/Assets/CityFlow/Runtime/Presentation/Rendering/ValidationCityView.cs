@@ -23,7 +23,8 @@ namespace CityFlow.Presentation.Rendering
         private readonly List<GameObject> areaBorders = new();
         private readonly List<Renderer> buildings = new();
         private readonly List<Renderer> scenery = new();
-        private readonly Dictionary<Renderer,Material> opaqueBuildings = new();
+        private readonly Dictionary<Renderer,Material[]> opaqueBuildings = new();
+        private readonly Dictionary<Renderer,ShadowCastingMode> originalShadows = new();
         private readonly Dictionary<Material,Material> transparentMaterials = new();
         private bool transparentBuildings;
         private Camera? sceneCamera;
@@ -46,53 +47,65 @@ namespace CityFlow.Presentation.Rendering
         public int VisibleNodeCount => nodeViews.Count;
 
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Material obstacleSurface,
-            VolumeProfile obstacleGlow, Material relayHeightSurface)
+            VolumeProfile obstacleGlow, Material relayHeightSurface, AuthoredCityScenery? authoredScenery = null)
         {
             stage = definition;
             this.relayHeightSurface = relayHeightSurface;
             network = flowNetwork;
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
-            sceneCamera.transform.position = new Vector3(25, 190, -120);
-            sceneCamera.transform.LookAt(new Vector3(0, 0, 2));
-            sceneCamera.orthographic = true;
-            sceneCamera.orthographicSize = 70;
-            sceneCamera.farClipPlane = Mathf.Max(500, definition.MaximumArea.size.magnitude * 2);
-            sceneCamera.clearFlags = CameraClearFlags.SolidColor;
-            sceneCamera.backgroundColor = new Color(0.035f, 0.052f, 0.082f);
-            Material ground = Material(new Color(0.075f, 0.11f, 0.15f));
-            var glowObject = new GameObject("Obstacle glow");
-            glowObject.transform.SetParent(transform, false);
-            var volume = glowObject.AddComponent<Volume>();
-            volume.isGlobal = true;
-            volume.priority = 10;
-            volume.sharedProfile = obstacleGlow;
-            Material grid = Material(new Color(0.11f, 0.17f, 0.22f));
-            Rect area = definition.WalkableArea;
-            groundView = Cube("Ground", new Vector3(area.center.x, definition.GroundHeight - 0.4f, area.center.y),
-                new Vector3(area.width, 0.8f, area.height), ground);
-            for (float x = definition.MaximumArea.xMin; x <= definition.MaximumArea.xMax; x += 10)
-                gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), true, x));
-            for (float z = definition.MaximumArea.yMin; z <= definition.MaximumArea.yMax; z += 10)
-                gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), false, z));
-            if (definition.MaximumArea != area)
+            if (authoredScenery == null)
             {
-                var border = Material(new Color(0.3f, 0.63f, 0.72f));
-                for (int i = 0; i < 4; i++)
+                sceneCamera.transform.position = new Vector3(25, 190, -120);
+                sceneCamera.transform.LookAt(new Vector3(0, 0, 2));
+                sceneCamera.orthographic = true;
+                sceneCamera.orthographicSize = 70;
+                sceneCamera.farClipPlane = Mathf.Max(500, definition.MaximumArea.size.magnitude * 2);
+                sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+                sceneCamera.backgroundColor = new Color(0.035f, 0.052f, 0.082f);
+                Material ground = Material(new Color(0.075f, 0.11f, 0.15f));
+                var glowObject = new GameObject("Obstacle glow");
+                glowObject.transform.SetParent(transform, false);
+                var volume = glowObject.AddComponent<Volume>();
+                volume.isGlobal = true;
+                volume.priority = 10;
+                volume.sharedProfile = obstacleGlow;
+                Material grid = Material(new Color(0.11f, 0.17f, 0.22f));
+                Rect area = definition.WalkableArea;
+                groundView = Cube("Ground", new Vector3(area.center.x, definition.GroundHeight - 0.4f, area.center.y),
+                    new Vector3(area.width, 0.8f, area.height), ground);
+                for (float x = definition.MaximumArea.xMin; x <= definition.MaximumArea.xMax; x += 10)
+                    gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), true, x));
+                for (float z = definition.MaximumArea.yMin; z <= definition.MaximumArea.yMax; z += 10)
+                    gridViews.Add((Cube("10 m grid", Vector3.zero, Vector3.one, grid), false, z));
+                if (definition.MaximumArea != area)
                 {
-                    var edge = Cube("Unlocked area boundary", Vector3.zero, Vector3.one, border);
-                    var collider = edge.GetComponent<Collider>(); collider.enabled = false; Destroy(collider);
-                    areaBorders.Add(edge);
+                    var border = Material(new Color(0.3f, 0.63f, 0.72f));
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var edge = Cube("Unlocked area boundary", Vector3.zero, Vector3.one, border);
+                        var collider = edge.GetComponent<Collider>(); collider.enabled = false; Destroy(collider);
+                        areaBorders.Add(edge);
+                    }
                 }
+                foreach (Bounds b in definition.Buildings)
+                {
+                    var renderer = Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>();
+                    buildings.Add(renderer); buildingBounds.Add(renderer, b);
+                }
+                scenery.AddRange(GetComponentsInChildren<MeshRenderer>(true));
+                RefreshArea();
             }
-            foreach (Bounds b in definition.Buildings)
+            else
             {
-                var renderer = Cube("Building", b.center, b.size, obstacleSurface).GetComponent<Renderer>();
-                buildings.Add(renderer); buildingBounds.Add(renderer, b);
+                scenery.AddRange(authoredScenery.EnvironmentRenderers);
+                buildings.AddRange(authoredScenery.TransparentRenderers);
             }
-            foreach(Renderer renderer in buildings) opaqueBuildings.Add(renderer,renderer.sharedMaterial);
-            scenery.AddRange(GetComponentsInChildren<MeshRenderer>(true));
-            RefreshArea();
+            foreach (Renderer renderer in buildings)
+            {
+                opaqueBuildings.Add(renderer, renderer.sharedMaterials);
+                originalShadows.Add(renderer, renderer.shadowCastingMode);
+            }
             CreateLines(flowNetwork.Snapshot());
             CreateNodes();
         }
@@ -333,21 +346,37 @@ namespace CityFlow.Presentation.Rendering
             if (transparent != transparentBuildings)
             {
                 transparentBuildings=transparent;
-                foreach(Renderer renderer in buildings)
+                foreach (Renderer renderer in buildings)
                 {
-                    Material original=opaqueBuildings[renderer];
-                    if(transparent && !transparentMaterials.ContainsKey(original))
+                    if (renderer == null) continue;
+                    Material[] original = opaqueBuildings[renderer];
+                    if (transparent)
                     {
-                        var material=new Material(original);
-                        Color color=original.GetColor("_BaseColor"); color.a=0.18f;
-                        material.SetColor("_BaseColor",color); material.SetFloat("_Surface",1); material.SetFloat("_ZWrite",0);
-                        material.SetFloat("_SrcBlend",(float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                        material.SetFloat("_DstBlend",(float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT"); material.SetOverrideTag("RenderType","Transparent");
-                        material.renderQueue=3000; materials.Add(material); transparentMaterials.Add(original,material);
+                        var replacement = new Material[original.Length];
+                        for (int i = 0; i < original.Length; i++)
+                        {
+                            if (!transparentMaterials.TryGetValue(original[i], out Material material))
+                            {
+                                material = new Material(original[i]);
+                                Color color = material.GetColor("_BaseColor"); color.a = 0.18f;
+                                material.SetColor("_BaseColor", color);
+                                if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1);
+                                material.SetFloat("_ZWrite", 0);
+                                material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+                                material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+                                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                                material.SetOverrideTag("RenderType", "Transparent");
+                                material.SetShaderPassEnabled("DepthOnly", false);
+                                material.renderQueue = 3000;
+                                materials.Add(material);
+                                transparentMaterials.Add(original[i], material);
+                            }
+                            replacement[i] = material;
+                        }
+                        renderer.sharedMaterials = replacement;
                     }
-                    renderer.sharedMaterial=transparent ? transparentMaterials[original] : original;
-                    renderer.shadowCastingMode=transparent ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
+                    else renderer.sharedMaterials = original;
+                    renderer.shadowCastingMode = transparent ? ShadowCastingMode.Off : originalShadows[renderer];
                 }
             }
             foreach (var node in nodeViews)
@@ -374,6 +403,14 @@ namespace CityFlow.Presentation.Rendering
         }
         private void OnDestroy()
         {
+            // Authored scenery outlives this view when its gameplay scope is removed.
+            foreach (var pair in opaqueBuildings)
+                if (pair.Key != null)
+                {
+                    pair.Key.sharedMaterials = pair.Value;
+                    pair.Key.shadowCastingMode = originalShadows[pair.Key];
+                }
+            foreach (Renderer renderer in scenery) if (renderer != null) renderer.SetPropertyBlock(null);
             foreach (Material material in materials) if (material != null) Destroy(material);
         }
     }
