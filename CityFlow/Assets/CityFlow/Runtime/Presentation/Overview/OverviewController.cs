@@ -285,7 +285,7 @@ namespace CityFlow.Presentation.Overview
             zoomQuietSeconds = ZoomGestureGapSeconds;
         }
         public void Orbit(Vector2 delta)
-        { movingToFocus = false; yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }
+        { movingToFocus = false; yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, EditingRoute ? 25 : 5, 85); ApplyPose(); }
         public void FocusSelection()
         {
             movingToFocus = false;

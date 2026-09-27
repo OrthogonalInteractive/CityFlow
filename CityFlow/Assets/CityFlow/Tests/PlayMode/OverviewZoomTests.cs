@@ -139,10 +139,10 @@ namespace CityFlow.Tests.PlayMode
         {
             var c = Controller; var camera = Camera.main;
             var snapshot = Resolve<FlowNetwork>().Snapshot(); double elapsed = Resolve<FlowSimulation>().ElapsedSeconds;
-            foreach (bool editing in new[] { false, true })
+            foreach (var (editing, orbitY) in new[] { (false, -18f), (false, 55f), (true, 0f) })
             {
                 c.EditingRoute = editing; c.ResetView();
-                if (!editing) c.Orbit(new Vector2(32, -18));
+                if (!editing) c.Orbit(new Vector2(32, orbitY));
                 camera.rect = new Rect(0.1f, 0.15f, 0.75f, 0.7f);
                 var home = c.CaptureView();
                 Vector2 cursor = camera.ViewportToScreenPoint(new Vector3(0.73f, 0.32f));
