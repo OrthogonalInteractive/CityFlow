@@ -40,8 +40,12 @@
                     <ui:Label text="TIME" class="metric-caption" />
                     <ui:Label name="elapsed-value" text="0:00" class="metric-value" />
                 </ui:VisualElement>
+                <ui:VisualElement class="metric">
+                    <ui:Label text="WAVE" class="metric-caption" />
+                    <ui:Label name="wave-value" text="1" class="metric-value" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Label name="wave-value" text="WAVE 1" class="wave-readout" />
+            <ui:Label name="wave-next" class="wave-next" />
             <ui:VisualElement name="source-activity" class="source-activity" picking-mode="Ignore">
                 <ui:VisualElement class="source-activity-header">
                     <ui:Label text="SOURCE" class="source-name" />
@@ -105,8 +109,14 @@
         <ui:VisualElement name="node-tooltip" class="panel hover-panel layout-obstacle" picking-mode="Ignore">
             <ui:Instance template="HoverDetails" />
         </ui:VisualElement>
-        <ui:Label name="wave-notice" class="wave-notice layout-obstacle" picking-mode="Ignore" />
-        <ui:VisualElement name="arrival-markers" class="connection-markers" picking-mode="Ignore" />
+        <ui:VisualElement name="wave-transition" class="wave-transition" picking-mode="Ignore">
+            <ui:VisualElement name="wave-transition-card" class="wave-transition-card" picking-mode="Ignore">
+                <ui:Label name="wave-transition-title" class="wave-transition-title" picking-mode="Ignore" />
+                <ui:Label name="wave-transition-additions" class="wave-transition-additions" picking-mode="Ignore" />
+                <ui:Label name="wave-transition-details" class="wave-transition-details" picking-mode="Ignore" />
+                <ui:VisualElement class="wave-transition-accent" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement name="result-overlay" class="result-overlay interactive">
             <ui:VisualElement class="panel result-panel">
                 <ui:Label name="result-title" text="GAME OVER" class="title" />

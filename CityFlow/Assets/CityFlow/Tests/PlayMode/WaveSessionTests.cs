@@ -38,7 +38,7 @@ namespace CityFlow.Tests.PlayMode
             var controller=Object.FindAnyObjectByType<NodeConnectionController>(); controller.BeginSelected();
             sim.Tick(60-sim.ElapsedSeconds); sim.SetPaused(true); yield return null; yield return null;
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Assert.That(root.Q("wave-notice").resolvedStyle.display,Is.EqualTo(DisplayStyle.None),"Node 360 must keep Wave notices outside the city view.");
+            Assert.That(root.Q("wave-notice"),Is.Null,"Wave information is consolidated into the transient title.");
             var list=root.Q<ScrollView>("connection-candidates");
             Assert.That(list,Is.Not.Null,"Every candidate needs a discoverable mouse target when world markers overlap.");
             var green=list.Q<Button>("candidate-option-GREEN");
@@ -78,15 +78,11 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(n.Snapshot().Lines.Single(x=>x.Id==blue).Route,Is.SameAs(before.Route));
             Assert.That(Object.FindAnyObjectByType<ValidationCityView>().VisibleNodeCount,Is.EqualTo(7));
             var root=Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Assert.That(root.Q<Label>("wave-notice").text,Does.Contain("WAVE 2"));
-            Assert.That(root.Q("node-label-GREEN"),Is.Not.Null); Assert.That(root.Q("arrival-S2"),Is.Not.Null);
+            Assert.That(root.Q<Label>("wave-transition-title").text,Does.Contain("WAVE 2"));
+            Assert.That(root.Q("node-label-GREEN"),Is.Not.Null); Assert.That(root.Q("arrival-S2"),Is.Null);
             Assert.That(sim.SourceStartRemaining("S2"),Is.GreaterThan(19));
-            Assert.That(root.Q<Button>("arrival-GREEN").text,Does.Not.Contain("OFFSCREEN"),"A visible Node must not be labelled offscreen just because its label avoids a panel.");
             sim.SetPaused(true); var overview=Object.FindAnyObjectByType<OverviewController>();
-            overview.Select(OverviewTarget.Node("S1")); overview.FocusSelection(); yield return null;
-            Assert.That(root.Q<Button>("arrival-S2").text,Does.Contain("OFFSCREEN"));
-            Assert.That(root.Q("arrival-GREEN").worldBound.Overlaps(root.Q(className:"session-controls").worldBound),Is.False,
-                "Arrival markers must not hide Pause or Resume.");
+            Assert.That(root.Q<Label>("wave-transition-additions").text,Does.Contain("SOURCE +1").And.Contain("SINK +1"));
             overview.Select(OverviewTarget.Node("S2")); var controller=Object.FindAnyObjectByType<NodeConnectionController>(); controller.BeginSelected();
             Assert.That(controller.IsNode360,Is.True); controller.FocusTarget("GREEN"); s.SelectTarget("GREEN");
             Assert.That(scope.Container.Resolve<LinePreviewService>().Current!.CanConfirm,Is.True);

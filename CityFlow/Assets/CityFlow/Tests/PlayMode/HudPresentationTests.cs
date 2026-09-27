@@ -41,9 +41,17 @@ namespace CityFlow.Tests.PlayMode
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
             Assert.That(root.Q("line-rows"), Is.Null);
             Assert.That(root.Q<Label>("elapsed-value").text, Is.EqualTo("1:13"));
-            Assert.That(root.Q<Label>("wave-value").text, Is.EqualTo("WAVE 2 · NEXT 47s"));
+            Assert.That(root.Q<Label>("wave-value").text, Is.EqualTo("2"));
+            Assert.That(root.Q<Label>("wave-next").text, Is.EqualTo("NEXT 47s"));
+            var delivered = root.Q("delivered-value"); var elapsed = root.Q("elapsed-value"); var wave = root.Q("wave-value");
+            Assert.That(wave.resolvedStyle.fontSize, Is.EqualTo(delivered.resolvedStyle.fontSize));
+            Assert.That(wave.resolvedStyle.fontSize, Is.EqualTo(elapsed.resolvedStyle.fontSize));
+            Assert.That(wave.worldBound.center.y, Is.EqualTo(delivered.worldBound.center.y).Within(1));
+            Assert.That(wave.worldBound.center.y, Is.EqualTo(elapsed.worldBound.center.y).Within(1));
+            Assert.That(delivered.worldBound.xMax, Is.LessThan(elapsed.worldBound.xMin));
+            Assert.That(elapsed.worldBound.xMax, Is.LessThan(wave.worldBound.xMin));
             Assert.That(root.Q<Label>("context-hint").text, Does.Contain("S2").And.Contain("7s"));
-            Assert.That(root.Q("wave-notice").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
+            Assert.That(root.Q("wave-transition").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
             string clock = root.Q<Label>("wave-value").text;
             simulation.Tick(100); yield return null;
             Assert.That(root.Q<Label>("wave-value").text, Is.EqualTo(clock));
@@ -68,34 +76,29 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q("node-tooltip").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
             Assert.That(root.Q("hover-leader").resolvedStyle.display, Is.EqualTo(DisplayStyle.None));
         }
-        [UnityTest] public IEnumerator WaveNoticeAndArrivalMarkersAvoidNodeLabelsAndPauseControls()
+        [UnityTest] public IEnumerator WaveSummaryReplacesNodePanelsAndKeepsPauseClickable()
         {
             var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
             var session = scope.Container.Resolve<ConnectionSession>();
             Connect(session, "S1", "RED"); Connect(session, "S1", "BLUE");
-            var simulation = scope.Container.Resolve<FlowSimulation>(); simulation.Tick(60 - simulation.ElapsedSeconds);
-            simulation.SetPaused(true); yield return null; yield return null; yield return null;
+            var simulation = scope.Container.Resolve<FlowSimulation>(); simulation.Tick(60.7 - simulation.ElapsedSeconds);
+            simulation.SetPaused(true); yield return null; yield return null;
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            var notice = root.Q("wave-notice");
-            // Camera panning can place a Node underneath the notification's previous position.
-            var green = scope.Container.Resolve<FlowNetwork>().NodeDefinitions.Single(n => n.Id == "GREEN");
-            var camera = Camera.main;
-            Vector3 projected = camera.WorldToScreenPoint(green.Position + Vector3.up * 5);
-            Vector2 center = notice.worldBound.center;
-            var target = new Vector3(center.x / root.layout.width * Screen.width,
-                (1 - center.y / root.layout.height) * Screen.height, projected.z);
-            camera.transform.position += camera.ScreenToWorldPoint(projected) - camera.ScreenToWorldPoint(target);
-            yield return null; yield return null;
-            var markers = root.Q("arrival-markers").Query<Button>().ToList();
-            Assert.That(markers.Count, Is.EqualTo(2));
-            foreach (var element in markers.Cast<VisualElement>().Append(notice))
-            {
-                Assert.That(element.worldBound.Overlaps(root.Q(className: "session-controls").worldBound), Is.False);
-                foreach (var node in root.Q("node-labels").Children().Where(e => e.resolvedStyle.display != DisplayStyle.None))
-                    Assert.That(element.worldBound.Overlaps(node.worldBound), Is.False, element.name + " covers " + node.name);
-            }
-            Assert.That(markers[0].worldBound.Overlaps(markers[1].worldBound), Is.False);
-            Assert.That(markers.All(m => !m.worldBound.Overlaps(notice.worldBound)), Is.True);
+            Assert.That(root.Q("wave-notice"), Is.Null);
+            Assert.That(root.Q("arrival-markers"), Is.Null);
+            Assert.That(root.Query(className: "arrival-marker").ToList(), Is.Empty);
+            var summary = root.Q<Label>("wave-transition-additions");
+            Assert.That(summary, Is.Not.Null);
+            Assert.That(summary.text, Is.EqualTo("SOURCE +1  ·  SINK +1"));
+            Assert.That(root.Q<Label>("wave-transition-details").text, Does.Contain("GREEN").And.Not.Contain("RED"));
+            var card = root.Q("wave-transition-card");
+            Assert.That(card.worldBound.Overlaps(root.Q(className: "session-controls").worldBound), Is.False);
+            Assert.That(summary.pickingMode, Is.EqualTo(PickingMode.Ignore));
+            var pause = root.Q<Button>("pause-toggle");
+            var hit = root.panel.Pick(pause.worldBound.center);
+            Assert.That(hit == pause || pause.Contains(hit), Is.True);
+            UiPointer.Click(pause); yield return null;
+            Assert.That(simulation.IsPaused, Is.False);
         }
         [UnityTest] public IEnumerator CandidateGroupsExcludeSelfAndAllMarkersRemainVisible()
         {

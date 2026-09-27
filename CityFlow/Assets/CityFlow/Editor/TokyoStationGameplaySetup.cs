@@ -18,7 +18,7 @@ namespace CityFlow.Editor
         private const string SettingsRoot = "Assets/CityFlow/Settings/Gameplay/";
         // Building roofs use surveyed mesh heights; the plaza keeps its shared Ground datum.
         private const float GroundHeight = 3.7f;
-        private static readonly Rect PlayArea = new Rect(-355f, -90f, 600f, 195f);
+        private static readonly Rect PlayArea = new Rect(-530f, -860f, 1280f, 2090f);
         private static readonly Vector3 OverviewFocus = new Vector3(-55f, 60f, 10f);
         private static readonly Quaternion OverviewRotation = Quaternion.Euler(60f, -10f, 0f);
 
@@ -108,10 +108,16 @@ namespace CityFlow.Editor
         // Surveyed roofs: Renderer Bounds top + about 1 m. The station dome mesh peaks near 38 m under its 41.3 m Bounds.
         private const float DomeRoof = 42.4f;           // Marunouchi station building (south dome area)
         private const float AnnexRoof = 30.2f;          // East annex beside the station (29.1 m Bounds)
-        private const float EastEdgeRoof = 47.6f;       // Small building at the east edge (46.5 m Bounds)
         private const float WestTowerRoof = 186.1f;     // West high-rise (185.1 m Bounds)
         private const float EastTowerRoof = 209.4f;     // East high-rise (208.4 m Bounds)
-        private const float EastTower2Roof = 184.2f;    // Second east high-rise, only its south end lies inside the area (183.2 m Bounds)
+        private const float NorthWestRoof = 205.68f;    // Northern Marunouchi tower (204.577 m Bounds)
+        private const float NorthPurpleRoof = 191.5f;   // Northern west tower (190.395 m Bounds)
+        private const float NorthEastRoof = 203.72f;    // Northern east tower (202.614 m Bounds)
+        private const float SouthTowerRoof = 210.76f;   // Southern tower (209.655 m Bounds)
+        private const float FarEastRoof = 187.46f;      // Eastern tower (186.353 m Bounds)
+        private const float SouthRoof = 32.54f;         // Southern street roof (31.438 m Bounds)
+        private const float NorthRoof = 43.29f;         // Northern street roof (42.191 m Bounds)
+        private const float NorthRelayRoof = 34.18f;    // Northern relay roof (33.076 m Bounds)
 
         private static void ConfigureTierLayout(StageConfiguration stage)
         {
@@ -143,16 +149,16 @@ namespace CityFlow.Editor
                 Wave(180, 0.9f,
                     Bridge("WB", -175, 80, GroundHeight, MiddleCeiling), Bridge("EB", 205, -40, GroundHeight, MiddleCeiling),
                     Source("SE1", 185, -85, interval: 18),
-                    Sink("RED-M", FlowColor.Red, -130, -75, DomeRoof), Sink("BLUE-M", FlowColor.Blue, -120, -85, DomeRoof),
-                    Sink("GREEN-M", FlowColor.Green, 135, -50, AnnexRoof), Sink("YELLOW-M", FlowColor.Yellow, 115, -85, AnnexRoof)),
+                    Sink("RED-M", FlowColor.Red, -130, -75, DomeRoof), Sink("BLUE-M", FlowColor.Blue, -120, 100, DomeRoof),
+                    Sink("GREEN-M", FlowColor.Green, 135, -50, AnnexRoof), Sink("YELLOW-M", FlowColor.Yellow, -50, -652, SouthRoof)),
                 // Wave 5: middle Sources and the first middle hub.
                 Wave(240, 0.85f,
                     Source("SM1", -130, -85, interval: 18, height: DomeRoof), Source("SM2", 125, -60, interval: 18, height: AnnexRoof),
                     Relay("RM1", 120, -70, AnnexRoof, MiddleCeiling)),
                 // Wave 6: more middle capacity and the first east ground Sinks.
                 Wave(300, 0.85f,
-                    Source("SM3", 237, -82, interval: 18, height: EastEdgeRoof),
-                    Relay("RM2", 130, -55, AnnexRoof, MiddleCeiling),
+                    Source("SM3", 429, 1033, interval: 45, height: NorthRoof),
+                    Relay("RM2", 99.6f, 1016.7f, NorthRelayRoof, MiddleCeiling),
                     Relay("RE1", 215, -60, GroundHeight, GroundHeight + LowerRise),
                     Sink("RED-E", FlowColor.Red, 190, -30), Sink("BLUE-E", FlowColor.Blue, 205, -85)),
                 // Wave 7: the upper tier. Purple exists only up there; the bridge sits on the middle annex roof.
@@ -161,21 +167,21 @@ namespace CityFlow.Editor
                     Sink("PURPLE-U", FlowColor.Purple, 195, 45, EastTowerRoof),
                     Source("SU1", -330, -20, interval: 20, height: WestTowerRoof)),
                 Wave(420, 0.8f,
-                    Source("SU2", 150, 75, interval: 20, height: EastTowerRoof),
-                    Source("SE2", 240, 70, interval: 18),
-                    Sink("GREEN-E", FlowColor.Green, 240, 30), Sink("YELLOW-E", FlowColor.Yellow, 200, -70),
-                    Relay("RE2", 235, 20, GroundHeight, GroundHeight + LowerRise)),
+                    Source("SU2", -400, 710, interval: 45, height: NorthWestRoof),
+                    Source("SE2", 670, 950, interval: 45),
+                    Sink("GREEN-E", FlowColor.Green, 675, 1080), Sink("YELLOW-E", FlowColor.Yellow, 660, -505),
+                    Relay("RE2", 430, 730, GroundHeight, GroundHeight + LowerRise)),
                 Wave(480, 0.8f,
-                    Source("SU3", -285, -20, interval: 20, height: WestTowerRoof),
-                    Relay("RU2", -300, 5, WestTowerRoof, UpperCeiling),
-                    Sink("PURPLE-U2", FlowColor.Purple, -330, 10, WestTowerRoof),
-                    Relay("R4", -230, -40, GroundHeight, GroundHeight + LowerRise),
-                    Source("S7", -300, 90, interval: 12)),
+                    Source("SU3", 540, 620, interval: 45, height: NorthEastRoof),
+                    Relay("RU2", -350, 800, NorthPurpleRoof, UpperCeiling),
+                    Sink("PURPLE-U2", FlowColor.Purple, -335, 830, NorthPurpleRoof),
+                    Relay("R4", -400, -350, GroundHeight, GroundHeight + LowerRise),
+                    Source("S7", -450, 1000, interval: 45)),
                 Wave(540, 0.75f,
-                    Source("SU4", 195, 25, interval: 20, height: EastTowerRoof),
-                    Source("SU5", 190, 95, interval: 20, height: EastTower2Roof),
-                    Source("SM4", -120, -75, interval: 18, height: DomeRoof),
-                    Source("SE3", 240, 50, interval: 18))
+                    Source("SU4", 15, -300, interval: 45, height: SouthTowerRoof),
+                    Source("SU5", 650, 65, interval: 45, height: FarEastRoof),
+                    Source("SM4", -52, -660, interval: 45, height: SouthRoof),
+                    Source("SE3", 660, -625, interval: 45))
             };
         }
 

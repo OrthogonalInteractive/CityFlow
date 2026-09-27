@@ -79,7 +79,8 @@ namespace CityFlow.Presentation.Overview
             actions.AddAction("Home", InputActionType.Button, "<Keyboard>/home").performed += _ => ResetView();
             if (isActiveAndEnabled) actions.Enable();
             lastPointer = pointerInput.ReadValue<Vector2>();
-            ResetView();
+            if (homeView.HasValue) RestoreView(homeView.Value);
+            else ResetView();
         }
         private void OnEnable() => actions?.Enable();
         private void OnDisable()
@@ -245,10 +246,12 @@ namespace CityFlow.Presentation.Overview
                 stage != null && sceneCamera != null ? Mathf.Max(stage.WalkableArea.height * 0.7f,
                     stage.WalkableArea.width / sceneCamera.aspect * 0.7f) : 63;
             home = Mathf.Max(ClosestZoomSize * 2, home);
-            if (level == 4) return home * 2;
+            if (level == 4) return Mathf.Max(home * 2, FullAreaSize());
             if (level == 3) return home;
             return ClosestZoomSize * Mathf.Pow(home / ClosestZoomSize, level / 3f);
         }
+        private float FullAreaSize() => stage != null && sceneCamera != null
+            ? Mathf.Max(stage.WalkableArea.height * 0.7f, stage.WalkableArea.width / sceneCamera.aspect * 0.7f) : 63;
         public void AdvanceZoom(float deltaSeconds)
         {
             if (!isActiveAndEnabled || sceneCamera == null || deltaSeconds <= 0 ||
@@ -305,10 +308,10 @@ namespace CityFlow.Presentation.Overview
             Focused = default;
             Hovered = default;
             if (stage == null || sceneCamera == null) return;
-            if (!EditingRoute && homeView.HasValue) { RestoreView(homeView.Value); return; }
-            pivot = new Vector3(stage.WalkableArea.center.x, stage.GroundHeight, stage.WalkableArea.center.y);
+            pivot = new Vector3(stage.WalkableArea.center.x,
+                stage.GroundHeight + (homeView.HasValue && !EditingRoute ? stage.MaximumAltitude * 0.5f : 0), stage.WalkableArea.center.y);
             yaw = EditingRoute ? 0 : -10; pitch = EditingRoute && !stage.AllowsHeight ? 90 : 60;
-            sceneCamera.orthographicSize = Mathf.Max(stage.WalkableArea.height * 0.7f, stage.WalkableArea.width / sceneCamera.aspect * 0.7f);
+            sceneCamera.orthographicSize = FullAreaSize();
             ApplyPose();
         }
         private void ApplyPose()

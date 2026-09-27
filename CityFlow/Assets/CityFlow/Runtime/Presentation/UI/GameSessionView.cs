@@ -7,7 +7,7 @@ using CityFlow.Application.UseCases;
 using CityFlow.Application.Connections;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Connections;
-using CityFlow.Presentation.Overview;
+using CityFlow.Presentation.Rendering;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -21,25 +21,19 @@ namespace CityFlow.Presentation.UI
         private FlowSimulation? simulation;
         private FlowNetwork? network;
         private ConnectionSession? connection;
-        private OverviewController? overview;
         private NodeConnectionController? connectionCamera;
-        private Camera? sceneCamera;
         private UIDocument? document;
         private VisualElement? root;
         private Button? retry;
         private bool retrying;
-        private readonly Dictionary<string, Button> markers = new();
-        private readonly Dictionary<string, OverlayLeader> leaders = new();
 
-        public void Initialize(FlowSimulation clock, FlowNetwork state, ConnectionSession wiring, OverviewController input,
-            NodeConnectionController cameraController, Camera camera)
+        public void Initialize(FlowSimulation clock, FlowNetwork state, ConnectionSession wiring,
+            NodeConnectionController cameraController)
         {
             simulation = clock;
             network = state;
             connection = wiring;
-            overview = input;
             connectionCamera = cameraController;
-            sceneCamera = camera;
             document = GetComponent<UIDocument>();
             if (isActiveAndEnabled) Bind();
         }
@@ -49,6 +43,7 @@ namespace CityFlow.Presentation.UI
             Unbind();
             if (document == null) return;
             root = document.rootVisualElement;
+            if (root == null) return;
             retry = root.Q<Button>("retry-session");
             retry.text = "Retry";
             retry.clicked += Retry;
@@ -78,10 +73,11 @@ namespace CityFlow.Presentation.UI
         }
         private void LateUpdate()
         {
-            if (document == null || simulation == null || network == null || overview == null || connectionCamera == null || sceneCamera == null) return;
+            if (document == null || simulation == null || network == null || connectionCamera == null) return;
             if (root != document.rootVisualElement) Bind();
             if (root == null) return;
             SessionResult? result = simulation.Result;
+            RefreshWaveTransition();
             root.Q("result-overlay").style.display = result != null ? DisplayStyle.Flex : DisplayStyle.None;
             if (result != null)
             {
@@ -90,58 +86,43 @@ namespace CityFlow.Presentation.UI
             }
             var state = network.Snapshot();
             root.Q<Label>("context-hint").text = result == null ? Hint(state) : "Retry to build a new network.";
-            bool initial = simulation.Wave == 1;
-            var additions = initial ? network.NodeDefinitions : simulation.LatestAdditions;
-            bool recent = simulation.ElapsedSeconds - simulation.LastWaveSeconds < 12 && result == null;
-            bool show = recent && !connectionCamera.IsEditing && !connectionCamera.IsNode360;
-            var notice = root.Q<Label>("wave-notice");
-            notice.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            notice.text = $"WAVE {simulation.Wave} / " + (initial ? "INITIAL NODES\n" : "NEW NODES\n") +
-                string.Join(" · ", additions.Select(n => n.Id));
-            if (simulation.LatestExpandedArea is Rect area)
-                notice.text = $"WAVE {simulation.Wave} / AREA {area.width:0} × {area.height:0} m\n" +
-                    (simulation.LatestAdditions.Count > 0 ? string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id)) : "NEW SPACE AVAILABLE");
-            foreach (var marker in markers.Values) marker.style.display = DisplayStyle.None;
-            foreach (var leader in leaders.Values) leader.Hide();
-            foreach (string id in markers.Keys.Where(id => !additions.Any(node => node.Id == id)).ToArray())
+        }
+        private void RefreshWaveTransition()
+        {
+            if (root == null || simulation == null || network == null) return;
+            var transition = root.Q("wave-transition");
+            var card = root.Q("wave-transition-card");
+            // Provisional game seconds: pause and tree reconstruction retain the same Wave phase.
+            const float enterSeconds = 0.6f, holdSeconds = 2.4f, fadeSeconds = 0.45f;
+            float age = (float)(simulation.ElapsedSeconds - simulation.LastWaveSeconds);
+            bool show = simulation.Result == null && age >= 0 && age < enterSeconds + holdSeconds + fadeSeconds;
+            transition.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            card.EnableInClassList("layout-obstacle", show);
+            if (!show) return;
+            root.Q<Label>("wave-transition-title").text = $"WAVE {simulation.Wave}";
+            var additions = simulation.Wave == 1 ? network.NodeDefinitions : simulation.LatestAdditions;
+            var counts = new[] { NodeKind.Source, NodeKind.Relay, NodeKind.Sink }
+                .Select(kind => (Kind: kind, Count: additions.Count(n => n.Kind == kind))).Where(item => item.Count > 0);
+            var summary = root.Q<Label>("wave-transition-additions");
+            summary.text = string.Join("  ·  ", counts.Select(item => $"{item.Kind.ToString().ToUpperInvariant()} +{item.Count}"));
+            summary.style.display = additions.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            var details = new List<string>();
+            foreach (var sinks in additions.Where(n => n.SinkColor.HasValue).GroupBy(n => n.SinkColor.GetValueOrDefault()).OrderBy(g => g.Key))
             {
-                markers[id].RemoveFromHierarchy(); markers.Remove(id);
-                leaders[id].Dispose(); leaders.Remove(id);
+                string tint = ColorUtility.ToHtmlStringRGB(ValidationCityView.ColorFor(sinks.Key));
+                string count = sinks.Count() > 1 ? $" ×{sinks.Count()}" : "";
+                details.Add($"<color=#{tint}>{sinks.Key.ToString().ToUpperInvariant()}{count}</color>");
             }
-            if (!show || root.layout.width <= 0 || root.layout.height <= 0) return;
-
-            var obstacles = OverlayLayout.Obstacles(root, sceneCamera, state, notice, includeMarkers: false);
-            float bottom = OverlayLayout.Value(root.Q("validation-hud"), "--notice-bottom", 88);
-            Rect noticeBounds = OverlayLayout.Place(notice, root,
-                new Vector2((root.layout.width - notice.resolvedStyle.width) * 0.5f, root.layout.height - bottom - notice.resolvedStyle.height), obstacles);
-            obstacles.Add(noticeBounds);
-            foreach (var node in additions)
-            {
-                string id = node.Id;
-                if (!markers.TryGetValue(id, out Button marker))
-                {
-                    marker = new Button(() =>
-                    {
-                        overview.Select(OverviewTarget.Node(id));
-                        overview.FocusSelection();
-                    }) { name = "arrival-" + id };
-                    marker.AddToClassList("arrival-marker");
-                    marker.AddToClassList("interactive");
-                    root.Q("arrival-markers").Add(marker);
-                    markers.Add(id, marker);
-                    leaders.Add(id, new OverlayLeader(root.Q("arrival-markers"), "arrival-leader-" + id));
-                }
-                Vector3 world = node.Position + Vector3.up * 1.4f;
-                Vector3 screen = sceneCamera.WorldToScreenPoint(world);
-                bool outside = screen.z <= 0 || !sceneCamera.pixelRect.Contains(screen);
-                string kind = node.SinkColor.HasValue ? $"{node.SinkColor.Value.ToString().ToUpperInvariant()} SINK" : node.Kind.ToString().ToUpperInvariant();
-                marker.text = $"{id} / {kind}\n" + (outside ? "OFFSCREEN / CLICK TO FOCUS" : "CLICK TO FOCUS");
-                marker.style.display = DisplayStyle.Flex;
-                Vector2 anchor = OverlayLayout.Anchor(root, sceneCamera, world);
-                Rect placed = OverlayLayout.Place(marker, root, anchor + Vector2.one * 24, obstacles);
-                obstacles.Add(placed);
-                leaders[id].Show(root, anchor, placed);
-            }
+            if (simulation.LatestExpandedArea is Rect area) details.Add($"AREA {area.width:0} × {area.height:0} m");
+            var detail = root.Q<Label>("wave-transition-details");
+            detail.text = string.Join("  ·  ", details);
+            detail.style.display = details.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            float remaining = 1 - Mathf.Clamp01(age / enterSeconds);
+            float offset = -100 * remaining * remaining * remaining;
+            // Translate the full-size track; the card's center and size belong to USS.
+            transition.style.translate = new Translate(Length.Percent(offset), 0);
+            transition.style.opacity = Mathf.Clamp01(age / 0.18f) *
+                (1 - Mathf.SmoothStep(0, 1, Mathf.Clamp01((age - enterSeconds - holdSeconds) / fadeSeconds)));
         }
         private string Hint(NetworkSnapshot state)
         {
@@ -166,10 +147,6 @@ namespace CityFlow.Presentation.UI
         {
             if (retry != null) retry.clicked -= Retry;
             retry = null;
-            foreach (var marker in markers.Values) marker.RemoveFromHierarchy();
-            foreach (var leader in leaders.Values) leader.Dispose();
-            markers.Clear();
-            leaders.Clear();
             root = null;
         }
         private void OnDisable() => Unbind();

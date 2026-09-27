@@ -1,5 +1,5 @@
 .hud {
-    --overlay-gap: 12; --node-clearance: 24; --hover-width: 320; --notice-bottom: 88;
+    --overlay-gap: 12; --node-clearance: 24; --hover-width: 320;
     position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
     color: rgb(235, 241, 249);
@@ -13,14 +13,15 @@ Label { margin: 0; padding: 0; }
     border-radius: 4px;
     padding: 18px;
 }
-.summary-panel { position: absolute; left: 24px; top: 24px; width: 360px; padding: 14px; }
+.summary-panel { position: absolute; left: 24px; top: 24px; width: 450px; padding: 14px; }
 .title { font-size: 30px; -unity-font-style: bold; margin-bottom: 16px; }
 .subtitle { margin-bottom: 12px; }
 .summary { color: rgb(173, 192, 207); font-size: 15px; margin-bottom: 8px; }
-.metrics { flex-direction: row; align-items: center; margin-top: 0; }
-.metric { flex-direction: row; align-items: baseline; margin-right: 26px; }
-.metric-caption { color: rgb(180, 198, 213); font-size: 14px; margin-right: 10px; }
+.metrics { flex-direction: row; align-items: center; justify-content: space-between; margin-top: 0; }
+.metric { flex-direction: row; align-items: baseline; flex-shrink: 0; }
+.metric-caption { color: rgb(180, 198, 213); font-size: 14px; margin-right: 8px; }
 .metric-value { font-size: 23px; -unity-font-style: bold; }
+.wave-next { font-size: 11px; color: rgb(143,165,184); margin-top: 4px; -unity-text-align: middle-right; }
 .source-activity-template { display: none; }
 .source-activity { margin-top: 10px; padding-top: 8px; border-top-width: 1px; border-top-color: rgb(35, 49, 63); }
 .source-activity-header { flex-direction: row; color: rgb(143, 165, 184); font-size: 11px; margin-bottom: 4px; }
@@ -147,12 +148,17 @@ Label { margin: 0; padding: 0; }
 .session-actions #node-highlight-toggle { margin-left: 6px; }
 
 .readouts { max-height: 45%; }
-.wave-notice { position: absolute; width: 340px;
-    font-size: 14px; -unity-text-align: middle-center; white-space: normal; padding: 12px;
-    color: rgb(255,219,132); background-color: rgba(5,9,15,0.95); }
-.arrival-marker { position: absolute; width: 160px; height: 48px; white-space: normal;
-    background-color: rgba(28,36,35,0.96); color: rgb(255,219,132); border-width: 2px; border-color: rgb(255,203,83);
-    font-size: 12px; -unity-text-align: middle-center; }
+.wave-transition { display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.wave-transition-card { position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+    width: 540px; height: 172px; align-items: center; justify-content: center;
+    background-color: rgba(5,9,15,0.82); border-left-width: 2px; border-right-width: 2px;
+    border-left-color: rgba(255,219,132,0.6); border-right-color: rgba(255,219,132,0.6); }
+.wave-transition-title { font-size: 64px; -unity-font-style: bold; color: rgb(255,232,181);
+    letter-spacing: 5px; -unity-text-align: middle-center; }
+.wave-transition-additions { font-size: 16px; color: rgb(223,235,239); margin-top: 2px; -unity-text-align: middle-center; }
+.wave-transition-details { font-size: 14px; margin-top: 8px; -unity-text-align: middle-center; }
+.wave-transition-accent { position: absolute; left: 50%; bottom: 8px; translate: -50% 0;
+    width: 56px; height: 2px; background-color: rgb(98,246,221); }
 .result-overlay { display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(2,5,10,0.78); }
 .result-panel { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 500px; padding: 32px;
     border-color: rgb(236,175,93); }
@@ -175,7 +181,6 @@ Label { margin: 0; padding: 0; }
 .node-360 .connection-workspace .candidate-list-panel { flex-grow: 1; flex-shrink: 1; min-height: 100px; max-height: none; }
 .node-360 .candidate-list-panel Button.candidate-option { height: 44px; min-height: 44px; }
 .node-360 .session-controls { left: 72%; right: 0; top: 0; width: auto; translate: 0 0; }
-.node-360 .wave-notice, .node-360 #arrival-markers { display: none; }
 .node-360 .footer { font-size: 11px; bottom: 12px; }
 
 .node-360-bottom-backdrop, .node-360-right-backdrop { display: none; position: absolute; background-color: rgb(5,9,15); }
@@ -194,7 +199,6 @@ Label { margin: 0; padding: 0; }
 
 .city-viewport { position: absolute; left: 0; top: 0; width: 72%; height: 94%; }
 .overlay-leader { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
-.wave-readout { font-size: 13px; color: rgb(180,198,213); margin-top: 6px; }
 .context-hint { position: absolute; left: 24px; right: 24px; bottom: 20px;
     font-size: 14px; color: rgb(207,222,235); white-space: normal; }
 .node-360 .context-hint { right: 28%; font-size: 12px; bottom: 12px; }

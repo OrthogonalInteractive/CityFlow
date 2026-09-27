@@ -141,7 +141,7 @@ Source／RelayはBufferから古い順に出発可否を評価し、出られな
 
 ## 現行のLine Routingと配線UX
 
-v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。`MaximumAltitude = 0`ではこのGround制約を維持する。
+v0.1はクリアランス付き建物Footprintの角を頂点とする可視グラフ＋A*。まず直線を試し、有効な全区間だけを辺にして、実距離コストと直線距離ヒューリスティックで1候補を探索する。頂点の数値的余裕は暫定2 mm。不要な制御点を除き、確定と共通の全区間検証を再実行する。 東京駅の広域化では約2,400個の障害物を扱うため、Infrastructureの`RouteObstacleIndex`で不変なBoundsの階層索引を作り、必要な辺だけをA*で問い合わせる。全頂点間の行列は作らない。高度帯の下端・上端の経路から有効な上限を得て、その距離より短い経路が存在できる楕円内の角と高度境界だけを評価する。32面までの角のキャッシュは領域変更で破棄する。大規模都市（障害物256個超）は暫定で端点の高度帯両端と近傍の屋根境界16面、可視グラフの256頂点超では近い48頂点と終点を候補とする。広域の自動経路は全候補を比較した最短経路の保証を持たず、探索候補を絞る近似となる。見つかった全区間は従来のDomain検証を通し、輸送・距離は確定した同一経路を使う。水平面の空き区間を掃引し、つながっていない領域は可視グラフ探索前に除外する。`MaximumAltitude = 0`ではこのGround制約を維持する。
 
 v0.2 Δ1はRelay直上の垂直区間と一定高度のXZ経路に限定する。`RelayNodeDefinition`／`RelayNodePlacement.MaximumRise`は配置位置からの上昇能力[m]で、未設定は0。Source／Sinkの高さは固定。`StageDefinition.ValidateConnectionRoute`が両端の型・高さ能力、斜め区間禁止、垂直区間の位置と全区間の衝突を検証する。Preview・新設・既存Line変更は同じ制約を通す。
 
@@ -189,7 +189,7 @@ UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は
 
 一覧フォーカスは暫定0.65 UI秒のSmoothStep補間。`OverviewController.AdvanceFocus`へunscaledDeltaTimeを渡し、カメラ位置とpivotを同時に更新する。屋上を含むNode本体の中心を目標とし、回転・投影・ズームを変えない。別の行への切替は現在位置から補間し直す。手動カメラ入力・選択解除・表示モード変更・無効化で補間を破棄し、Fの即時フォーカスやHomeの復元と競合させない。
 
-ホイールズームは`OverviewController`が5段階の目標画角と入力のまとまりを扱う。最接近のorthographicSizeは暫定8 m、全景を4段階目、その2倍を5段階目とし、近い側の3区間は倍率が等間隔になるよう補間する。全景は保存されたHome、または現在の領域・画面比から求める（段階を区別できるよう基準を16 m以上にする）。領域拡張だけではカメラを動かさず、次の操作で新しい範囲を使う。入力値の大きさや120単位の前提を使わず符号で1段選び、同方向は0.18 UI秒の無入力で再受理する。逆方向や次の操作では、補間中の目標段階から次を選び、現在の表示サイズから0.3 UI秒のSmoothStepで対数補間する。unscaledDeltaTimeでPause中も進む。カメラの退避・復帰では現在の位置・画角を維持し、残った補間を再開しない。
+ホイールズームは`OverviewController`が5段階の目標画角と入力のまとまりを扱う。最接近のorthographicSizeは暫定8 m、開始時の画角を4段階目、その2倍と全領域の画角の大きい方を5段階目とし、近い側の3区間は倍率が等間隔になるよう補間する。開始画角は保存された初期ビュー、または現在の領域・画面比から求める（段階を区別できるよう基準を16 m以上にする）。領域拡張だけではカメラを動かさず、次の操作で新しい範囲を使う。入力値の大きさや120単位の前提を使わず符号で1段選び、同方向は0.18 UI秒の無入力で再受理する。逆方向や次の操作では、補間中の目標段階から次を選び、現在の表示サイズから0.3 UI秒のSmoothStepで対数補間する。unscaledDeltaTimeでPause中も進む。カメラの退避・復帰では現在の位置・画角を維持し、残った補間を再開しない。
 
 ズームの中心は入力を受理した時点のカーソル座標をカメラのViewport座標へ変換して保持する。サイズ更新前後の平行投影Rayのずれを水平移動へ変換し、カメラとpivotへ同じ差分を加える。向き・高度を維持したまま、地面・屋上・高所Nodeを含むRay上の各深度の点を同じ画面位置に保てるため、ColliderへのRaycastは不要。補間中のマウス移動や集約された入力で中心を変えず、新たに受理した操作で更新する。Pan／Orbitの操作量を上書きせず、表示領域外のホイールは無視する。画面位置を指定しない呼び出しは画面中央を使う。
 
@@ -201,7 +201,7 @@ OverviewのNodeホバー／Fフォーカスは、`ConnectionFocus`がSnapshotか
 
 Pause中のNode強調は`PauseView`が表示上の要求だけを持ち、`FlowSimulation.IsPaused`・結果・`ConnectionSession.IsActive`から利用可否を決める。`ConnectionFocus.NodesOnly`で全Nodeを強調し、LineとIn-Flightは接続関係にかかわらず減光する。`ValidationCityView`が各Nodeの上向きの目印を所有し、`OverviewController`は同じ有限円柱の範囲から元のNodeを選ぶ。目印はColliderを持たず、位置・輸送・接続能力を変えない。手動の強調要求は配線中は一時停止、Resume・Game Over・HUD無効化で解除する。自動の出現演出は以下のゲーム時計へ従う。UIDocument再生成では古いクリック購読を外して新しいボタンへ結び直す。
 
-Node出現演出（#20）は`ValidationCityView`が初期配置と追加された描画を識別し、初期時刻0／Waveの`LastWaveSeconds`からの経過を`FlowSimulation.ElapsedSeconds`で計算する。Nodes強調用の柱・マテリアルを共有し、自動演出と手動強調で二重生成しない。初期Nodeにも`GameSessionView`が種別・Sink色付きマーカーと開始通知を出す。Waveが変わると古いマーカーを除去し、HUD再生成では時計から現在の表示を復元する。接続は出現時点から可能で、生成猶予・Sink先行登録・輸送はApplication／Domainの既存処理を使う。演出は8ゲーム秒、本体拡大0.65秒、柱の最後2秒をフェードとする暫定設定。Pause／Resumeに追従し、Escによる時間変更は加えない。
+Node出現演出（#20）は`ValidationCityView`が初期配置と追加された描画を識別し、初期時刻0／Waveの`LastWaveSeconds`からの経過を`FlowSimulation.ElapsedSeconds`で計算する。Nodes強調用の柱・マテリアルを共有し、自動演出と手動強調で二重生成しない。初期Nodeと追加Nodeの情報は`GameSessionView`の中央Wave演出に個数・Sink色としてまとめる。Nodeごとの出現パネルと画面下通知は廃止し、HUD再生成では時計から現在の表示を復元する。接続は出現時点から可能で、生成猶予・Sink先行登録・輸送はApplication／Domainの既存処理を使う。演出は8ゲーム秒、本体拡大0.65秒、柱の最後2秒をフェードとする暫定設定。Pause／Resumeに追従し、Escによる時間変更は加えない。
 
 Lineの混雑は橙＋太さ、削除予約は破線、経路切替待ちは二重線。混雑と予約が同時に成立しても線種と色を併用する。二重線の左右オフセットは装飾であり、FLOWと距離計測は中央の確定経路を使う。
 
@@ -237,9 +237,9 @@ Game OverではSessionResultにWave・生存時間・配送数・原因Sourceを
 
 ## 東京駅の階層ゲーム
 
-`TokyoStationWiringLab` は東京駅周辺を下層・中層・上層の3階層に分けてWave 10まで進む配線ゲーム（v0.2 Δ1.3）。初期5ノード・2色から60秒ごとにNodeが増え、Wave 3までは西側の地上だけ、Wave 4で駅舎屋上の中層と東西の橋渡しRelay、Wave 7で紫Sinkだけの上層が加わる。Wave 10以後も生存時間を競い、既存のSource Overloadで終了する。階層はDomainの型ではなく、`RelayNodeDefinition`の配置Yと`MaximumRise`、および`StageDefinition`の「配置位置より下へ伸ばせない」規則だけで表す。`StageDefinition.SharesAltitude`が両端の高度帯の共通部分を静的に判定し、`ConnectionSession.Candidates`が共通部分のない相手をNode 360の候補から除く。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、階層の高度帯から各Relayの上昇量を導く。建物メッシュの屋上をRaycastで実測した固定配置と3D Renderer Boundsによる衝突近似を使う。テスト用の`GreedyNetworkWiring`（`Tests/Fixtures`）は既存Lineを優先する最短経路で各Waveの全色到達を組む一例であり、ゲーム本体には含めない。地形追従や汎用PLATEAUアダプターは含めない。
+`TokyoStationWiringLab` は東京駅周辺を下層・中層・上層の3階層に分けてWave 10まで進む配線ゲーム（v0.2 Δ1.3）。1280 × 2090 mの街全体へ45 Nodeを配置する。初期5ノード・2色から60秒ごとにNodeが増え、Wave 3までは西側の地上だけ、Wave 4で駅舎屋上の中層と東西の橋渡しRelay、Wave 7で紫Sinkだけの上層が加わる。Wave 10以後も生存時間を競い、既存のSource Overloadで終了する。階層はDomainの型ではなく、`RelayNodeDefinition`の配置Yと`MaximumRise`、および`StageDefinition`の「配置位置より下へ伸ばせない」規則だけで表す。`StageDefinition.SharesAltitude`が両端の高度帯の共通部分を静的に判定し、`ConnectionSession.Candidates`が共通部分のない相手をNode 360の候補から除く。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、階層の高度帯から各Relayの上昇量を導く。駅前は屋上をRaycastで実測した固定配置、広域追加分はRenderer Bounds上端による屋上近似を使い、衝突判定は3D Renderer Boundsで行う。テスト用の`GreedyNetworkWiring`（`Tests/Fixtures`）は既存Lineを優先する最短経路で各Waveの全色到達を組む一例であり、ゲーム本体には含めない。地形追従や汎用PLATEAUアダプターは含めない。
 
-Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには保存カメラのHome状態を渡し、F／Orbit後にも駅前の初期表示へ戻せる。
+Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには駅前の開始カメラを渡す。開始時はその表示を使い、Homeは現在のStage全景へ移動する。Panの範囲と最大ズームアウトは街全体のWalkableAreaから求める。
 
 ## ゲーム進行のSE（2026-09-27）
 
@@ -248,3 +248,11 @@ Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存Ren
 Compositionが`GameplayAudioSettings`とメインカメラを渡し、承認済みのPCM WAVを再生する。Node用8音とWave専用1音を子AudioSourceとして所有し、シーン終了時に破棄する。Overviewは画面中央からの距離と表示範囲、360はカメラからの3D距離で音量を決める。再生中も視点に追従し、左右のパンを反映する。混雑時は近い音を優先し、同じNodeの同時出力は1音にまとめる。抑制した音を後から再生しない。
 
 ゲームPause／Game Over／アプリ中断／無効化では再生を停止する。EditorのPauseはEditorアセンブリの`GameplayAudioEditorPause`から同じ停止処理を呼ぶ。再開時は累積値を読み直し、停止中の音を再送しない。初回Waveは新しいセッションでのみ鳴る。
+
+## Wave遷移の文字演出（2026-09-27）
+
+`GameSessionView`が`FlowSimulation.ElapsedSeconds - LastWaveSeconds`から入場・保持・フェードの表示だけを計算する。初期Waveも同じ時計を使い、HUD再構築や360との往復で履歴を再生しない。Game Overでは消え、Retryは新しい時計で始まる。UniTaskの待機やUIトランジションで別の進行時計を持たず、Pause／Editor Pauseに従う。ゲーム時間・輸送・SEは変更しない。
+
+全画面サイズの`wave-transition`を左から平行移動し、その子のカードをUSSで画面中央に配置する。入場0.6秒はcubic ease-out、保持2.4秒、フェード0.45秒の暫定設定。文字サイズ64px、幅540px、色・中央配置はUXML／USSに置く。全文字・背景はPickingMode.Ignoreで、360／経路編集でも操作を遮らない。追加Nodeは種別ごとの個数とSink色を中央に集約する。領域拡張がある場合は範囲も添える。各Nodeの出現パネル、画面外ボタン、画面下の旧通知とその配置処理を削除し、光る柱とSource一覧によるフォーカスを維持する。
+
+左上のDELIVERED・TIME・WAVEは共通の`metric-caption`と`metric-value`で横一列に表示する。値は23px、Wave番号と次Waveの残り秒数を分け、最終Waveでは残り秒数を隠す。Source一覧は同じパネルの下に維持する。

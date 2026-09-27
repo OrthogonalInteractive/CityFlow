@@ -21,12 +21,14 @@ namespace CityFlow.Presentation.UI
             public Label Delivered { get; }
             public Label Elapsed { get; }
             public Label Wave { get; }
+            public Label NextWave { get; }
             public Elements(VisualElement root)
             {
                 Root = root;
                 Delivered = Required<Label>(root, "delivered-value");
                 Elapsed = Required<Label>(root, "elapsed-value");
                 Wave = Required<Label>(root, "wave-value");
+                NextWave = Required<Label>(root, "wave-next");
             }
         }
 
@@ -146,8 +148,10 @@ namespace CityFlow.Presentation.UI
             if (elements == null || stage == null || network == null || simulation == null) return;
             elements.Delivered.text = snapshot.DeliveredCount.ToString();
             elements.Elapsed.text = HudClock.Format(simulation.ElapsedSeconds);
-            elements.Wave.text = $"WAVE {simulation.Wave}" + (simulation.NextWaveSeconds.HasValue ?
-                $" · NEXT {Math.Ceiling(Math.Max(0, simulation.NextWaveSeconds.Value - simulation.ElapsedSeconds))}s" : "");
+            elements.Wave.text = simulation.Wave.ToString();
+            elements.NextWave.text = simulation.NextWaveSeconds.HasValue ?
+                $"NEXT {Math.Ceiling(Math.Max(0, simulation.NextWaveSeconds.Value - simulation.ElapsedSeconds))}s" : "";
+            elements.NextWave.style.display = simulation.NextWaveSeconds.HasValue ? DisplayStyle.Flex : DisplayStyle.None;
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 if (sourceRows.TryGetValue(node.Definition.Id, out var row))

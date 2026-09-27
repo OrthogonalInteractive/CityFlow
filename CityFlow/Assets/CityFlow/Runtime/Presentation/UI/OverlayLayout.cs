@@ -41,7 +41,7 @@ namespace CityFlow.Presentation.UI
             foreach (var element in root.Query(className: "layout-obstacle").ToList())
                 if (element != exclude && element.resolvedStyle.display != DisplayStyle.None) Add(element);
             if (includeMarkers)
-                foreach (var element in root.Query().ToList().Where(e => e.ClassListContains("arrival-marker") || e.ClassListContains("candidate-marker")))
+                foreach (var element in root.Query().ToList().Where(e => e.ClassListContains("candidate-marker")))
                     if (element.resolvedStyle.display != DisplayStyle.None) Add(element);
             float clearance = Value(root.Q("validation-hud"), "--node-clearance", 24);
             foreach (var node in state.Nodes)

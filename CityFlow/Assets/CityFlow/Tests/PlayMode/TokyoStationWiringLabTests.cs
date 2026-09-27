@@ -21,6 +21,34 @@ namespace CityFlow.Tests.PlayMode
     public sealed class TokyoStationWiringLabTests
     {
         [UnityTest]
+        public IEnumerator OverviewCanPanAcrossTheWholeCityAndZoomOutToSeeItsBoundary()
+        {
+            yield return SceneManager.LoadSceneAsync("TokyoStationWiringLab", LoadSceneMode.Single);
+            yield return null;
+            Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            var stage = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<StageDefinition>();
+            var opening = overview.CaptureView();
+            Assert.That(opening.Size, Is.EqualTo(220), "The opening still starts close to the station.");
+            overview.Pan(new Vector2(10000, 10000));
+            var northEast = overview.CaptureView().Pivot;
+            Assert.That(northEast.x, Is.EqualTo(stage.WalkableArea.xMax).Within(0.01));
+            Assert.That(northEast.z, Is.EqualTo(stage.WalkableArea.yMax).Within(0.01));
+            overview.Pan(new Vector2(-20000, -20000));
+            var southWest = overview.CaptureView().Pivot;
+            Assert.That(southWest.x, Is.EqualTo(stage.WalkableArea.xMin).Within(0.01));
+            Assert.That(southWest.z, Is.EqualTo(stage.WalkableArea.yMin).Within(0.01));
+            overview.ResetView();
+            var whole = overview.CaptureView();
+            Assert.That(whole.Pivot.x, Is.EqualTo(stage.WalkableArea.center.x).Within(0.01));
+            Assert.That(whole.Pivot.z, Is.EqualTo(stage.WalkableArea.center.y).Within(0.01));
+            Assert.That(whole.Size, Is.GreaterThanOrEqualTo(stage.WalkableArea.height * 0.7f));
+            overview.RestoreView(opening);
+            for (int i = 0; i < 5; i++) { overview.Zoom(-1); overview.AdvanceZoom(1); }
+            Assert.That(Camera.main.orthographicSize, Is.GreaterThanOrEqualTo(whole.Size));
+        }
+
+        [UnityTest]
         public IEnumerator WaveTwoKeepsTheWestNetworkAndRetryRestartsTheFiveNodeOpening()
         {
             yield return SceneManager.LoadSceneAsync("TokyoStationWiringLab", LoadSceneMode.Single);
@@ -53,9 +81,10 @@ namespace CityFlow.Tests.PlayMode
             foreach (var line in openingLines)
                 Assert.That(network.Snapshot().Lines.Single(l => l.Id == line.Id).Route, Is.SameAs(line.Route));
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Assert.That(root.Q<Label>("wave-value").text, Does.StartWith("WAVE 2"));
-            Assert.That(root.Q<Label>("wave-notice").text, Does.Contain("WAVE 2"));
-            Assert.That(root.Q<Button>("arrival-S3"), Is.Not.Null);
+            Assert.That(root.Q<Label>("wave-value").text, Is.EqualTo("2"));
+            Assert.That(root.Q<Label>("wave-transition-title").text, Does.Contain("WAVE 2"));
+            Assert.That(root.Q("arrival-markers"), Is.Null);
+            Assert.That(root.Q<Label>("wave-transition-additions").text, Is.EqualTo("SOURCE +2  ·  RELAY +1  ·  SINK +1"));
             Connect("S3", "R2"); Connect("S4", "R2"); Connect("R2", "GREEN"); Connect("R2", "R1"); Connect("R1", "R2");
             clock.Tick(50);
             Assert.That(clock.Wave, Is.EqualTo(2));
@@ -138,6 +167,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(building.shadowCastingMode, Is.EqualTo(originalShadows));
             Assert.That(Object.FindObjectsByType<MeshCollider>().Length, Is.EqualTo(colliders));
             var overview = Object.FindAnyObjectByType<OverviewController>();
+            overview.ResetView();
             var home = overview.CaptureView();
             overview.Pan(new Vector2(10, 10));
             overview.Orbit(new Vector2(20, 10));

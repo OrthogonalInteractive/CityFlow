@@ -53,8 +53,8 @@ namespace CityFlow.Tests.PlayMode
         {
             var network = Resolve<FlowNetwork>(); var sim = Resolve<FlowSimulation>();
             Assert.That(Beacons().Length, Is.EqualTo(network.NodeDefinitions.Count), "Initial Nodes need automatic location beams.");
-            Assert.That(Root.Q<Label>("wave-notice").text, Does.Contain("INITIAL NODES"));
-            Assert.That(Root.Q("wave-notice").resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
+            Assert.That(Root.Q<Label>("wave-transition-title").text, Is.EqualTo("WAVE 1"));
+            Assert.That(Root.Q("wave-notice"), Is.Null);
             Assert.That(Root.Q<Button>("node-highlight-toggle").ClassListContains("chosen"), Is.False);
             foreach (var node in network.NodeDefinitions)
             {
@@ -64,7 +64,7 @@ namespace CityFlow.Tests.PlayMode
                 Color color = node.SinkColor.HasValue ? ValidationCityView.ColorFor(node.SinkColor.Value) : Color.white;
                 Color tint = beacon.sharedMaterial.GetColor("_BaseColor");
                 Assert.That(Vector3.Distance(new Vector3(tint.r, tint.g, tint.b), new Vector3(color.r, color.g, color.b)), Is.LessThan(0.00001f));
-                Assert.That(Root.Q<Button>("arrival-" + node.Id).text, Does.Contain(node.Kind.ToString().ToUpperInvariant()));
+                Assert.That(Root.Q<Button>("arrival-" + node.Id), Is.Null);
             }
             // Connections are usable immediately; the presentation owns no transport state.
             Connect("S1", "RED"); Connect("S1", "BLUE"); yield return null; yield return null;
@@ -93,7 +93,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(Beacons(), Is.Empty, "Turning off manual emphasis must not restart arrivals.");
         }
 
-        [UnityTest] public IEnumerator StationWaveHighlightsOnlyNewElevatedNodesAndKeepsOffscreenFocusAvailable()
+        [UnityTest] public IEnumerator StationWaveHighlightsNewNodesWithoutPanelsAndSourceListStillFocuses()
         {
             yield return SceneManager.LoadSceneAsync("TokyoStationWiringLab"); yield return null;
             Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
@@ -117,14 +117,15 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(state.GeneratedCount, Is.EqualTo(state.DeliveredCount + state.Nodes.Sum(n => n.Buffer.Count) + state.Lines.Sum(l => l.InFlight.Count)));
             var camera = Camera.main; camera.transform.rotation = Quaternion.LookRotation(-camera.transform.forward);
             yield return null; yield return null;
-            var marker = Root.Q<Button>("arrival-S3");
-            Assert.That(marker.text, Does.Contain("OFFSCREEN"));
-            Assert.That(Root.worldBound.Contains(marker.worldBound.center), Is.True);
-            UiPointer.Click(marker); yield return null; yield return null;
+            Assert.That(Root.Q("arrival-markers"), Is.Null);
+            Assert.That(Root.Q<Label>("wave-transition-additions").text, Is.EqualTo("SOURCE +2  ·  RELAY +1  ·  SINK +1"));
+            var sourceRow = Root.Q("source-activity-S3");
+            UiPointer.Click(sourceRow.Q<Button>("source-focus")); yield return null; yield return null;
             var overview = Object.FindAnyObjectByType<OverviewController>();
-            Assert.That(overview.Selected.NodeId, Is.EqualTo("S3"));
+            overview.AdvanceFocus(1);
+            Assert.That(overview.Focused.NodeId, Is.EqualTo("S3"));
             var controller = Object.FindAnyObjectByType<NodeConnectionController>();
-            controller.BeginSelected(); yield return null; yield return null;
+            overview.Select(OverviewTarget.Node("S3")); controller.BeginSelected(); yield return null; yield return null;
             Assert.That(Beacons(), Is.Empty, "Connection views keep their normal preview presentation.");
             controller.CancelSelection(); yield return null; yield return null;
             Assert.That(Beacons().Length, Is.EqualTo(4), "Returning while paused restores the same arrivals.");
@@ -151,7 +152,7 @@ namespace CityFlow.Tests.PlayMode
             Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
             Resolve<FlowSimulation>().SetPaused(true); yield return null; yield return null;
             Assert.That(Beacons().Length, Is.EqualTo(Resolve<FlowNetwork>().NodeDefinitions.Count));
-            Assert.That(Root.Q<Label>("wave-notice").text, Does.Contain("INITIAL NODES"));
+            Assert.That(Root.Q<Label>("wave-transition-title").text, Is.EqualTo("WAVE 1"));
             Assert.That(Resolve<FlowNetwork>().Snapshot().Lines, Is.Empty);
         }
     }

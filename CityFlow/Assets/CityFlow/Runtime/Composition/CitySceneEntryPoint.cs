@@ -78,7 +78,7 @@ namespace CityFlow.Composition
             hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);
             hud.AddComponent<PauseView>().Initialize(simulation, connection, view);
-            hud.AddComponent<GameSessionView>().Initialize(simulation, network, connection, overview, connectionController, camera);
+            hud.AddComponent<GameSessionView>().Initialize(simulation, network, connection, connectionController);
             hud.AddComponent<SourceStatusView>().Initialize(network, simulation, connection, connectionController, view.Focus);
             hud.SetActive(true);
         }

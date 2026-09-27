@@ -131,3 +131,7 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 2026-09-26の`TokyoStationWiringLab`ゲーム化は、全EditMode **184/184**、全PlayMode **66/66**成功。専用Stageの未配線開始・5色への到達可能性、実シーンでPause中の配線と再開後の配送、都市表示の透過／復元・Collider保持・Home復帰を確認した。コンパイルError／Warning **0**。UI操作と暫定的なGround／障害物近似は[東京駅の記録](PLATEAU-TokyoStation.md)を参照。
 
 2026-09-27のゲームSEは、関連EditMode **56/56**、PlayMode **24/24成功**。出発／到達の累計、視点に応じた音量・パン、同時発音の上限と優先、Pause・実Editor Pause・Game Over・再開・破棄、承認音源のPCMを確認。東京駅実シーンでも3音のAudioSource／AudioListener出力が非ゼロであることを確認した。コンパイルError／Warning **0**。[検証記録](Gameplay-Audio-2026-09-27.md)を参照。
+
+2026-09-27のWave文字演出と通知整理は、関連PlayMode **32/32成功**。左から中央への移動、Pause・HUD再生成・360・Game Over・Retry、追加Nodeの個数／Sink色、個別パネル除去、左上の横並び、Sourceフォーカスと既存SEを確認。コンパイルError／Warning **0**。東京駅Wave 4を1600×900・1036×757で確認した。[記録と画面](Wave-Transition-2026-09-27.md)を参照。
+
+2026-09-27の東京駅広域化は、全EditMode **206/206成功**。関連PlayModeは初回26/28、Game View解像度と背面Editorでの仮想Mouse有効化を整え、OverviewZoom再実行 **7/7成功**で全28件の成功を確認した。南北・東西の分散、全Sourceの全色到達、3固定シード600秒の運行、Pan・Home全景・最大ズームを確認。コンパイルError／Warning **0**。配線の大規模近似探索と測定値は[広域化の記録](TokyoStation-Citywide-2026-09-27.md)を参照。ExpansionLabのPlayModeテストは対象外。

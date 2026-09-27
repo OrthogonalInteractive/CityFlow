@@ -229,6 +229,8 @@ namespace CityFlow.Tests.PlayMode
             {
                 InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
                 InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                // A device added while the Editor is unfocused can already be disabled before the settings change.
+                InputSystem.EnableDevice(mouse);
                 c.IsPointerBlocked = _ => false;
                 Vector2 cursor = camera.ViewportToScreenPoint(new Vector3(0.75f, 0.35f));
                 Vector3 anchor = camera.ScreenPointToRay(cursor).GetPoint(180);

@@ -35,10 +35,17 @@ namespace CityFlow.Tests.EditMode
             : node.Position.y >= MiddleFloor && node.Position.y <= MiddleCeiling ? "middle"
             : node.Position.y >= UpperFloor && node.Position.y <= UpperCeiling ? "upper" : "outside";
 
-        private static GreedyNetworkWiring Wiring(StageDefinition stage)
+        // The authored geometry is fixed across seeds; networks, slots, clocks and FLOW state are always fresh.
+        private readonly Dictionary<(string, string), LineRoute?> routes = new();
+        private GreedyNetworkWiring Wiring(StageDefinition stage)
         {
             var planner = new LineRoutePlanner(stage, Settings.Clearance);
-            return new GreedyNetworkWiring((from, to) => planner.Generate(from, to).Route);
+            return new GreedyNetworkWiring((from, to) =>
+            {
+                if (!routes.TryGetValue((from.Id, to.Id), out var route))
+                    routes[(from.Id, to.Id)] = route = planner.Generate(from, to).Route;
+                return route;
+            });
         }
 
         [Test]
@@ -53,7 +60,7 @@ namespace CityFlow.Tests.EditMode
             Assert.That(waves.Select(w => w.StartSeconds), Is.EqualTo(Enumerable.Range(1, FinalWave - 1).Select(i => 60d * i)));
             Assert.That(config.Lines, Is.Empty);
             Assert.That(stage.AllowsHeight, Is.True);
-            Assert.That(stage.WalkableArea, Is.EqualTo(new Rect(-355, -90, 600, 195)), "The area is not expanded for tiers.");
+            Assert.That(stage.WalkableArea, Is.EqualTo(new Rect(-530, -860, 1280, 2090)), "The whole imported neighborhood is available.");
             var nodes = stage.Nodes.ToList();
             double previousRate = nodes.OfType<SourceNodeDefinition>().Sum(n => 1 / n.GenerationInterval);
             for (int i = 0; i < waves.Count; i++)
@@ -86,6 +93,23 @@ namespace CityFlow.Tests.EditMode
             Assert.That(nodes.Where(n => n.MaxOutgoing > 0).All(n => n.MaxOutgoing <= 5), Is.True, "Limited OUT slots keep Relay choices meaningful.");
             Assert.That(nodes.OfType<SourceNodeDefinition>().All(n => n.MaxOutgoing == 2), Is.True);
             Assert.That(EditorBuildSettings.scenes.Any(s => s.enabled && s.path.EndsWith("/TokyoStationWiringLab.unity")), Is.True);
+        }
+
+        [Test]
+        public void FinalWaveUsesTheNorthSouthAndEastWestNeighborhoods()
+        {
+            var config = Configuration;
+            var stage = config.Load(Settings.Clearance);
+            var nodes = stage.Nodes.Concat(config.LoadWaves(stage, Settings.Clearance).SelectMany(w => w.Additions)).ToArray();
+            Assert.That(nodes.Min(n => n.Position.z), Is.LessThan(-600), "Use the southern streets and roofs.");
+            Assert.That(nodes.Max(n => n.Position.z), Is.GreaterThan(1000), "Use the northern streets and roofs.");
+            Assert.That(nodes.Min(n => n.Position.x), Is.LessThan(-400));
+            Assert.That(nodes.Max(n => n.Position.x), Is.GreaterThan(600));
+            foreach (var west in new[] { true, false })
+                foreach (var north in new[] { true, false })
+                    Assert.That(nodes.Any(n => (west ? n.Position.x < -200 : n.Position.x > 300) &&
+                        (north ? n.Position.z > 500 : n.Position.z < -300)), Is.True,
+                        $"The {(north ? "north" : "south")}{(west ? "west" : "east")} quarter must be used.");
         }
 
         [Test]
@@ -153,17 +177,19 @@ namespace CityFlow.Tests.EditMode
 
             var planner = new LineRoutePlanner(stage, Settings.Clearance);
             bool Can(string from, string to) => planner.Generate(nodes[from], nodes[to]).IsValid;
-            Assert.That(Can("R3", "RE1"), Is.False, "The station complex separates the west and east ground.");
+            var groundDetour = planner.Generate(nodes["R3"], nodes["RE1"]).Route;
             Assert.That(Can("R1", "RED-M"), Is.False, "Lower hubs cannot lift to the roofs.");
             Assert.That(Can("WB", "RED-M"), Is.True, "The west bridge reaches the dome Sinks.");
-            Assert.That(Can("WB", "GREEN-M"), Is.False, "A 30 m annex Sink is hidden behind the 41 m station from the west.");
+            Assert.That(Can("WB", "GREEN-M"), Is.True, "The larger city also permits a long route around the station at the annex height.");
             Assert.That(Can("EB", "GREEN-M"), Is.True); Assert.That(Can("EB", "RED-M"), Is.True);
             var crossing = planner.Generate(nodes["WB"], nodes["RM1"]).Route ?? throw new AssertionException("Relay to Relay must cross above the station.");
             Assert.That(crossing.Points.Max(p => p.y), Is.GreaterThan(41.7f));
+            if (groundDetour != null) Assert.That(groundDetour.Length, Is.GreaterThan(crossing.Length), "The roof bridge shortens a city-wide ground detour.");
             Assert.That(Can("SU1", "RU"), Is.True); Assert.That(Can("RU", "PURPLE-U"), Is.True); Assert.That(Can("RU", "RM1"), Is.True);
             Assert.That(Can("SU1", "WB"), Is.False); Assert.That(Can("RU", "R1"), Is.False);
             Assert.That(Can("SM1", "RM1"), Is.True, "A dome Source sends horizontally to the annex hub.");
-            Assert.That(Can("SM2", "WB"), Is.False, "An annex Source cannot reach the west bridge behind the station.");
+            Assert.That(planner.Generate(nodes["SM2"], nodes["WB"]).Route!.Length, Is.GreaterThan(crossing.Length),
+                "A fixed annex Source must go around the station instead of lifting over it.");
         }
 
         [Test]
@@ -193,8 +219,8 @@ namespace CityFlow.Tests.EditMode
             Assert.That(ru, Does.Contain("PURPLE-U").And.Contain("RM1").And.Contain("RED-M").And.Contain("WB").And.Contain("EB")
                 .And.Not.Contain("RED").And.Not.Contain("R1").And.Not.Contain("RE1"), "Bridges list each other; ground endpoints stay hidden.");
             var su1 = Candidates("SU1").ToArray();
-            Assert.That(su1, Is.EquivalentTo(new[] { "RU", "RU2", "PURPLE-U2" }),
-                "A west tower Source sends at its own height: the higher east tower Sink is out of reach without a Relay.");
+            Assert.That(su1, Is.EquivalentTo(new[] { "RU" }),
+                "The west tower Source is below both northern and eastern upper Sinks and the northern hub.");
             var sm1 = Candidates("SM1").ToArray();
             Assert.That(sm1, Does.Contain("RM1").And.Contain("WB").And.Contain("EB").And.Contain("RU").And.Not.Contain("RED").And.Not.Contain("PURPLE-U"));
         }
@@ -217,7 +243,7 @@ namespace CityFlow.Tests.EditMode
                     {
                         long before = network.Snapshot().DeliveredCount;
                         network.GenerateFlow(source.Id, color);
-                        for (int second = 0; second < 120 && network.Snapshot().DeliveredCount == before; second++)
+                        for (int second = 0; second < 300 && network.Snapshot().DeliveredCount == before; second++)
                         { network.RouteWaitingFlows(); network.AdvanceInFlight(1); }
                         Assert.That(network.Snapshot().DeliveredCount, Is.EqualTo(before + 1), $"Wave {wave + 1}: {source.Id} -> {color}");
                     }
