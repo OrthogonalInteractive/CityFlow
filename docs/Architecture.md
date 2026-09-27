@@ -157,7 +157,9 @@ HeightLabは8mと18mの壁、6／10／22／26mのRelayで段階的な高さ制�
 
 高さ有効時のLine中心線・FLOW位置は確定経路そのものを使い、Ground描画用の上方オフセットを適用しない。FLOWは直径0.8 mにして0.5 mクリアランス内へ収める。垂直区間の矢印・二重線は代替基準軸から横方向を算出する。
 
-Relayの高さ能力は、配置Yから`StageDefinition.ConnectionCeiling`までの半透明な円柱で表示する。ステージ上限で切り詰め、能力0では柱を作らない。Wave追加も同じ描画経路を使う。直径4.8 m・1 m間隔の帯・上端の不透明度倍率0.45は暫定の見た目設定で、当たり判定・配線上限を変更しない。`Art/Materials/RelayHologram.mat`をCompositionから渡し、`ValidationCityView`が生成した表示を所有する。Colliderと影を持たず、Nodeの基部・Buffer表示を維持する。接続フォーカスでは色を減光し、Node 360では始点の柱も非表示にする。
+Relayの高さ能力は、配置Yから`StageDefinition.ConnectionCeiling`までの半透明な円柱で表示する。ステージ上限で切り詰め、能力0では柱を作らない。Wave追加も同じ描画経路を使う。直径4.8 m・1 m間隔の帯・上端の不透明度倍率0.45は暫定の見た目設定で、配線の衝突判定・高度上限を変更しない。`Art/Materials/RelayHologram.mat`をCompositionから渡し、`ValidationCityView`が生成した表示を所有する。Colliderと影を持たず、Nodeの基部・Buffer表示を維持する。接続フォーカスでは色を減光し、Node 360では始点の柱も非表示にする。
+
+`RelayHeightGeometry`は描画直径を共有し、カメラRayと有限円柱の交差で柱を選択する。OverviewとNode 360で同じ判定を使い、上限の切り詰め、高所配置、天面、カメラの近・遠クリップに対応する。既存のNode本体の選択範囲を優先し、柱同士は最も手前の交点を選ぶ。通常は柱をLineより優先し、Shift＋クリックではLine編集を優先する。Node 360では既存の候補フィルター・始点除外・UI遮蔽を維持し、クリック高度をゲームルールへ渡さない。
 
 ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身とすべてのSourceを接続先候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
 
@@ -179,9 +181,15 @@ UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は
 
 基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はゲージに添える残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。
 
-Node名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
+2026-09-26の追加指示により、基本HUDの下にSource ID・最後に生成したFLOWの一覧を置く。`ValidationHud`が`NodeSnapshot.LastGeneratedColor`を参照し、`SourceActivityRow.uxml`の各行へ色バッジ・頭文字・色名を反映する。未生成は「—」。Wave追加・UIDocument再生成で行を結び直し、Pause・Buffer排出後もDomainの最終生成色を表示する。Presentationには生成履歴を複製せず、一覧は入力を遮らない。これ以外の常設詳細表は追加しない。
+
+ワールド上にNode名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
 
 OverviewのNodeホバー／Fフォーカスは、`ConnectionFocus`がSnapshotから直接つながる入出力Lineとその両端だけを取り出して表示する。対象外の建物・Ground・Node・Line・FLOW・Source演出をMaterialPropertyBlockで暗くし、共有Materialや衝突判定を変更しない。ワールドゲージの減光はUSSのopacityを使い、基本HUD・ホバー詳細・画面端警告は維持する。接続の追加・削除・排出待ちをSnapshotに追従し、Node 360／経路編集では解除する。ホバー解除で通常表示、FフォーカスはHome／空白選択で解除する。
+
+Pause中のNode強調は`PauseView`が表示上の要求だけを持ち、`FlowSimulation.IsPaused`・結果・`ConnectionSession.IsActive`から利用可否を決める。`ConnectionFocus.NodesOnly`で全Nodeを強調し、LineとIn-Flightは接続関係にかかわらず減光する。`ValidationCityView`が各Nodeの上向きの目印を所有し、`OverviewController`は同じ有限円柱の範囲から元のNodeを選ぶ。目印はColliderを持たず、位置・輸送・接続能力を変えない。手動の強調要求は配線中は一時停止、Resume・Game Over・HUD無効化で解除する。自動の出現演出は以下のゲーム時計へ従う。UIDocument再生成では古いクリック購読を外して新しいボタンへ結び直す。
+
+Node出現演出（#20）は`ValidationCityView`が初期配置と追加された描画を識別し、初期時刻0／Waveの`LastWaveSeconds`からの経過を`FlowSimulation.ElapsedSeconds`で計算する。Nodes強調用の柱・マテリアルを共有し、自動演出と手動強調で二重生成しない。初期Nodeにも`GameSessionView`が種別・Sink色付きマーカーと開始通知を出す。Waveが変わると古いマーカーを除去し、HUD再生成では時計から現在の表示を復元する。接続は出現時点から可能で、生成猶予・Sink先行登録・輸送はApplication／Domainの既存処理を使う。演出は8ゲーム秒、本体拡大0.65秒、柱の最後2秒をフェードとする暫定設定。Pause／Resumeに追従し、Escによる時間変更は加えない。
 
 Lineの混雑は橙＋太さ、削除予約は破線、経路切替待ちは二重線。混雑と予約が同時に成立しても線種と色を併用する。二重線の左右オフセットは装飾であり、FLOWと距離計測は中央の確定経路を使う。
 

@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CityFlow.Application.Connections;
+using CityFlow.Application.UseCases;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
 using CityFlow.Presentation.Overview;
@@ -29,12 +31,23 @@ namespace CityFlow.Presentation.Rendering
         private bool transparentBuildings;
         private Camera? sceneCamera;
         private FlowNetwork? network;
+        private FlowSimulation? simulation;
+        private ConnectionSession? connection;
         private readonly Dictionary<long, GameObject> particles = new Dictionary<long, GameObject>();
         private readonly Dictionary<FlowColor, Material> flowMaterials = new Dictionary<FlowColor, Material>();
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
         private readonly Dictionary<int, LineRoute> drawnRoutes = new();
         private readonly Dictionary<int, LineStatus> drawnStatuses = new();
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
+        private readonly Dictionary<string, GameObject> nodeBeacons = new();
+        private readonly Dictionary<string, double> arrivalStarts = new();
+        private readonly Dictionary<string, Vector3> nodeSizes = new();
+        // Provisional presentation timing [game seconds]; it never delays Node availability.
+        private const double ArrivalDuration = 8;
+        // Provisional visual dimensions, unrelated to connection altitude or collision clearance.
+        private const float BeaconDiameter = 2.4f;
+        private const float BeaconHeadroom = 12;
+        private float beaconTop;
         private OverviewTarget selected;
         public ConnectionFocus Focus { get; } = new();
         public void SetSelection(OverviewTarget target)
@@ -46,12 +59,16 @@ namespace CityFlow.Presentation.Rendering
         public int VisibleFlowCount => particles.Count;
         public int VisibleNodeCount => nodeViews.Count;
 
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Material obstacleSurface,
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation clock, ConnectionSession wiring, Material obstacleSurface,
             VolumeProfile obstacleGlow, Material relayHeightSurface, AuthoredCityScenery? authoredScenery = null)
         {
             stage = definition;
             this.relayHeightSurface = relayHeightSurface;
             network = flowNetwork;
+            simulation = clock;
+            connection = wiring;
+            beaconTop = Mathf.Max(definition.CeilingHeight,
+                definition.Buildings.Count == 0 ? definition.GroundHeight : definition.Buildings.Max(b => b.max.y)) + BeaconHeadroom;
             sceneCamera = Camera.main;
             if (sceneCamera == null) sceneCamera = new GameObject("Overview Camera", typeof(Camera)).GetComponent<Camera>();
             if (authoredScenery == null)
@@ -108,6 +125,7 @@ namespace CityFlow.Presentation.Rendering
             }
             CreateLines(flowNetwork.Snapshot());
             CreateNodes();
+            RefreshNodeBeacons();
         }
 
         private void RefreshArea()
@@ -164,17 +182,26 @@ namespace CityFlow.Presentation.Rendering
                 if (node is RelayNodeDefinition && rise > 0)
                     parts.Add(CreateRelayHeight(node, rise, relayHeightSurface));
                 nodeViews.Add(node.Id, parts.ToArray());
+                nodeSizes.Add(node.Id, marker.transform.localScale);
+                // Existing initial Nodes start at zero; scheduled additions share their Wave's timestamp.
+                arrivalStarts.Add(node.Id, stage.Nodes.Any(initial => initial.Id == node.Id) ? 0 :
+                    simulation?.LatestAdditions.Any(added => added.Id == node.Id) == true ? simulation.LastWaveSeconds :
+                    simulation?.ElapsedSeconds ?? 0);
+                marker.GetComponent<Renderer>().sharedMaterial.EnableKeyword("_EMISSION");
             }
         }
 
         private GameObject CreateRelayHeight(NodeDefinition node, float rise, Material surface)
+            => CreateColumn("Relay height " + node.Id, node.Position, rise, RelayHeightGeometry.Diameter, surface);
+
+        private GameObject CreateColumn(string label, Vector3 bottom, float height, float diameter, Material surface)
         {
             var projection = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            projection.name = "Relay height " + node.Id;
+            projection.name = label;
             projection.transform.SetParent(transform, false);
-            projection.transform.position = node.Position + Vector3.up * (rise * 0.5f);
-            // Unity's cylinder is two units tall. Its cap marks the exact connection ceiling.
-            projection.transform.localScale = new Vector3(4.8f, rise * 0.5f, 4.8f);
+            projection.transform.position = bottom + Vector3.up * (height * 0.5f);
+            // Unity's cylinder is two units tall; the caller supplies the exact visible span.
+            projection.transform.localScale = new Vector3(diameter, height * 0.5f, diameter);
             var collider = projection.GetComponent<Collider>();
             collider.enabled = false;
             Destroy(collider);
@@ -185,6 +212,75 @@ namespace CityFlow.Presentation.Rendering
             renderer.lightProbeUsage = LightProbeUsage.Off;
             renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
             return projection;
+        }
+
+        public void SetNodeHighlight(bool enabled)
+        {
+            if (Focus.NodesOnly == enabled) return;
+            Focus.NodesOnly = enabled;
+            RefreshNodeBeacons();
+        }
+
+        public bool TryPickNodeBeacon(Camera camera, Vector2 screen, NodeDefinition node, out float distance)
+        {
+            distance = 0;
+            return nodeBeacons.TryGetValue(node.Id, out var beacon) && beacon.activeInHierarchy &&
+                RelayHeightGeometry.TryPickCylinder(camera, screen, node.Position,
+                beaconTop - node.Position.y, BeaconDiameter, out distance);
+        }
+
+        private bool ArrivalVisible(string id, out float age)
+        {
+            age = simulation != null && arrivalStarts.TryGetValue(id, out double start)
+                ? (float)Math.Max(0, simulation.ElapsedSeconds - start) : (float)ArrivalDuration;
+            return simulation?.Result == null && connection?.IsActive != true && age < ArrivalDuration;
+        }
+
+        private void RefreshNodeBeacons()
+        {
+            if (network == null || relayHeightSurface == null) return;
+            foreach (var node in network.NodeDefinitions)
+            {
+                bool arriving = ArrivalVisible(node.Id, out float age);
+                bool visible = Focus.NodesOnly || arriving;
+                if (!nodeBeacons.TryGetValue(node.Id, out var beacon))
+                {
+                    if (!visible) continue;
+                    var surface = new Material(relayHeightSurface);
+                    surface.SetFloat("_TopOpacity", 0.35f);
+                    // Locator beams have no meter bands, so they do not imply Relay lift capacity.
+                    surface.SetFloat("_BandSpacing", beaconTop - node.Position.y + 1);
+                    materials.Add(surface);
+                    beacon = CreateColumn("Node beacon " + node.Id, node.Position,
+                        beaconTop - node.Position.y, BeaconDiameter, surface);
+                    nodeBeacons.Add(node.Id, beacon);
+                }
+                beacon.SetActive(visible);
+                if (!visible) continue;
+                Color color = node.SinkColor.HasValue ? ColorFor(node.SinkColor.Value) : Color.white;
+                float fade = Focus.NodesOnly ? 1 : Mathf.Clamp01(((float)ArrivalDuration - age) / 2);
+                float brightness = Focus.NodesOnly ? 2 : 5 + Mathf.Cos(age * Mathf.PI * 2);
+                var material = beacon.GetComponent<Renderer>().sharedMaterial;
+                material.SetFloat("_TopOpacity", Focus.NodesOnly ? 0.35f : 0.65f);
+                material.SetColor("_BaseColor", new Color(color.r, color.g, color.b, (Focus.NodesOnly ? 0.12f : 0.32f) * fade));
+                material.SetColor("_EdgeColor", new Color(color.r * brightness, color.g * brightness, color.b * brightness,
+                    (Focus.NodesOnly ? 0.7f : 0.8f) * fade));
+            }
+        }
+
+        private void RefreshNodeArrivals()
+        {
+            foreach (var node in nodeViews)
+            {
+                bool arriving = ArrivalVisible(node.Key, out float age);
+                var marker = node.Value[0];
+                // Only the visual size changes; picking and routing use the immutable Node definition.
+                float scale = arriving ? Mathf.Lerp(0.6f, 1, Mathf.SmoothStep(0, 1, age / 0.65f)) : 1;
+                marker.transform.localScale = nodeSizes[node.Key] * scale;
+                var material = marker.GetComponent<Renderer>().sharedMaterial;
+                float glow = arriving ? Mathf.Clamp01(((float)ArrivalDuration - age) / 2) * (1.5f + 0.5f * Mathf.Cos(age * Mathf.PI * 2)) : 0;
+                material.SetColor("_EmissionColor", material.GetColor("_BaseColor") * glow);
+            }
         }
 
         private void CreateLines(NetworkSnapshot snapshot)
@@ -239,6 +335,8 @@ namespace CityFlow.Presentation.Rendering
             RefreshArea();
             Focus.Refresh(snapshot, selected.NodeId);
             CreateNodes();
+            RefreshNodeArrivals();
+            RefreshNodeBeacons();
             CreateLines(snapshot);
             foreach (var renderer in scenery) Focus.Apply(renderer, false);
             foreach (var node in nodeViews)
@@ -253,8 +351,8 @@ namespace CityFlow.Presentation.Rendering
                     line.Status==LineStatus.RouteChangePending ? new Color(0.8f,0.5f,1) :
                     destination.SinkColor.HasValue ? ColorFor(destination.SinkColor.Value) : new Color(0.72f, 0.72f, 0.72f);
                 lineViews[line.Id][0].sharedMaterial.SetColor("_BaseColor",tint);
-                bool highlight = selected.LineId == line.Id || (selected.NodeId != null &&
-                    (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId));
+                bool highlight = !Focus.NodesOnly && (selected.LineId == line.Id || (selected.NodeId != null &&
+                    (line.SourceId == selected.NodeId || line.DestinationId == selected.NodeId)));
                 foreach (LineRenderer renderer in lineViews[line.Id])
                 {
                     Focus.Apply(renderer, Focus.IncludesLine(line.Id));

@@ -201,17 +201,21 @@ namespace CityFlow.Presentation.Connections
         }
         private string? PickTarget(Vector2 point)
         {
-            if (sceneCamera == null || session == null || !sceneCamera.pixelRect.Contains(point) ||
+            if (sceneCamera == null || session == null || stage == null || !sceneCamera.pixelRect.Contains(point) ||
                 overview?.IsPointerBlocked?.Invoke(point) == true) return null;
             float closest=24; string? result=null;
+            float closestColumn = float.PositiveInfinity;
+            string? column = null;
             foreach(var candidate in session.Candidates())
             {
                 if(candidate.Node.Definition.Id==session.SourceId) continue;
                 Vector3 p=sceneCamera.WorldToScreenPoint(candidate.Node.Definition.Position+Vector3.up*1.4f);
                 float distance=Vector2.Distance(point,p);
                 if(p.z>0 && distance<closest) { closest=distance; result=candidate.Node.Definition.Id; }
+                if (RelayHeightGeometry.TryPick(sceneCamera, point, stage, candidate.Node.Definition, out float depth) && depth < closestColumn)
+                { closestColumn = depth; column = candidate.Node.Definition.Id; }
             }
-            return result;
+            return result ?? column;
         }
         public void FocusTarget(string id)
         {

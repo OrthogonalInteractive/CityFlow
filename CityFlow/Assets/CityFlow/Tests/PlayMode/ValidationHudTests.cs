@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Linq;
+using CityFlow.Application.Connections;
 using CityFlow.Application.UseCases;
 using CityFlow.Composition;
 using CityFlow.Domain.FlowNetwork;
@@ -31,6 +32,75 @@ namespace CityFlow.Tests.PlayMode
             UIDocument document = Object.FindAnyObjectByType<UIDocument>();
             Assert.That(document, Is.Not.Null, "The runtime HUD must use UI Toolkit.");
             return document;
+        }
+
+        private static VisualElement SourceRow(VisualElement root, string id) =>
+            root.Q("source-activity-" + id) ?? throw new AssertionException("Missing Source activity row: " + id);
+
+        [UnityTest]
+        public IEnumerator SourceListShowsLastGeneratedFlowBelowDeliveredAndRetainsItAfterDepartureAndPause()
+        {
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var simulation = scope.Container.Resolve<FlowSimulation>();
+            simulation.SetPaused(true);
+            yield return null; yield return null;
+            var root = Document().rootVisualElement;
+            var row = SourceRow(root, "S1");
+            Assert.That(root.Q("source-activity-rows").childCount, Is.EqualTo(1));
+            Assert.That(row.Q<Label>("source-name").text, Is.EqualTo("S1"));
+            Assert.That(row.Q<Label>("source-latest-flow").text, Is.EqualTo("—"));
+            Assert.That(row.worldBound.yMin, Is.GreaterThan(root.Q("delivered-value").worldBound.yMax));
+            network.GenerateFlow("S1", FlowColor.Red);
+            yield return null;
+            Assert.That(row.Q<Label>("source-latest-flow").text, Is.EqualTo("Red"));
+            network.GenerateFlow("S1", FlowColor.Blue);
+            yield return null; yield return null;
+            Assert.That(row.Q<Label>("source-latest-flow").text, Is.EqualTo("Blue"), "Use the latest generation, not the head of the waiting queue.");
+            Assert.That(row.Q<Label>("source-flow-badge").text, Is.EqualTo("B"));
+            Assert.That(row.Q("source-flow-badge").resolvedStyle.backgroundColor, Is.EqualTo(ValidationCityView.ColorFor(FlowColor.Blue)));
+            network.RouteWaitingFlows();
+            Assert.That(network.Snapshot().Nodes.Single(n => n.Definition.Id == "S1").Buffer, Is.Empty);
+            var before = network.Snapshot();
+            double elapsed = simulation.ElapsedSeconds;
+            simulation.Tick(30); yield return null;
+            Assert.That(row.Q<Label>("source-latest-flow").text, Is.EqualTo("Blue"));
+            Assert.That(network.Snapshot(), Is.SameAs(before));
+            Assert.That(simulation.ElapsedSeconds, Is.EqualTo(elapsed));
+            Assert.That(root.Q("source-activity").Query().ToList().All(e => e.pickingMode == PickingMode.Ignore), Is.True);
+        }
+
+        [UnityTest]
+        public IEnumerator WaveAddsAnUnfiredSourceAndHudRebuildKeepsEachSourcesOwnLatestFlow()
+        {
+            yield return SceneManager.LoadSceneAsync("WiringLab"); yield return null;
+            Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var simulation = scope.Container.Resolve<FlowSimulation>();
+            var session = scope.Container.Resolve<ConnectionSession>();
+            foreach (string destination in new[] { "RED", "BLUE" })
+            {
+                Assert.That(session.Begin("S1"), Is.True);
+                Assert.That(session.SelectTarget(destination), Is.True);
+                Assert.That(session.Confirm(), Is.EqualTo(ConnectionFailure.None));
+            }
+            simulation.SetPaused(false); simulation.Tick(60 - simulation.ElapsedSeconds); simulation.SetPaused(true);
+            yield return null; yield return null;
+            var root = Document().rootVisualElement;
+            Assert.That(root.Q("source-activity-rows").Children().Select(e => e.name),
+                Is.EqualTo(new[] { "source-activity-S1", "source-activity-S2" }));
+            Assert.That(SourceRow(root, "S2").Q<Label>("source-latest-flow").text, Is.EqualTo("—"));
+            string first = SourceRow(root, "S1").Q<Label>("source-latest-flow").text;
+            network.GenerateFlow("S2", FlowColor.Green); yield return null;
+            Assert.That(SourceRow(root, "S1").Q<Label>("source-latest-flow").text, Is.EqualTo(first));
+            Assert.That(SourceRow(root, "S2").Q<Label>("source-latest-flow").text, Is.EqualTo("Green"));
+            var document = Document(); document.gameObject.SetActive(false); document.gameObject.SetActive(true);
+            yield return null; yield return null;
+            root = document.rootVisualElement;
+            Assert.That(root.Q("source-activity-rows").childCount, Is.EqualTo(2));
+            Assert.That(SourceRow(root, "S1").Q<Label>("source-latest-flow").text, Is.EqualTo(first));
+            Assert.That(SourceRow(root, "S2").Q<Label>("source-flow-badge").text, Is.EqualTo("G"));
         }
 
         [UnityTest]

@@ -21,6 +21,14 @@ Label { margin: 0; padding: 0; }
 .metric { flex-direction: row; align-items: baseline; margin-right: 26px; }
 .metric-caption { color: rgb(180, 198, 213); font-size: 14px; margin-right: 10px; }
 .metric-value { font-size: 23px; -unity-font-style: bold; }
+.source-activity-template { display: none; }
+.source-activity { margin-top: 10px; padding-top: 8px; border-top-width: 1px; border-top-color: rgb(35, 49, 63); }
+.source-activity-header { flex-direction: row; color: rgb(143, 165, 184); font-size: 11px; margin-bottom: 4px; }
+.source-activity-row { flex-direction: row; align-items: center; height: 26px; font-size: 14px; }
+.source-name { width: 80px; }
+.source-flow-badge { width: 18px; height: 18px; margin-right: 8px; border-radius: 3px;
+    background-color: rgb(44, 53, 65); color: rgb(5, 9, 15); font-size: 12px;
+    -unity-font-style: bold; -unity-text-align: middle-center; }
 .readouts { position: absolute; right: 24px; top: 24px; width: 332px; }
 .line-panel { margin-top: 0; }
 .section-title { -unity-font-style: bold; margin-bottom: 18px; }
@@ -124,6 +132,9 @@ Label { margin: 0; padding: 0; }
 .session-controls .section-title { margin-bottom: 0; font-size: 14px; -unity-text-align: middle-center; }
 .session-controls.paused { border-color: rgb(255,207,107); }
 .session-controls.paused Label { color: rgb(255,207,107); }
+.session-actions { flex-direction: row; }
+.session-actions Button { flex-grow: 1; flex-basis: 0; font-size: 14px; }
+.session-actions #node-highlight-toggle { margin-left: 6px; }
 
 .readouts { max-height: 45%; }
 .wave-notice { position: absolute; width: 340px;

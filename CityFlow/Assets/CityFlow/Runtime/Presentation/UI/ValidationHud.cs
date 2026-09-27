@@ -39,6 +39,7 @@ namespace CityFlow.Presentation.UI
         private ConnectionFocus? focus;
         private CityFlow.Presentation.Overview.OverviewController? overview;
         private readonly Dictionary<string, Label> nodeLabels = new();
+        private readonly Dictionary<string, (Label Badge, Label LatestFlow)> sourceRows = new();
 
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera,
             CityFlow.Presentation.Overview.OverviewController input, ConnectionFocus connectionFocus)
@@ -56,6 +57,7 @@ namespace CityFlow.Presentation.UI
             if (elements != null) elements.Root.UnregisterCallback<NavigationSubmitEvent>(BlockActionSubmission, TrickleDown.TrickleDown);
             elements = null;
             nodeLabels.Clear();
+            sourceRows.Clear();
         }
         private void Bind()
         {
@@ -70,10 +72,22 @@ namespace CityFlow.Presentation.UI
             VisualElement labels = Required<VisualElement>(root, "node-labels");
             labels.Clear();
             nodeLabels.Clear();
+            VisualElement sources = Required<VisualElement>(root, "source-activity-rows");
+            sources.Clear();
+            sourceRows.Clear();
+            VisualTreeAsset rowTemplate = Required<TemplateContainer>(root, "source-activity-template").templateSource;
             NetworkSnapshot snapshot = network.Snapshot();
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
                 string id = node.Definition.Id;
+                if (node.Definition.Kind == NodeKind.Source)
+                {
+                    TemplateContainer row = rowTemplate.CloneTree();
+                    row.name = $"source-activity-{id}";
+                    Required<Label>(row, "source-name").text = id;
+                    sourceRows.Add(id, (Required<Label>(row, "source-flow-badge"), Required<Label>(row, "source-latest-flow")));
+                    sources.Add(row);
+                }
                 Label label = Cell(labels, "", "node-label", $"node-label-{id}");
                 if (node.BufferCapacity.HasValue)
                 {
@@ -123,6 +137,16 @@ namespace CityFlow.Presentation.UI
                 $" · NEXT {Math.Ceiling(Math.Max(0, simulation.NextWaveSeconds.Value - simulation.ElapsedSeconds))}s" : "");
             foreach (NodeSnapshot node in snapshot.Nodes)
             {
+                if (sourceRows.TryGetValue(node.Definition.Id, out var row))
+                {
+                    // Generation history belongs to the network and survives departure from the Buffer.
+                    FlowColor? color = node.LastGeneratedColor;
+                    row.LatestFlow.text = color?.ToString() ?? "—";
+                    row.Badge.text = color.HasValue ? color.Value.ToString().Substring(0, 1) : "";
+                    row.Badge.style.backgroundColor = color.HasValue
+                        ? new StyleColor(ValidationCityView.ColorFor(color.Value))
+                        : new StyleColor(StyleKeyword.Null);
+                }
                 Label marker = nodeLabels[node.Definition.Id];
                 marker.text = "";
                 marker.EnableInClassList("unfocused", focus?.IncludesNode(node.Definition.Id) == false);

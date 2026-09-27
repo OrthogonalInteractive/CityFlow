@@ -90,16 +90,24 @@ namespace CityFlow.Presentation.UI
             }
             var state = network.Snapshot();
             root.Q<Label>("context-hint").text = result == null ? Hint(state) : "Retry to build a new network.";
-            bool recent = simulation.Wave > 1 && simulation.ElapsedSeconds - simulation.LastWaveSeconds < 12 && result == null;
+            bool initial = simulation.Wave == 1;
+            var additions = initial ? network.NodeDefinitions : simulation.LatestAdditions;
+            bool recent = simulation.ElapsedSeconds - simulation.LastWaveSeconds < 12 && result == null;
             bool show = recent && !connectionCamera.IsEditing && !connectionCamera.IsNode360;
             var notice = root.Q<Label>("wave-notice");
             notice.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            notice.text = $"WAVE {simulation.Wave} / NEW NODES\n" + string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id));
+            notice.text = $"WAVE {simulation.Wave} / " + (initial ? "INITIAL NODES\n" : "NEW NODES\n") +
+                string.Join(" · ", additions.Select(n => n.Id));
             if (simulation.LatestExpandedArea is Rect area)
                 notice.text = $"WAVE {simulation.Wave} / AREA {area.width:0} × {area.height:0} m\n" +
                     (simulation.LatestAdditions.Count > 0 ? string.Join(" · ", simulation.LatestAdditions.Select(n => n.Id)) : "NEW SPACE AVAILABLE");
             foreach (var marker in markers.Values) marker.style.display = DisplayStyle.None;
             foreach (var leader in leaders.Values) leader.Hide();
+            foreach (string id in markers.Keys.Where(id => !additions.Any(node => node.Id == id)).ToArray())
+            {
+                markers[id].RemoveFromHierarchy(); markers.Remove(id);
+                leaders[id].Dispose(); leaders.Remove(id);
+            }
             if (!show || root.layout.width <= 0 || root.layout.height <= 0) return;
 
             var obstacles = OverlayLayout.Obstacles(root, sceneCamera, state, notice, includeMarkers: false);
@@ -107,7 +115,7 @@ namespace CityFlow.Presentation.UI
             Rect noticeBounds = OverlayLayout.Place(notice, root,
                 new Vector2((root.layout.width - notice.resolvedStyle.width) * 0.5f, root.layout.height - bottom - notice.resolvedStyle.height), obstacles);
             obstacles.Add(noticeBounds);
-            foreach (var node in simulation.LatestAdditions)
+            foreach (var node in additions)
             {
                 string id = node.Id;
                 if (!markers.TryGetValue(id, out Button marker))
@@ -126,7 +134,8 @@ namespace CityFlow.Presentation.UI
                 Vector3 world = node.Position + Vector3.up * 1.4f;
                 Vector3 screen = sceneCamera.WorldToScreenPoint(world);
                 bool outside = screen.z <= 0 || !sceneCamera.pixelRect.Contains(screen);
-                marker.text = $"NEW {id} / {node.Kind.ToString().ToUpperInvariant()}\n" + (outside ? "OFFSCREEN / CLICK TO FOCUS" : "CLICK TO FOCUS");
+                string kind = node.SinkColor.HasValue ? $"{node.SinkColor.Value.ToString().ToUpperInvariant()} SINK" : node.Kind.ToString().ToUpperInvariant();
+                marker.text = $"{id} / {kind}\n" + (outside ? "OFFSCREEN / CLICK TO FOCUS" : "CLICK TO FOCUS");
                 marker.style.display = DisplayStyle.Flex;
                 Vector2 anchor = OverlayLayout.Anchor(root, sceneCamera, world);
                 Rect placed = OverlayLayout.Place(marker, root, anchor + Vector2.one * 24, obstacles);

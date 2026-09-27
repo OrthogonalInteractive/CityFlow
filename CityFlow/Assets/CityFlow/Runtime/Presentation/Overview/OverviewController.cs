@@ -3,6 +3,7 @@
 using System;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Presentation.Rendering;
 using R3;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,6 +18,7 @@ namespace CityFlow.Presentation.Overview
         private StageDefinition? stage;
         private FlowNetwork? network;
         private Camera? sceneCamera;
+        private ValidationCityView? cityView;
         private Vector3 pivot;
         private float yaw = -10, pitch = 60;
         private float cameraDistance = 220;
@@ -31,9 +33,11 @@ namespace CityFlow.Presentation.Overview
         public Vector2 HoverScreenPosition { get; private set; }
         public bool EditingRoute { get; set; }
         public Func<Vector2, bool>? IsPointerBlocked { get; set; }
-        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera, OverviewViewState? home = null)
+        public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, Camera camera, OverviewViewState? home = null,
+            ValidationCityView? view = null)
         {
             stage = definition; network = flowNetwork; sceneCamera = camera;
+            cityView = view;
             homeView = home;
             cameraDistance = home.HasValue ? Vector3.Distance(home.Value.Position, home.Value.Pivot) : 220;
             actions?.Dispose();
@@ -51,8 +55,9 @@ namespace CityFlow.Presentation.Overview
                 Vector2 point = context.control.device is Mouse mouse ? mouse.position.ReadValue() : pointerInput.ReadValue<Vector2>();
                 if (!EditingRoute && IsPointerBlocked?.Invoke(point) != true)
                 {
-                    OverviewTarget target=Pick(point); Select(target);
-                    clicked.OnNext((target,Keyboard.current?.shiftKey.isPressed == true));
+                    bool edit = Keyboard.current?.shiftKey.isPressed == true;
+                    OverviewTarget target = Pick(point, edit); Select(target);
+                    clicked.OnNext((target, edit));
                 }
             };
             actions.AddAction("Focus", InputActionType.Button, "<Keyboard>/f").performed += _ =>
@@ -102,19 +107,37 @@ namespace CityFlow.Presentation.Overview
             Selected = target; selectionChanged.OnNext(target);
         }
         public void Hover(Vector2 screen) { HoverScreenPosition = screen; Hovered = Pick(screen); }
-        public OverviewTarget Pick(Vector2 screen)
+        public OverviewTarget Pick(Vector2 screen, bool preferLine = false)
         {
             if (stage == null || network == null || sceneCamera == null || !sceneCamera.pixelRect.Contains(screen)) return default;
             float closest = 22f;
             OverviewTarget result = default;
+            float closestColumn = float.PositiveInfinity;
+            OverviewTarget column = default;
             foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 Vector3 point = sceneCamera.WorldToScreenPoint(node.Position + Vector3.up * 1.4f);
                 float distance = Vector2.Distance(point, screen);
                 if (point.z > 0 && distance < closest) { closest = distance; result = OverviewTarget.Node(node.Id); }
+                if (RelayHeightGeometry.TryPick(sceneCamera, screen, stage, node, out float depth) && depth < closestColumn)
+                { closestColumn = depth; column = OverviewTarget.Node(node.Id); }
+                if (cityView != null && cityView.TryPickNodeBeacon(sceneCamera, screen, node, out depth) && depth < closestColumn)
+                { closestColumn = depth; column = OverviewTarget.Node(node.Id); }
             }
             if (!result.IsEmpty) return result;
-            closest = 9;
+            // Keep marker priority; Shift-click must still reach Lines inside a Relay column.
+            if (preferLine)
+            {
+                result = PickLine(screen);
+                return result.IsEmpty ? column : result;
+            }
+            return column.IsEmpty ? PickLine(screen) : column;
+        }
+        private OverviewTarget PickLine(Vector2 screen)
+        {
+            if (stage == null || network == null || sceneCamera == null) return default;
+            float closest = 9;
+            OverviewTarget result = default;
             foreach (LineSnapshot line in network.Snapshot().Lines)
                 for (int i = 1; i < line.Route.Points.Count; i++)
                 {

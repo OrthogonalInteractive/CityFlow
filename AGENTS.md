@@ -7,6 +7,7 @@
 - 2026-09-26の追加指示により、`TokyoStationWiringLab` を東京駅周辺でWave 3まで進む配線・輸送ゲームとする。2色から3色・5色へ段階的に追加し、Wave 3以後はGame Overまで生存時間を競う。追加指示により実測した屋上と駅舎の反対側にSource／Sinkを配置し、既存の高さ配線と対応するRelay能力を使う。Ground基準と建物Boundsの近似を継続し、一般的な地形追従やv0.3全体は先行実装しない。
 - 「補完案」「暫定値」「未決定」を確定事項と区別する。変更・採否は文書とテストに残す。
 - 2026-09-26の指示により **#19のWave領域拡張（v0.2 Δ1.1）** と広域評価用`ExpansionLab`を対象に含める。このシーンのPlayModeテストは作成・実行しない。領域拡張のルール・配置検証はEditMode、見た目・ゲーム性はuloopでのプレイ確認と評価記録を使う。
+- 2026-09-27の指示により **#20のNode出現演出（v0.2 Δ1.2）** を対象に含める。初期配置・Wave追加にNodes強調と共通の光る柱を表示し、演出はゲーム時間で停止・再開する。時間操作は既存のPause／Resumeボタンを維持し、Escはキャンセル専用とする。
 - アーキテクチャは `docs/Architecture.md`、テスト方針は `docs/Testing.md`、起動方法は `README.md` を参照する。
 - Unityプロジェクトのルートはリポジトリ直下の `CityFlow/`。`Assets`、`Packages`、`ProjectSettings` はその配下に置き、さらに入れ子のUnityプロジェクトを作らない。
 
@@ -16,7 +17,7 @@
 - ゲーム内UIは **UI Toolkit**（`UIDocument` / UXML / USS）を使う。開発用HUD・Nodeラベルも対象とし、uGUIやIMGUI（`OnGUI`）で新規実装しない。
 - Node名・種別の常設ラベルは表示しない。Source／Relayは待機FLOWがある間だけBufferゲージを表示し、1枠1 FLOWで待機順の色と頭文字（R/B/Y/G/P）を示す。空き枠と実数／容量を残し、満杯警告でFLOW色を上書きしない。SinkにはBufferゲージを表示しない。
 - OverviewでNodeをホバー／Fフォーカスした時は、対象と直接つながる入出力Line・相手Nodeを明るく残す。それ以外の建物・地面・Node・Line・FLOW・ゲージを暗くする。接続を再帰的にたどらず、状態や当たり判定を変更しない。Node 360と経路編集中は通常の候補表示・半透明表示を使う。
-- 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・DIRECTED LINES表・独立Ground Previewパネルを復活させない。基本HUDはDELIVERED・TIME・Waveの1行、危険時はSourceのワールド警告と状況ヒントを使う。
+- 詳細情報はNode/Lineのホバー中だけ表示する。常設のNETWORK INSPECTOR・Source詳細・Node接続表・DIRECTED LINES表・独立Ground Previewパネルを復活させない。基本HUDはDELIVERED・TIME・Wave。2026-09-26の追加指示による例外として、その下にSource IDと最後に生成したFLOWの色だけの一覧を表示する。危険時はSourceのワールド警告と状況ヒントを使う。
 - UIの構造・見た目はUXML / USS、状態の反映・画面座標への変換はPresentationのC#へ分ける。Viewport比率・余白・安全距離はUSSに置き、座標変換と重なり回避は共通化する。UIにゲームルールや状態の正本を持たせない。表示専用の要素はワールドへの入力を遮らないようにする。
 - 非同期処理は **UniTask**、通知・購読は **R3**、依存性注入は **VContainer**。
 - Unity Editorの起動・コンパイル・テスト・Play Mode制御・ログ取得・シーン／アセット操作は、すべて **uloop CLI** を通して行う。Unity実行ファイルの直接起動、`-batchmode`、Editorの手動操作を自動化手段として使わない。

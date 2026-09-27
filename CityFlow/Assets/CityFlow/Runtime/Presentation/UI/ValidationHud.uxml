@@ -1,14 +1,19 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <Style src="ValidationHud.uss" />
     <ui:Template name="HoverDetails" src="HoverDetails.uxml" />
+    <ui:Template name="SourceActivityRow" src="SourceActivityRow.uxml" />
     <ui:VisualElement name="validation-hud" class="hud" picking-mode="Ignore">
+        <ui:Instance template="SourceActivityRow" name="source-activity-template" class="source-activity-template" />
         <ui:VisualElement name="city-viewport" class="city-viewport" picking-mode="Ignore" />
         <ui:VisualElement name="source-danger" class="source-danger" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-bottom-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="node-360-right-backdrop" picking-mode="Ignore" />
         <ui:VisualElement class="session-controls interactive layout-obstacle">
             <ui:Label name="pause-status" text="RUNNING" class="section-title" />
-            <ui:Button name="pause-toggle" text="Pause" />
+            <ui:VisualElement class="session-actions">
+                <ui:Button name="pause-toggle" text="Pause" />
+                <ui:Button name="node-highlight-toggle" text="Nodes" enabled="false" tooltip="Highlight all Nodes and show vertical location beams. Available in paused Overview." />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="node-labels" class="node-labels" picking-mode="Ignore" />
         <ui:VisualElement name="node-minimap" class="panel node-minimap layout-obstacle" picking-mode="Ignore">
@@ -37,6 +42,13 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="wave-value" text="WAVE 1" class="wave-readout" />
+            <ui:VisualElement name="source-activity" class="source-activity" picking-mode="Ignore">
+                <ui:VisualElement class="source-activity-header">
+                    <ui:Label text="SOURCE" class="source-name" />
+                    <ui:Label text="LAST FLOW" />
+                </ui:VisualElement>
+                <ui:VisualElement name="source-activity-rows" picking-mode="Ignore" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="route-handles" class="connection-markers" picking-mode="Ignore" />
         <ui:VisualElement name="route-editor" class="panel route-editor interactive layout-obstacle">

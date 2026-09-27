@@ -46,7 +46,7 @@ namespace CityFlow.Composition
         {
             city = new GameObject("Validation City");
             var view = city.AddComponent<ValidationCityView>();
-            view.Initialize(stage, network, obstacleSurface, obstacleGlow, relayHeightSurface, authoredScenery);
+            view.Initialize(stage, network, simulation, connection, obstacleSurface, obstacleGlow, relayHeightSurface, authoredScenery);
             city.AddComponent<SimulationDriver>().Initialize(simulation);
             var hud = new GameObject("Validation HUD");
             hud.SetActive(false);
@@ -60,7 +60,7 @@ namespace CityFlow.Composition
             OverviewViewState? home = authoredScenery != null
                 ? new OverviewViewState(authoredScenery.OverviewFocus, camera.transform.eulerAngles.y, camera.transform.eulerAngles.x, camera)
                 : null;
-            overview.Initialize(stage, network, camera, home);
+            overview.Initialize(stage, network, camera, home, view);
             var connectionController = city.AddComponent<NodeConnectionController>();
             connectionController.Initialize(connection, overview, stage, camera, view, document);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation, connectionController, camera);
@@ -70,7 +70,7 @@ namespace CityFlow.Composition
             hud.AddComponent<NodeMinimapView>().Initialize(connection, connectionController, simulation, stage, camera);
             hud.AddComponent<RouteEditView>().Initialize(preview, connection, connectionController, overview, camera);
             hud.AddComponent<LineActionsView>().Initialize(network, connection, overview, connectionController);
-            hud.AddComponent<PauseView>().Initialize(simulation);
+            hud.AddComponent<PauseView>().Initialize(simulation, connection, view);
             hud.AddComponent<GameSessionView>().Initialize(simulation, network, connection, overview, connectionController, camera);
             hud.AddComponent<SourceStatusView>().Initialize(network, simulation, connection, connectionController, view.Focus);
             hud.SetActive(true);

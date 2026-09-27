@@ -20,9 +20,10 @@ namespace CityFlow.Presentation.Rendering
         };
         // Linear color multiplier; alpha and all transport state remain unchanged.
         private const float DimBrightness = 0.08f;
-        public bool IsActive => nodeId != null;
-        public bool IncludesNode(string id) => !IsActive || nodes.Contains(id);
-        public bool IncludesLine(int id) => !IsActive || lines.Contains(id);
+        public bool NodesOnly { get; set; }
+        public bool IsActive => NodesOnly || nodeId != null;
+        public bool IncludesNode(string id) => NodesOnly || !IsActive || nodes.Contains(id);
+        public bool IncludesLine(int id) => !NodesOnly && (!IsActive || lines.Contains(id));
 
         public void Refresh(NetworkSnapshot state, string? focus)
         {

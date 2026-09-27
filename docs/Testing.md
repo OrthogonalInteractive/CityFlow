@@ -60,12 +60,20 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-27の#20 Node出現演出は、関連PlayMode **53/53**（新規3件）、EditMode **15/15**成功。初期配置・Wave追加の光る柱、本体拡大・発光、Pause／Resume・Retry、画面外案内、高所Node、即時配線と生成猶予・状態保存を確認。東京駅の初期・Wave 2前後と8秒間の演出を記録し、ExpansionLabの初期・領域拡張はuloopで実画面確認のみ実施。コンパイル・最終ConsoleのError／Warning **0**。[採用内容・画面・確認手順](Node-Arrival-2026-09-27.md)を参照。
+
+2026-09-26のSource最新FLOW一覧は、関連PlayMode **26/26成功**（新規2件）。未生成、最新生成色への更新、配送後・Pause中の保持、Wave追加、HUD再生成、ゲーム状態の不変と入力非遮蔽を確認。東京駅Wave 3の3 SourceでSnapshotとの一致を確認し、1600×900・1036×757で表示を検証。コンパイル・最終ConsoleのError／Warning **0**。[検証記録と画面](Source-Activity-2026-09-26.md)を参照。
+
+2026-09-26のPause中のNode強調ボタンは、関連PlayMode **38/38成功**（新規3件）。全Nodeの強調、上向きの柱と選択、高所・追加Node、通常のホバーより優先する表示、再開／配線／Game Over／HUD再生成、Snapshot・時計の不変を確認。東京駅11 Nodeでの表示と屋上Sourceの柱選択を、1600×900・1036×757で確認した。[検証記録と画面](Node-Highlight-2026-09-26.md)を参照。
+
 2026-09-26の東京駅の屋上・3 Waveゲームは、全EditMode **199/199**、東京駅PlayMode **2/2**成功。2→3→5色への進行、実測屋上と駅舎の両側への配置、Relay高さ制限と駅舎横断、全Sourceの全色配送、3固定シードでの5分運行とFLOW保存、最終Wave継続・Pause・Line保持・Game Over・Retry・Home復帰を確認。コンパイル・最終ConsoleのError／Warning **0**。実画面と検証方法は[東京駅3 Waveゲーム](PLATEAU-TokyoStation.md)を参照。ExpansionLabのPlayModeテストは実行していない。
 
 
 2026-09-26の`codex/tokyo-station-nodes`を`main`（`3c7868d`）へrebaseした後は、全EditMode **193/193**、関連PlayMode **18/18**成功。都市Rendererの利用とRelay高さホログラム・領域拡張を両立するよう描画初期化とCompositionの競合を解消し、両シーンのBuild Settings登録を維持した。東京駅シーンと再生成処理にRelayマテリアル参照を補完した。東京駅の配線・配送・都市透過／復元、HeightLabのホログラム・高さ操作、Overview・接続フォーカス・ミニカメラを回帰確認した。コンパイルError／Warning **0**、テスト後Console Error **0**。PLATEAU橋梁メッシュの500 m超の三角形に関する既知Warning **1**は残る。ExpansionLabのPlayModeテストは実行していない。
 
 2026-09-26の`ExpansionLab`と#19は全EditMode **192/192**成功。新規9件で領域拡張6件とレベル配置・到達性・負荷設計3件を確認した。Relay帯の均等配置と、Wave追加で負荷が下がる旧設定の失敗を先に確認してから調整した。中央集中／外周Sink活用×固定3シードのDomainシミュレーションを実行し、終盤のRelay満杯・Source過負荷を比較した。コンパイル・画面確認後ConsoleのError/Warning **0**。**このシーンのPlayModeテストは追加・実行していない。** uloopでの画面確認では初期・中盤・最大領域と1600×900／1036×757の表示を記録した。[設定・評価結果](ExpansionLab-2026-09-26.md)を参照。
+
+2026-09-26のRelayの柱選択対応は、関連PlayMode **26/26成功**（新規2件）。Overview・Node 360で柱の側面／天面を選択でき、配置高度・ステージ上限を反映する。柱と重なる垂直LineのShift＋クリック編集も確認。初回の回帰テストはUnityの完了通知待ちでタイムアウトし、uloopでEditorを再起動後に再実行して成功。東京駅の屋上Sourceから、基部が画面外にあるRelayの柱をホバー／クリックして接続できた。[選択の検証記録と画面](Relay-Hologram-2026-09-26.md#柱からの選択の追加検証)を参照。
 
 2026-09-26のRelay高さホログラムは、関連PlayMode **11件成功**（新規2件、既存9件）。実際の接続上限と描画Boundsの一致、高所配置・ステージ天井、Wave相当の後からの追加、能力0、Collider不在、既存選択・高さ編集・フォーカス・Node 360を確認した。コンパイル・専用シェーダー診断・画面確認後ConsoleのError／Warning **0**。1600×900と1036×757の実画面を[対応報告](Relay-Hologram-2026-09-26.md)に保存した。
 

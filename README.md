@@ -35,7 +35,7 @@ Unity本体と同梱のURPテンプレートを基に構成。Git、初回の依
 
 3. `uloop launch CityFlow` で、`ProjectVersion.txt` と一致するUnity Editorを起動する。
 4. 初回インポート後、`uloop --project-path CityFlow list` でUnity CLI Loopとの接続を確認する。
-5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。左上HUDはDELIVERED・TIME・Wave。NodeとLineの情報はホバー中だけ確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
+5. `Assets/CityFlow/Scenes/WiringLab.unity` を開き、`uloop --project-path CityFlow control-play-mode --action Play` で起動する。簡易都市・5 Node・0 Lineから開始し、Sourceの準備時間中やPause中に配線する。左上HUDはDELIVERED・TIME・Waveと、Sourceごとの最後に生成したFLOW。NodeとLineの詳細はホバー中だけ確認できる。設定は `Assets/CityFlow/Settings/Gameplay/` で調整する。固定5本の輸送検証にはBootstrapを使う。
 
 R3は [公式のUnity導入手順](https://github.com/Cysharp/R3#unity) に従い、NuGetのコアとUPMのUnity連携を併用している。
 Unityで開く前に [NuGetForUnity CLI](https://github.com/GlitchEnzo/NuGetForUnity#restoring-nuget-packages-over-the-command-line) で復元すると、初回のDLL不足によるコンパイル失敗を避けられる。
@@ -146,7 +146,7 @@ Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.u
 1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。Connectボタンは不要。
 2. 360の正面は、入る直前のOverview画面で上を向いていた方角になる。右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
 3. Node・候補マーカー・右の **CONNECTION TARGETS** にホバーして候補に注目すると、自動Previewが表示される。一覧では固定の候補情報を更新し、詳細ポップアップは出さない。無効な候補も理由を確認できる。
-4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。無効な経路・接続枠不足では確定しない。確定前に **Edit route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
+4. Node・マーカー・一覧を**クリックすると接続確定してOverviewへ戻る**。Relayは高さを示す柱もホバー・クリック可能で、Overviewからの配線開始にも使える。柱とLineが重なる場所はShift＋クリックでLineを編集する。無効な経路・接続枠不足では確定しない。確定前に **Edit route** ボタンで手動編集、**Review in Overview** ボタンで経路確認も可能。
 5. Overviewの経路確認では **Confirm Line** ボタンで確定する。**Cancel connection** ボタンまたは **Esc** で取り消し、元のOverviewへ戻る。取消は接続枠を消費しない。
 
 Escは選択や編集中Previewのキャンセル専用。Node 360でも、Pauseボタンを押すまでは輸送が進行する。
@@ -166,6 +166,8 @@ Overviewで **Shift＋Lineクリック** すると直接編集へ入る。通常
 ## Pause中に配線する
 
 画面内の **Pause** ボタンで生成・輸送・Overload猶予・ゲーム経過時間をまとめて停止し、**Resume** ボタンで再開する。停止中もカメラ、ホバー、配線、手動編集、削除予約・取消を操作できる。Escで編集を取り消してもPause状態は維持する。FLOWが残る予約処理は再開後に進む。
+
+停止中のOverviewでは **Nodes** ボタンでSource・Relay・Sinkだけを強調できる。上向きの柱で位置を確認し、柱をクリックしてNodeを選べる。配線中は通常表示へ一時的に戻り、Resumeで強調表示を解除する。
 
 アクションは画面ボタン・候補クリックへ集約し、C／E／V／Tab／Space／Delete／Ctrl+Zの割当は使わない。Enter／Backspaceも使わず、ボタンにフォーカスがあってもEnterで実行しない。WASD・矢印・F・Home等のカメラ操作とShift＋クリックは維持する。
 
@@ -202,7 +204,9 @@ LineのIn-Flight上限は **3**。待機間隔はLineの実経路長の1/3で、
 Sourceの生成間隔は以前の約3倍へ減速。WiringLabの基本値は **S1/S3: 3秒、S2: 3.9秒**、Wave倍率は従来どおり。Bootstrapの負荷検証用Sourceも0.25→0.75秒へ変更した。最終的な難度はIssue #13で比較する。
 
 
-基本HUDはDELIVERED・分:秒のTIME・「WAVE / NEXT」の1行。右上のDIRECTED LINES表を廃止し、Lineの詳細もホバーで確認する。ホバーは見出し、Buffer、IN/OUT、警告、接続先に分け、対象へのリーダー線を表示する。Wave通知と出現マーカーはNodeラベルを避ける。画面下の操作ヒントは準備中Source・危険・編集中などの状況に応じて変わる。**F**でホバー中のNode／Lineへフォーカスできる。
+開始時の初期NodeとWaveで追加されたNodeは、光る柱と本体の発光・拡大で出現を知らせる。Source／Relayの柱は白、Sinkは目的色。8ゲーム秒で柱が消え、出現マーカーは12秒表示する。演出中も配線でき、Pause／Resumeで演出時間も停止・再開する。
+
+基本HUDはDELIVERED・分:秒のTIME・「WAVE / NEXT」と、その下のSource一覧。各Sourceの最後に生成したFLOWを色付きバッジ・頭文字・色名で示し、未生成は「—」。配送後やPause中も直近色を保持し、Wave追加に追従する。右上のDIRECTED LINES表を廃止し、Lineの詳細もホバーで確認する。ホバーは見出し、Buffer、IN/OUT、警告、接続先に分け、対象へのリーダー線を表示する。Wave通知と出現マーカーはNodeラベルを避ける。画面下の操作ヒントは準備中Source・危険・編集中などの状況に応じて変わる。**F**でホバー中のNode／Lineへフォーカスできる。
 
 候補一覧は自分自身を除き、接続可能・経路未確認・BLOCKEDに分類する。Sinkは色＋頭文字で表示する。カーソルが一覧上にある間は行を固定し、移動による誤クリックを防ぐ。ワールドの候補マーカーは重なりを避けてずらし、リーダー線で対象を示す。
 
