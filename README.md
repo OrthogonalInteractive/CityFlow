@@ -135,6 +135,8 @@ BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する
 
 WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Source／Relayの左クリックで360モードへ入り、Lineの左クリックで選択する。Sinkは始点にならず、クリック時に理由を短く表示する。Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
 
+左上のSource一覧をクリックすると、向き・ズームを保ったまま対象のSourceへ滑らかに移動する。屋上のSourceも中央に寄せ、Pause中も操作できる。移動中にPan／Zoom／OrbitやEscを操作すると自動移動を止める。
+
 ## Ground経路Preview
 
 独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Edit routeボタンで手動編集できる。PreviewだけではLine・接続枠を消費しない。

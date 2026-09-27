@@ -24,6 +24,11 @@ namespace CityFlow.Presentation.Overview
         private float cameraDistance = 220;
         private OverviewViewState? homeView;
         private Vector2 lastPointer;
+        // Presentation time keeps focus motion independent of the simulation's Pause state.
+        private const float FocusDurationSeconds = 0.65f;
+        private bool movingToFocus;
+        private float focusElapsed;
+        private Vector3 focusStartPosition, focusStartPivot, focusEndPosition, focusEndPivot;
         private readonly Subject<(OverviewTarget Target, bool Edit)> clicked = new();
         public Observable<(OverviewTarget Target, bool Edit)> Clicked => clicked;
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
@@ -74,6 +79,7 @@ namespace CityFlow.Presentation.Overview
         private void OnDisable()
         {
             actions?.Disable();
+            movingToFocus = false;
             Focused = default;
         }
         private void Update()
@@ -90,11 +96,14 @@ namespace CityFlow.Presentation.Overview
             if ((!EditingRoute || stage?.AllowsHeight == true) && !blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
             if (!blocked && dragInput.IsPressed() && delta != Vector2.zero)
                 Pan(-delta * (2 * sceneCamera.orthographicSize / Mathf.Max(1, Screen.height)));
-            if (point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
+            bool cameraMoved = movingToFocus;
+            AdvanceFocus(Time.unscaledDeltaTime);
+            if (cameraMoved || point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
             { HoverScreenPosition = point; Hovered = blocked ? default : Pick(point); lastPointer = point; }
         }
         public void ClearSelection()
         {
+            movingToFocus = false;
             Focused = default;
             Hovered = default;
             Select(default);
@@ -102,11 +111,42 @@ namespace CityFlow.Presentation.Overview
 
         public void Select(OverviewTarget target)
         {
-            if (!Focused.Equals(target)) Focused = default;
+            if (!Focused.Equals(target)) { Focused = default; movingToFocus = false; }
             if (Selected.Equals(target)) return;
             Selected = target; selectionChanged.OnNext(target);
         }
         public void Hover(Vector2 screen) { HoverScreenPosition = screen; Hovered = Pick(screen); }
+        public bool FocusNodeSmooth(string id)
+        {
+            if (!isActiveAndEnabled || EditingRoute || network == null || sceneCamera == null) return false;
+            foreach (NodeDefinition node in network.NodeDefinitions)
+            {
+                if (node.Id != id) continue;
+                Select(OverviewTarget.Node(id));
+                Focused = Selected;
+                Hovered = default;
+                focusStartPosition = sceneCamera.transform.position;
+                focusStartPivot = pivot;
+                focusEndPivot = node.Position + Vector3.up * 1.4f;
+                focusEndPosition = focusEndPivot - sceneCamera.transform.forward * cameraDistance;
+                focusElapsed = 0;
+                movingToFocus = true;
+                return true;
+            }
+            return false;
+        }
+
+        public void AdvanceFocus(float deltaSeconds)
+        {
+            if (!movingToFocus) return;
+            if (!isActiveAndEnabled || EditingRoute || sceneCamera == null) { movingToFocus = false; return; }
+            if (deltaSeconds <= 0 || float.IsNaN(deltaSeconds) || float.IsInfinity(deltaSeconds)) return;
+            focusElapsed = Mathf.Min(FocusDurationSeconds, focusElapsed + deltaSeconds);
+            float blend = Mathf.SmoothStep(0, 1, focusElapsed / FocusDurationSeconds);
+            pivot = Vector3.Lerp(focusStartPivot, focusEndPivot, blend);
+            sceneCamera.transform.position = Vector3.Lerp(focusStartPosition, focusEndPosition, blend);
+            movingToFocus = focusElapsed < FocusDurationSeconds;
+        }
         public OverviewTarget Pick(Vector2 screen, bool preferLine = false)
         {
             if (stage == null || network == null || sceneCamera == null || !sceneCamera.pixelRect.Contains(screen)) return default;
@@ -154,6 +194,7 @@ namespace CityFlow.Presentation.Overview
         }
         public void Pan(Vector2 delta)
         {
+            movingToFocus = false;
             if (stage == null || sceneCamera == null) return;
             Vector3 right = Quaternion.Euler(0,yaw,0) * Vector3.right;
             Vector3 forward = Quaternion.Euler(0,yaw,0) * Vector3.forward;
@@ -164,14 +205,16 @@ namespace CityFlow.Presentation.Overview
         }
         public void Zoom(float delta)
         {
+            movingToFocus = false;
             if (sceneCamera == null) return;
             float maximum = stage == null ? 180 : Mathf.Max(180, stage.WalkableArea.size.magnitude);
             sceneCamera.orthographicSize = Mathf.Clamp(sceneCamera.orthographicSize * Mathf.Exp(-delta * 0.15f), 8, maximum);
         }
         public void Orbit(Vector2 delta)
-        { yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }
+        { movingToFocus = false; yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }
         public void FocusSelection()
         {
+            movingToFocus = false;
             if (EditingRoute) return;
             if (network == null || sceneCamera == null) return;
             foreach (NodeDefinition node in network.NodeDefinitions)
@@ -185,6 +228,7 @@ namespace CityFlow.Presentation.Overview
         }
         public void ResetView()
         {
+            movingToFocus = false;
             Focused = default;
             Hovered = default;
             if (stage == null || sceneCamera == null) return;
@@ -213,6 +257,7 @@ namespace CityFlow.Presentation.Overview
         }
         public void RestoreView(OverviewViewState state)
         {
+            movingToFocus = false;
             if (sceneCamera == null) return;
             pivot = state.Pivot; yaw = state.Yaw; pitch = state.Pitch;
             sceneCamera.transform.SetPositionAndRotation(state.Position,state.Rotation);

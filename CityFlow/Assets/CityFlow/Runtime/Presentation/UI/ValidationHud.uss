@@ -24,7 +24,17 @@ Label { margin: 0; padding: 0; }
 .source-activity-template { display: none; }
 .source-activity { margin-top: 10px; padding-top: 8px; border-top-width: 1px; border-top-color: rgb(35, 49, 63); }
 .source-activity-header { flex-direction: row; color: rgb(143, 165, 184); font-size: 11px; margin-bottom: 4px; }
-.source-activity-row { flex-direction: row; align-items: center; height: 26px; font-size: 14px; }
+.source-activity-row {
+    flex-direction: row; align-items: center; height: 28px; font-size: 14px;
+    margin: 0; margin-bottom: 2px; padding: 0; padding-right: 6px;
+    background-color: rgba(29, 64, 73, 0.25); color: rgb(235, 241, 249);
+    border-width: 1px; border-color: rgba(76, 125, 128, 0.3); border-radius: 3px;
+}
+.source-activity-row:hover { background-color: rgb(36, 69, 79); border-color: rgb(76, 125, 128); }
+.source-activity-row.chosen { background-color: rgb(27, 61, 65); border-color: rgb(98, 246, 221); }
+.source-activity-row:active { background-color: rgb(44, 90, 100); }
+.source-activity-row:disabled { opacity: 0.5; }
+.source-focus-hint { flex-grow: 1; -unity-text-align: middle-right; color: rgb(143, 193, 197); }
 .source-name { width: 80px; }
 .source-flow-badge { width: 18px; height: 18px; margin-right: 8px; border-radius: 3px;
     background-color: rgb(44, 53, 65); color: rgb(5, 9, 15); font-size: 12px;

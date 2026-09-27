@@ -181,7 +181,9 @@ UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は
 
 基本HUDはDELIVERED、分:秒のTIME、Waveと次回までの秒数。常設詳細表は置かない。状況ヒントは危険・編集中・配線・Source準備・開始案内へ切り替える。Source満杯はゲージに添える残り秒数、縮む猶予円弧、控えめな枠点滅と画面端警告で示す。Pauseで警告時間も止まり、回復・Retryで解除する。
 
-2026-09-26の追加指示により、基本HUDの下にSource ID・最後に生成したFLOWの一覧を置く。`ValidationHud`が`NodeSnapshot.LastGeneratedColor`を参照し、`SourceActivityRow.uxml`の各行へ色バッジ・頭文字・色名を反映する。未生成は「—」。Wave追加・UIDocument再生成で行を結び直し、Pause・Buffer排出後もDomainの最終生成色を表示する。Presentationには生成履歴を複製せず、一覧は入力を遮らない。これ以外の常設詳細表は追加しない。
+2026-09-26の追加指示により、基本HUDの下にSource ID・最後に生成したFLOWの一覧を置く。`ValidationHud`が`NodeSnapshot.LastGeneratedColor`を参照し、`SourceActivityRow.uxml`の各行へ色バッジ・頭文字・色名を反映する。未生成は「—」。Wave追加・UIDocument再生成で行を結び直し、Pause・Buffer排出後もDomainの最終生成色を表示する。Presentationには生成履歴を複製しない。2026-09-27から各行をボタンとし、`OverviewController.FocusNodeSmooth`で対象へ移動する。行だけを`interactive`としてワールドへのクリックを遮り、再構築・無効化では旧ボタンの購読を外す。これ以外の常設詳細表は追加しない。
+
+一覧フォーカスは暫定0.65 UI秒のSmoothStep補間。`OverviewController.AdvanceFocus`へunscaledDeltaTimeを渡し、カメラ位置とpivotを同時に更新する。屋上を含むNode本体の中心を目標とし、回転・投影・ズームを変えない。別の行への切替は現在位置から補間し直す。手動カメラ入力・選択解除・表示モード変更・無効化で補間を破棄し、Fの即時フォーカスやHomeの復元と競合させない。
 
 ワールド上にNode名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
 

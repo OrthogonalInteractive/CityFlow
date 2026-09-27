@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
-    <ui:VisualElement class="source-activity-row" picking-mode="Ignore">
+    <ui:Button name="source-focus" class="source-activity-row interactive" focusable="false" tooltip="Center camera on Source">
         <ui:Label name="source-name" class="source-name" picking-mode="Ignore" />
         <ui:Label name="source-flow-badge" class="source-flow-badge" picking-mode="Ignore" />
         <ui:Label name="source-latest-flow" text="—" picking-mode="Ignore" />
-    </ui:VisualElement>
+        <ui:Label text="→" class="source-focus-hint" picking-mode="Ignore" />
+    </ui:Button>
 </ui:UXML>

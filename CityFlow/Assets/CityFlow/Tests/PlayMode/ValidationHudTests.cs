@@ -7,6 +7,7 @@ using CityFlow.Application.UseCases;
 using CityFlow.Composition;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Domain.Spatial;
+using CityFlow.Presentation.Overview;
 using CityFlow.Presentation.Rendering;
 using NUnit.Framework;
 using UnityEngine;
@@ -67,7 +68,50 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(row.Q<Label>("source-latest-flow").text, Is.EqualTo("Blue"));
             Assert.That(network.Snapshot(), Is.SameAs(before));
             Assert.That(simulation.ElapsedSeconds, Is.EqualTo(elapsed));
-            Assert.That(root.Q("source-activity").Query().ToList().All(e => e.pickingMode == PickingMode.Ignore), Is.True);
+            Assert.That(root.Q("source-activity").pickingMode, Is.EqualTo(PickingMode.Ignore));
+            Assert.That(row.Query<Label>().ToList().All(e => e.pickingMode == PickingMode.Ignore), Is.True);
+            Assert.That(row.Q<Button>("source-focus"), Is.Not.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator SourceRowClickAnimatesCameraWhilePausedWithoutStartingWiring()
+        {
+            var scope = Object.FindAnyObjectByType<CityFlowLifetimeScope>();
+            var simulation = scope.Container.Resolve<FlowSimulation>();
+            var network = scope.Container.Resolve<FlowNetwork>();
+            var session = scope.Container.Resolve<ConnectionSession>();
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            simulation.SetPaused(true);
+            yield return null; yield return null;
+            var row = SourceRow(Document().rootVisualElement, "S1");
+            var button = row.Q<Button>("source-focus");
+            Assert.That(button, Is.Not.Null, "Each Source row must offer camera focus.");
+            Vector2 panel = button.worldBound.center;
+            Vector2 screen = RuntimePanelUtils.ScreenToPanel(button.panel, new Vector2(Screen.width, Screen.height));
+            screen = new Vector2(panel.x / screen.x * Screen.width, Screen.height - panel.y / screen.y * Screen.height);
+            Assert.That(overview.IsPointerBlocked?.Invoke(screen), Is.True, "Source row clicks must not reach world wiring input.");
+            using (var submit = NavigationSubmitEvent.GetPooled()) button.SendEvent(submit);
+            Assert.That(overview.Focused.IsEmpty, Is.True);
+            var camera = Camera.main;
+            Vector3 before = camera.transform.position;
+            Quaternion rotation = camera.transform.rotation;
+            float size = camera.orthographicSize;
+            var snapshot = network.Snapshot(); double elapsed = simulation.ElapsedSeconds;
+            UiPointer.Click(button);
+            Assert.That(camera.transform.position, Is.EqualTo(before), "Click starts an animation without teleporting.");
+            Assert.That(overview.Focused.NodeId, Is.EqualTo("S1"));
+            overview.AdvanceFocus(0.2f);
+            Assert.That(Vector3.Distance(camera.transform.position, before), Is.GreaterThan(0.1f));
+            Vector3 target = network.NodeDefinitions.Single(n => n.Id == "S1").Position + Vector3.up * 1.4f;
+            Assert.That(Vector2.Distance(camera.WorldToViewportPoint(target), new Vector2(0.5f, 0.5f)), Is.GreaterThan(0.01f));
+            overview.AdvanceFocus(1);
+            Assert.That(Vector2.Distance(camera.WorldToViewportPoint(target), new Vector2(0.5f, 0.5f)), Is.LessThan(0.001f));
+            Assert.That(camera.transform.rotation, Is.EqualTo(rotation));
+            Assert.That(camera.orthographicSize, Is.EqualTo(size));
+            Assert.That(simulation.ElapsedSeconds, Is.EqualTo(elapsed));
+            Assert.That(simulation.IsPaused, Is.True);
+            Assert.That(network.Snapshot(), Is.SameAs(snapshot));
+            Assert.That(session.IsActive, Is.False);
         }
 
         [UnityTest]
@@ -101,6 +145,12 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(root.Q("source-activity-rows").childCount, Is.EqualTo(2));
             Assert.That(SourceRow(root, "S1").Q<Label>("source-latest-flow").text, Is.EqualTo(first));
             Assert.That(SourceRow(root, "S2").Q<Label>("source-flow-badge").text, Is.EqualTo("G"));
+            var overview = Object.FindAnyObjectByType<OverviewController>();
+            UiPointer.Click(SourceRow(root, "S2").Q<Button>("source-focus"));
+            Assert.That(overview.Focused.NodeId, Is.EqualTo("S2"), "Rows added by a Wave and rebuilt with the HUD stay clickable.");
+            overview.AdvanceFocus(1);
+            Vector3 target = network.NodeDefinitions.Single(n => n.Id == "S2").Position + Vector3.up * 1.4f;
+            Assert.That(Vector2.Distance(Camera.main.WorldToViewportPoint(target), new Vector2(0.5f, 0.5f)), Is.LessThan(0.001f));
         }
 
         [UnityTest]

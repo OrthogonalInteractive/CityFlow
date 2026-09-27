@@ -35,6 +35,63 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(controller, Is.Not.Null, "Bootstrap must compose Overview input and camera controls.");
             return controller;
         }
+        [UnityTest] public IEnumerator SmoothFocusRetargetsElevatedNodesFromTheCurrentPosition()
+        {
+            yield return SceneManager.LoadSceneAsync("HeightLab"); yield return null;
+            Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
+            var c = Controller(); var camera = Camera.main;
+            var network = Object.FindAnyObjectByType<CityFlowLifetimeScope>().Container.Resolve<FlowNetwork>();
+            var roof = new SourceNodeDefinition("ROOF", new Vector3(52, 24, 30));
+            Assert.That(network.TryAddNodes(new NodeDefinition[] { roof }), Is.True);
+            c.Orbit(new Vector2(20, 8)); c.Zoom(1);
+            var original = c.CaptureView();
+            Assert.That(c.FocusNodeSmooth("S1"), Is.True);
+            c.AdvanceFocus(0.2f);
+            Vector3 moving = camera.transform.position;
+            Assert.That(c.FocusNodeSmooth("ROOF"), Is.True);
+            Assert.That(camera.transform.position, Is.EqualTo(moving));
+            c.AdvanceFocus(0.2f);
+            Assert.That(camera.transform.position, Is.Not.EqualTo(moving));
+            c.AdvanceFocus(1);
+            Vector3 center = camera.WorldToViewportPoint(roof.Position + Vector3.up * 1.4f);
+            Assert.That(Vector2.Distance(center, new Vector2(0.5f, 0.5f)), Is.LessThan(0.001f));
+            Assert.That(camera.transform.rotation, Is.EqualTo(original.Rotation));
+            Assert.That(camera.orthographicSize, Is.EqualTo(original.Size));
+            Assert.That(c.Focused.NodeId, Is.EqualTo("ROOF"));
+            Vector3 finished = camera.transform.position;
+            Assert.That(c.FocusNodeSmooth("missing"), Is.False);
+            c.AdvanceFocus(1);
+            Assert.That(camera.transform.position, Is.EqualTo(finished));
+        }
+
+        [UnityTest] public IEnumerator ManualControlsAndCameraModeChangesCancelSmoothFocus()
+        {
+            var c = Controller(); var camera = Camera.main;
+            var home = c.CaptureView();
+            Action[] interruptions =
+            {
+                () => c.Pan(new Vector2(2, 1)), () => c.Zoom(1), () => c.Orbit(new Vector2(3, 2)),
+                c.ClearSelection, c.ResetView, c.FocusSelection,
+                () => c.Select(OverviewTarget.Node("R1")), () => c.RestoreView(home),
+                c.BeginRouteView, () => { c.enabled = false; c.enabled = true; }
+            };
+            foreach (Action interrupt in interruptions)
+            {
+                c.EditingRoute = false; c.RestoreView(home);
+                Assert.That(c.FocusNodeSmooth("S1"), Is.True);
+                c.AdvanceFocus(0.2f);
+                interrupt();
+                Vector3 position = camera.transform.position;
+                c.AdvanceFocus(1);
+                Assert.That(camera.transform.position, Is.EqualTo(position), "Manual input or camera handoff must stop the previous focus animation.");
+            }
+            c.EditingRoute = true;
+            Assert.That(c.FocusNodeSmooth("S1"), Is.False);
+            c.EditingRoute = false; c.enabled = false;
+            Assert.That(c.FocusNodeSmooth("S1"), Is.False);
+            c.enabled = true;
+            yield return null;
+        }
         [UnityTest] public IEnumerator CameraPanZoomOrbitFocusAndHomeDoNotMutateTransport()
         {
             var c = Controller(); var cam = Camera.main;
