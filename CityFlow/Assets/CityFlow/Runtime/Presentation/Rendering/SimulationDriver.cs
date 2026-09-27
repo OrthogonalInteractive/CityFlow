@@ -9,6 +9,7 @@ namespace CityFlow.Presentation.Rendering
     {
         private FlowSimulation? simulation;
         public void Initialize(FlowSimulation value) => simulation = value;
-        private void Update() => simulation?.Tick(Time.unscaledDeltaTime);
+        // Unscaled delta can include suspended wall time on the first frame after an Editor pause.
+        private void Update() => simulation?.Tick(Time.deltaTime);
     }
 }

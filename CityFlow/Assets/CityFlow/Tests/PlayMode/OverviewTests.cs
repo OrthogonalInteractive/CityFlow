@@ -99,7 +99,7 @@ namespace CityFlow.Tests.PlayMode
             var before = network.Snapshot(); Vector3 home = cam.transform.position; Quaternion rotation = cam.transform.rotation;
             float size = cam.orthographicSize;
             c.Pan(new Vector2(10, 5)); Assert.That(cam.transform.position, Is.Not.EqualTo(home));
-            c.Zoom(1); Assert.That(cam.orthographicSize, Is.LessThan(size));
+            c.Zoom(1); c.AdvanceZoom(1); Assert.That(cam.orthographicSize, Is.LessThan(size));
             c.Orbit(new Vector2(20, 10)); Assert.That(cam.transform.rotation, Is.Not.EqualTo(rotation));
             c.Select(OverviewTarget.Node("S1")); c.FocusSelection();
             Vector3 node = network.NodeDefinitions.Single(n => n.Id == "S1").Position;

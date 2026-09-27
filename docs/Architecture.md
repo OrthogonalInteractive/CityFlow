@@ -79,6 +79,8 @@ Pause／Resumeは画面内ボタンだけで切り替える。Escは`NodeConnect
 
 Applicationのシミュレーション更新入口に明示的な時間差分を渡し、Domainで `Time.deltaTime` やグローバル乱数を直接参照しない。生成色のランダム選択は差し替え可能な乱数源を入力にする。配送先は乱数を使わず決定する。
 
+`SimulationDriver`は`Time.deltaTime`を渡してゲーム時計を進める。`unscaledDeltaTime`にはEditor Pauseの解除時に停止中の実時間が含まれるため、シミュレーションには使わない。停止時間の穴埋めやEditor専用の状態変更は行わず、ゲーム内Pauseは引き続き`FlowSimulation.IsPaused`が所有する。カメラなどのUI演出は別のunscaled時計を維持する。
+
 Pauseはシミュレーション更新を止める。生成・移動・受け渡し・Wave・Node追加・Overloadタイマーは同時に停止する。一方、入力・カメラ・ホバー・Previewは表示側の時間で動かす。`Time.timeScale = 0` だけをPauseの契約にしない。
 
 FLOWが残るLineの削除・経路切替は再開後に進める。既に空のLineの削除など、時間を必要としないコマンドはPause中も実行できる。
@@ -163,6 +165,8 @@ Relayの高さ能力は、配置Yから`StageDefinition.ConnectionCeiling`まで
 
 ConnectionSessionが始点・距離フィルター・確定／取消、LinePreviewServiceが経路と編集を所有する。NodeクリックでNode 360へ入り、ホバーでPreview、クリックで再検証・確定してOverviewへ戻る。OUT 0のSinkは始点にせず理由を表示する。始点自身とすべてのSourceを接続先候補から除外する。作成直後6秒以内の空LineだけをUndoでき、FLOW流入・別操作・期限切れで提示を終了する。既存Line編集はShift＋クリックで開始する。
 
+Node 360で確定した新設Lineは、`NodeConnectionController`がOverview復元後に`ValidationCityView`へ表出演出を要求する。描画側がLineごとの経過UI秒を持ち、unscaledDeltaTimeで暫定0.9秒間、確定経路の始点から実長順に表示する。折れ点を残した経路の一部をLineRendererへ渡し、矢印は先端の通過後に有効にする。Domainの経路・輸送・当たり判定には演出時間を渡さない。再び360へ入る際は全長表示へ切り替え、削除・経路や状態の変更では演出を破棄する。初期配線と既存Lineには適用しない。
+
 Node 360の視点は始点から3.2 m上、上下±80°。Near/Midは都市対角長の25%/50%（現在37.5 m/75 m）。カメラ領域はUSSのcity-viewportから求め、建物をアルファ0.18へ切り替える。Overview復帰・手動編集・無効化時に元のカメラ、選択、不透明表示を復元する。
 
 `NodeConnectionController`はOverviewの退避済みカメラ回転から画面上方向をGroundへ投影し、360進入時の水平方角に使う。Node位置やステージ中央への方向には依存しない。経路確認との往復では360の視線を維持する。
@@ -184,6 +188,12 @@ UXML/USSをUI Builderで調整し、CompositionからUIDocumentへ渡す。C#は
 2026-09-26の追加指示により、基本HUDの下にSource ID・最後に生成したFLOWの一覧を置く。`ValidationHud`が`NodeSnapshot.LastGeneratedColor`を参照し、`SourceActivityRow.uxml`の各行へ色バッジ・頭文字・色名を反映する。未生成は「—」。Wave追加・UIDocument再生成で行を結び直し、Pause・Buffer排出後もDomainの最終生成色を表示する。Presentationには生成履歴を複製しない。2026-09-27から各行をボタンとし、`OverviewController.FocusNodeSmooth`で対象へ移動する。行だけを`interactive`としてワールドへのクリックを遮り、再構築・無効化では旧ボタンの購読を外す。これ以外の常設詳細表は追加しない。
 
 一覧フォーカスは暫定0.65 UI秒のSmoothStep補間。`OverviewController.AdvanceFocus`へunscaledDeltaTimeを渡し、カメラ位置とpivotを同時に更新する。屋上を含むNode本体の中心を目標とし、回転・投影・ズームを変えない。別の行への切替は現在位置から補間し直す。手動カメラ入力・選択解除・表示モード変更・無効化で補間を破棄し、Fの即時フォーカスやHomeの復元と競合させない。
+
+ホイールズームは`OverviewController`が5段階の目標画角と入力のまとまりを扱う。最接近のorthographicSizeは暫定8 m、全景を4段階目、その2倍を5段階目とし、近い側の3区間は倍率が等間隔になるよう補間する。全景は保存されたHome、または現在の領域・画面比から求める（段階を区別できるよう基準を16 m以上にする）。領域拡張だけではカメラを動かさず、次の操作で新しい範囲を使う。入力値の大きさや120単位の前提を使わず符号で1段選び、同方向は0.18 UI秒の無入力で再受理する。逆方向や次の操作では、補間中の目標段階から次を選び、現在の表示サイズから0.3 UI秒のSmoothStepで対数補間する。unscaledDeltaTimeでPause中も進む。カメラの退避・復帰では現在の位置・画角を維持し、残った補間を再開しない。
+
+ズームの中心は入力を受理した時点のカーソル座標をカメラのViewport座標へ変換して保持する。サイズ更新前後の平行投影Rayのずれを水平移動へ変換し、カメラとpivotへ同じ差分を加える。向き・高度を維持したまま、地面・屋上・高所Nodeを含むRay上の各深度の点を同じ画面位置に保てるため、ColliderへのRaycastは不要。補間中のマウス移動や集約された入力で中心を変えず、新たに受理した操作で更新する。Pan／Orbitの操作量を上書きせず、表示領域外のホイールは無視する。画面位置を指定しない呼び出しは画面中央を使う。
+
+画面端を中心にズームした結果pivotがステージ境界外に出た場合、Panの制限範囲を現在位置まで広げ、内側へは入力した距離だけ戻れるようにする。最初のPanで境界へ飛ばさず、さらに外へ広げる移動は従来の境界制限と同様に抑える。
 
 ワールド上にNode名・種別の常設表示は置かない。Source／RelayのワールドゲージはBufferが1個以上の間だけ表示し、空になると消す。待機順の1枠1 FLOWで色と頭文字を表示し、空き枠と実数／容量を維持する。警告で色を上書きしない。空Bufferの容量やNode名はホバー詳細で確認する。Sourceは無彩色の立方体、Relayは無彩色の球、Sinkは目的色の円柱。停止FLOWはOverviewで小さな扁平粒子、Node 360で通常の球にする。
 

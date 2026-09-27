@@ -62,6 +62,14 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-27のEditor Pause解除時の時間加算修正は、関連PlayMode **38/38成功**（再現テスト1件）、Pause／WaveのEditMode **12/12成功**。停止中の実時間が`unscaledDeltaTime`へ入り、再開時に生成・輸送・Overloadを一括更新することを再現し、SimulationDriverを`deltaTime`へ変更した。東京駅でも約61秒停止後の最初のフレームで生成数2・ゲーム時計24.85秒を保持し、Game Overなしを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[原因と検証記録](Editor-Pause-2026-09-27.md)を参照。
+
+2026-09-27のマウス位置を中心にするズームは、関連PlayMode **55/55成功**（追加3件と既存2件の拡張）。両方向の補間中の画面位置維持、奥行き・斜め俯瞰・経路編集・部分Viewport、入力中のマウス移動・反転、UI／表示領域外の除外、360との往復、画面端でズーム後のPanを確認。東京駅の実フレームでも最大ずれ0.00353 px、往復後のカメラ位置誤差0.00010 mを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[検証記録](Overview-Zoom-2026-09-27.md#マウス位置を中心にする追加変更)を参照。
+
+2026-09-27の5段階ホイールズームは、関連PlayMode **52/52成功**（新規4件）。小さいInput System入力で1段移動すること、連続入力の集約、両方向の補間・反転・上下限、Pause中の進行、UI上の入力除外、フォーカス・Home・360との切替を確認。東京駅シーンでも実フレームで両方向の補間と5段階を確認した。コンパイルError／Warning **0**、最終Console Error／Warning **0**。[検証記録](Overview-Zoom-2026-09-27.md)を参照。
+
+2026-09-27のLine表出演出は、関連PlayMode **46/46成功**（新規4件）。360確定後のOverview復元、始点からの折れ線・垂直区間の描画、矢印の順次表示、Pause中の進行、初期Line・取消・失敗の除外、Undo・削除・再配線中の後始末と輸送状態の維持を確認。コンパイルError／Warning **0**、テスト後・画面確認後のConsole Error **0**。東京駅の屋上SourceからRelayへの経路で実フレームの進行と途中の表示を確認した。[検証記録](Line-Reveal-2026-09-27.md)を参照。
+
 2026-09-27の#20 Node出現演出は、関連PlayMode **53/53**（新規3件）、EditMode **15/15**成功。初期配置・Wave追加の光る柱、本体拡大・発光、Pause／Resume・Retry、画面外案内、高所Node、即時配線と生成猶予・状態保存を確認。東京駅の初期・Wave 2前後と8秒間の演出を記録し、ExpansionLabの初期・領域拡張はuloopで実画面確認のみ実施。コンパイル・最終ConsoleのError／Warning **0**。[採用内容・画面・確認手順](Node-Arrival-2026-09-27.md)を参照。
 
 2026-09-26のSource最新FLOW一覧は、関連PlayMode **26/26成功**（新規2件）。未生成、最新生成色への更新、配送後・Pause中の保持、Wave追加、HUD再生成、ゲーム状態の不変と入力非遮蔽を確認。東京駅Wave 3の3 SourceでSnapshotとの一致を確認し、1600×900・1036×757で表示を検証。コンパイル・最終ConsoleのError／Warning **0**。[検証記録と画面](Source-Activity-2026-09-26.md)を参照。

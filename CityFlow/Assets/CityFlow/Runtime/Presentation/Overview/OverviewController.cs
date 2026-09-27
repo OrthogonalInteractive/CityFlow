@@ -29,6 +29,12 @@ namespace CityFlow.Presentation.Overview
         private bool movingToFocus;
         private float focusElapsed;
         private Vector3 focusStartPosition, focusStartPivot, focusEndPosition, focusEndPivot;
+        // Provisional presentation timing [UI seconds] and closest orthographic half-height [m].
+        private const float ZoomDurationSeconds = 0.3f, ZoomGestureGapSeconds = 0.18f, ClosestZoomSize = 8;
+        private bool zooming;
+        private int lastZoomDirection;
+        private float zoomQuietSeconds = ZoomGestureGapSeconds, zoomElapsed, zoomStartSize, zoomEndSize;
+        private Vector3 zoomViewportAnchor = new(0.5f, 0.5f, 0);
         private readonly Subject<(OverviewTarget Target, bool Edit)> clicked = new();
         public Observable<(OverviewTarget Target, bool Edit)> Clicked => clicked;
         public Observable<OverviewTarget> SelectionChanged => selectionChanged;
@@ -80,6 +86,7 @@ namespace CityFlow.Presentation.Overview
         {
             actions?.Disable();
             movingToFocus = false;
+            CancelZoom();
             Focused = default;
         }
         private void Update()
@@ -92,18 +99,20 @@ namespace CityFlow.Presentation.Overview
             Vector2 pan = panInput.ReadValue<Vector2>();
             if (pan != Vector2.zero) Pan(pan * (sceneCamera.orthographicSize * Time.unscaledDeltaTime));
             float zoom = zoomInput.ReadValue<float>();
-            if (!blocked && zoom != 0) Zoom(zoom / 120f);
+            if (!blocked && zoom != 0) Zoom(zoom, point);
             if ((!EditingRoute || stage?.AllowsHeight == true) && !blocked && orbitInput.IsPressed() && delta != Vector2.zero) Orbit(delta * 0.2f);
             if (!blocked && dragInput.IsPressed() && delta != Vector2.zero)
                 Pan(-delta * (2 * sceneCamera.orthographicSize / Mathf.Max(1, Screen.height)));
-            bool cameraMoved = movingToFocus;
+            bool cameraMoved = movingToFocus || zooming;
             AdvanceFocus(Time.unscaledDeltaTime);
+            AdvanceZoom(Time.unscaledDeltaTime);
             if (cameraMoved || point != lastPointer || pan != Vector2.zero || zoom != 0 || delta != Vector2.zero)
             { HoverScreenPosition = point; Hovered = blocked ? default : Pick(point); lastPointer = point; }
         }
         public void ClearSelection()
         {
             movingToFocus = false;
+            CancelZoom();
             Focused = default;
             Hovered = default;
             Select(default);
@@ -122,6 +131,7 @@ namespace CityFlow.Presentation.Overview
             foreach (NodeDefinition node in network.NodeDefinitions)
             {
                 if (node.Id != id) continue;
+                CancelZoom();
                 Select(OverviewTarget.Node(id));
                 Focused = Selected;
                 Hovered = default;
@@ -198,23 +208,85 @@ namespace CityFlow.Presentation.Overview
             if (stage == null || sceneCamera == null) return;
             Vector3 right = Quaternion.Euler(0,yaw,0) * Vector3.right;
             Vector3 forward = Quaternion.Euler(0,yaw,0) * Vector3.forward;
-            pivot += right*delta.x + forward*delta.y;
-            pivot.x = Mathf.Clamp(pivot.x, stage.WalkableArea.xMin, stage.WalkableArea.xMax);
-            pivot.z = Mathf.Clamp(pivot.z, stage.WalkableArea.yMin, stage.WalkableArea.yMax);
+            Vector3 movement = right*delta.x + forward*delta.y;
+            // Cursor-centered zoom may move the pivot outside the pan bounds; allow a gradual return.
+            pivot.x = Mathf.Clamp(pivot.x + movement.x, Mathf.Min(pivot.x, stage.WalkableArea.xMin), Mathf.Max(pivot.x, stage.WalkableArea.xMax));
+            pivot.z = Mathf.Clamp(pivot.z + movement.z, Mathf.Min(pivot.z, stage.WalkableArea.yMin), Mathf.Max(pivot.z, stage.WalkableArea.yMax));
             ApplyPose();
         }
-        public void Zoom(float delta)
+        public void Zoom(float delta, Vector2? screenPosition = null)
         {
+            if (!isActiveAndEnabled || sceneCamera == null || !sceneCamera.orthographic ||
+                delta == 0 || float.IsNaN(delta) || float.IsInfinity(delta)) return;
+            if (screenPosition.HasValue && !sceneCamera.pixelRect.Contains(screenPosition.Value)) return;
+            int direction = delta > 0 ? 1 : -1;
+            bool continuingGesture = direction == lastZoomDirection && zoomQuietSeconds < ZoomGestureGapSeconds;
+            lastZoomDirection = direction;
+            zoomQuietSeconds = 0;
+            if (continuingGesture) return;
             movingToFocus = false;
-            if (sceneCamera == null) return;
-            float maximum = stage == null ? 180 : Mathf.Max(180, stage.WalkableArea.size.magnitude);
-            sceneCamera.orthographicSize = Mathf.Clamp(sceneCamera.orthographicSize * Mathf.Exp(-delta * 0.15f), 8, maximum);
+            float reference = zooming ? zoomEndSize : sceneCamera.orthographicSize;
+            float tolerance = Mathf.Max(0.0001f, reference * 0.0001f);
+            for (int i = 0; i < 5; i++)
+            {
+                float size = ZoomSize(direction > 0 ? 4 - i : i);
+                if (direction > 0 ? size >= reference - tolerance : size <= reference + tolerance) continue;
+                zoomStartSize = sceneCamera.orthographicSize;
+                zoomEndSize = size;
+                zoomViewportAnchor = screenPosition.HasValue ? sceneCamera.ScreenToViewportPoint(screenPosition.Value) : new Vector3(0.5f, 0.5f, 0);
+                zoomElapsed = 0;
+                zooming = true;
+                return;
+            }
+        }
+        private float ZoomSize(int level)
+        {
+            float home = homeView.HasValue && !EditingRoute ? homeView.Value.Size :
+                stage != null && sceneCamera != null ? Mathf.Max(stage.WalkableArea.height * 0.7f,
+                    stage.WalkableArea.width / sceneCamera.aspect * 0.7f) : 63;
+            home = Mathf.Max(ClosestZoomSize * 2, home);
+            if (level == 4) return home * 2;
+            if (level == 3) return home;
+            return ClosestZoomSize * Mathf.Pow(home / ClosestZoomSize, level / 3f);
+        }
+        public void AdvanceZoom(float deltaSeconds)
+        {
+            if (!isActiveAndEnabled || sceneCamera == null || deltaSeconds <= 0 ||
+                float.IsNaN(deltaSeconds) || float.IsInfinity(deltaSeconds)) return;
+            zoomQuietSeconds = Mathf.Min(ZoomGestureGapSeconds, zoomQuietSeconds + deltaSeconds);
+            if (!zooming) return;
+            float previousSize = sceneCamera.orthographicSize;
+            zoomElapsed = Mathf.Min(ZoomDurationSeconds, zoomElapsed + deltaSeconds);
+            float blend = Mathf.SmoothStep(0, 1, zoomElapsed / ZoomDurationSeconds);
+            sceneCamera.orthographicSize = zoomElapsed >= ZoomDurationSeconds ? zoomEndSize :
+                Mathf.Exp(Mathf.Lerp(Mathf.Log(zoomStartSize), Mathf.Log(zoomEndSize), blend));
+            Vector3 shift = 2 * (previousSize - sceneCamera.orthographicSize) *
+                (sceneCamera.transform.right * ((zoomViewportAnchor.x - 0.5f) * sceneCamera.aspect) +
+                 sceneCamera.transform.up * (zoomViewportAnchor.y - 0.5f));
+            Vector3 forward = sceneCamera.transform.forward;
+            // Parallel orthographic rays keep every depth under the cursor fixed without a physics hit.
+            // Move along the horizontal plane to preserve camera height and the orbit pivot's altitude.
+            if (Mathf.Abs(forward.y) > 0.0001f)
+            {
+                shift -= forward * (shift.y / forward.y);
+                shift.y = 0;
+            }
+            sceneCamera.transform.position += shift;
+            pivot += shift;
+            zooming = zoomElapsed < ZoomDurationSeconds;
+        }
+        private void CancelZoom()
+        {
+            zooming = false;
+            lastZoomDirection = 0;
+            zoomQuietSeconds = ZoomGestureGapSeconds;
         }
         public void Orbit(Vector2 delta)
         { movingToFocus = false; yaw = (yaw + delta.x) % 360; pitch = Mathf.Clamp(pitch - delta.y, 25, 85); ApplyPose(); }
         public void FocusSelection()
         {
             movingToFocus = false;
+            CancelZoom();
             if (EditingRoute) return;
             if (network == null || sceneCamera == null) return;
             foreach (NodeDefinition node in network.NodeDefinitions)
@@ -229,6 +301,7 @@ namespace CityFlow.Presentation.Overview
         public void ResetView()
         {
             movingToFocus = false;
+            CancelZoom();
             Focused = default;
             Hovered = default;
             if (stage == null || sceneCamera == null) return;
@@ -258,6 +331,7 @@ namespace CityFlow.Presentation.Overview
         public void RestoreView(OverviewViewState state)
         {
             movingToFocus = false;
+            CancelZoom();
             if (sceneCamera == null) return;
             pivot = state.Pivot; yaw = state.Yaw; pitch = state.Pitch;
             sceneCamera.transform.SetPositionAndRotation(state.Position,state.Rotation);

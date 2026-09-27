@@ -38,6 +38,9 @@ namespace CityFlow.Presentation.Rendering
         private readonly Dictionary<int, List<LineRenderer>> lineViews = new();
         private readonly Dictionary<int, LineRoute> drawnRoutes = new();
         private readonly Dictionary<int, LineStatus> drawnStatuses = new();
+        private readonly Dictionary<int, float> lineRevealElapsed = new();
+        // Provisional duration [UI seconds]; connection and transport never wait for the reveal.
+        private const float LineRevealDuration = 0.9f;
         private readonly Dictionary<string, GameObject[]> nodeViews = new();
         private readonly Dictionary<string, GameObject> nodeBeacons = new();
         private readonly Dictionary<string, double> arrivalStarts = new();
@@ -293,6 +296,7 @@ namespace CityFlow.Presentation.Rendering
                 Material material=lineViews[id][0].sharedMaterial;
                 foreach(var renderer in lineViews[id]) Destroy(renderer.gameObject);
                 materials.Remove(material); Destroy(material); lineViews.Remove(id); drawnRoutes.Remove(id); drawnStatuses.Remove(id);
+                lineRevealElapsed.Remove(id);
             }
             foreach (LineSnapshot line in snapshot.Lines)
             {
@@ -328,6 +332,58 @@ namespace CityFlow.Presentation.Rendering
             }
         }
 
+        public void RevealNewLine(int id)
+        {
+            if (network == null || drawnRoutes.ContainsKey(id)) return;
+            NetworkSnapshot snapshot = network.Snapshot();
+            LineSnapshot? line = snapshot.Lines.FirstOrDefault(l => l.Id == id);
+            if (line == null || line.Status != LineStatus.Running) return;
+            CreateLines(snapshot);
+            lineRevealElapsed.Add(id, 0);
+            ApplyLineReveal(id, 0);
+        }
+
+        public void AdvanceLineReveals(float deltaSeconds)
+        {
+            if (network == null || deltaSeconds < 0 || float.IsNaN(deltaSeconds) || float.IsInfinity(deltaSeconds)) return;
+            CreateLines(network.Snapshot());
+            if (connection?.IsActive == true || simulation?.Result != null)
+            { CompleteLineReveals(); return; }
+            foreach (int id in lineRevealElapsed.Keys.ToArray())
+            {
+                float elapsed = Mathf.Min(LineRevealDuration, lineRevealElapsed[id] + deltaSeconds);
+                ApplyLineReveal(id, elapsed / LineRevealDuration);
+                if (elapsed >= LineRevealDuration) lineRevealElapsed.Remove(id);
+                else lineRevealElapsed[id] = elapsed;
+            }
+        }
+
+        private void ApplyLineReveal(int id, float progress)
+        {
+            LineRoute route = drawnRoutes[id];
+            List<LineRenderer> renderers = lineViews[id];
+            double distance = route.Length * progress;
+            Vector3[] points = PathBetween(route, 0, distance);
+            LineRenderer body = renderers[0];
+            body.positionCount = points.Length;
+            body.SetPositions(points);
+            body.enabled = progress > 0;
+            double travelled = 0;
+            // Running Lines contain the centerline followed by one arrow per segment.
+            for (int i = 1; i < route.Points.Count; i++)
+            {
+                double segment = Vector3.Distance(route.Points[i - 1], route.Points[i]);
+                renderers[i].enabled = distance >= travelled + segment * 0.5;
+                travelled += segment;
+            }
+        }
+
+        private void CompleteLineReveals()
+        {
+            foreach (int id in lineRevealElapsed.Keys) ApplyLineReveal(id, 1);
+            lineRevealElapsed.Clear();
+        }
+
         private void LateUpdate()
         {
             if (network == null) return;
@@ -337,7 +393,7 @@ namespace CityFlow.Presentation.Rendering
             CreateNodes();
             RefreshNodeArrivals();
             RefreshNodeBeacons();
-            CreateLines(snapshot);
+            AdvanceLineReveals(Time.unscaledDeltaTime);
             foreach (var renderer in scenery) Focus.Apply(renderer, false);
             foreach (var node in nodeViews)
                 foreach (var part in node.Value) Focus.Apply(part.GetComponent<Renderer>(), Focus.IncludesNode(node.Key));
@@ -440,6 +496,7 @@ namespace CityFlow.Presentation.Rendering
         }
         public void SetHiddenNode(string? id)
         {
+            if (id != null) CompleteLineReveals();
             bool transparent=id!=null;
             if (transparent != transparentBuildings)
             {
@@ -499,6 +556,7 @@ namespace CityFlow.Presentation.Rendering
             line.numCornerVertices = 2; line.numCapVertices = 2;
             return line;
         }
+        private void OnDisable() => CompleteLineReveals();
         private void OnDestroy()
         {
             // Authored scenery outlives this view when its gameplay scope is removed.
