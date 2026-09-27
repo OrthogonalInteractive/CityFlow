@@ -21,6 +21,7 @@ namespace CityFlow.Domain.FlowNetwork
                     if (selected == null) { index++; continue; }
                     selected.InFlight.Add(new InFlightState(flow));
                     node.Buffer.RemoveAt(index);
+                    node.DepartedCount++;
                 }
             }
         }
@@ -49,7 +50,11 @@ namespace CityFlow.Domain.FlowNetwork
                         capacity.HasValue && line.Destination.Buffer.Count < capacity.Value);
                     if (atEnd && canReceive)
                     {
-                        if (matchingSink) deliveredCount++;
+                        if (matchingSink)
+                        {
+                            deliveredCount++;
+                            line.Destination.DeliveredCount++;
+                        }
                         else line.Destination.Buffer.Add(flight.Flow);
                         // Capacity is released only after consumption or a successful Buffer transfer.
                         line.InFlight.RemoveAt(index);

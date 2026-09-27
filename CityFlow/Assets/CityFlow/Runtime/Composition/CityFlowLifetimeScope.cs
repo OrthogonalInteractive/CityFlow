@@ -3,6 +3,7 @@
 using System;
 using CityFlow.Domain.Spatial;
 using CityFlow.Presentation.Rendering;
+using CityFlow.Presentation.Audio;
 using CityFlow.Application.UseCases;
 using CityFlow.Application.Routing;
 using CityFlow.Application.Connections;
@@ -23,6 +24,7 @@ namespace CityFlow.Composition
         [SerializeField] private VolumeProfile? obstacleGlow;
         [SerializeField] private Material? relayHeightSurface;
         [SerializeField] private GameplaySettings? gameplaySettings;
+        [SerializeField] private GameplayAudioSettings? audioSettings;
         [SerializeField] private StageConfiguration? stageConfiguration;
         [SerializeField] private AuthoredCityScenery? authoredScenery;
 
@@ -40,6 +42,7 @@ namespace CityFlow.Composition
         { hudLayout = layout; hudPanelSettings = panelSettings; }
 
         public void SetRelayAppearance(Material surface) => relayHeightSurface = surface;
+        public void SetAudioConfiguration(GameplayAudioSettings settings) => audioSettings = settings;
 
         public void SetConfiguration(GameplaySettings settings, StageConfiguration stage)
         {
@@ -55,6 +58,10 @@ namespace CityFlow.Composition
                 throw new InvalidOperationException("The city requires an obstacle surface material and glow profile.");
             if (relayHeightSurface == null)
                 throw new InvalidOperationException("The city requires a Relay height projection material.");
+            if (audioSettings == null)
+                throw new InvalidOperationException("The city requires gameplay audio settings.");
+            audioSettings.Validate();
+            builder.RegisterInstance(audioSettings);
             builder.RegisterInstance(obstacleSurface);
             builder.RegisterInstance(obstacleGlow);
             builder.RegisterInstance(hudLayout);

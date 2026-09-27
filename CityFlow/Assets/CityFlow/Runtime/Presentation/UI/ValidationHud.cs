@@ -39,7 +39,7 @@ namespace CityFlow.Presentation.UI
         private ConnectionFocus? focus;
         private CityFlow.Presentation.Overview.OverviewController? overview;
         private readonly Dictionary<string, Label> nodeLabels = new();
-        private readonly Dictionary<string, (Label Badge, Label LatestFlow)> sourceRows = new();
+        private readonly Dictionary<string, (Label Badge, Label LatestFlow, Button Focus, Action Click)> sourceRows = new();
 
         public void Initialize(StageDefinition definition, FlowNetwork flowNetwork, FlowSimulation flowSimulation, Camera camera,
             CityFlow.Presentation.Overview.OverviewController input, ConnectionFocus connectionFocus)
@@ -57,7 +57,7 @@ namespace CityFlow.Presentation.UI
             if (elements != null) elements.Root.UnregisterCallback<NavigationSubmitEvent>(BlockActionSubmission, TrickleDown.TrickleDown);
             elements = null;
             nodeLabels.Clear();
-            sourceRows.Clear();
+            UnbindSources();
         }
         private void Bind()
         {
@@ -73,8 +73,8 @@ namespace CityFlow.Presentation.UI
             labels.Clear();
             nodeLabels.Clear();
             VisualElement sources = Required<VisualElement>(root, "source-activity-rows");
+            UnbindSources();
             sources.Clear();
-            sourceRows.Clear();
             VisualTreeAsset rowTemplate = Required<TemplateContainer>(root, "source-activity-template").templateSource;
             NetworkSnapshot snapshot = network.Snapshot();
             foreach (NodeSnapshot node in snapshot.Nodes)
@@ -85,7 +85,10 @@ namespace CityFlow.Presentation.UI
                     TemplateContainer row = rowTemplate.CloneTree();
                     row.name = $"source-activity-{id}";
                     Required<Label>(row, "source-name").text = id;
-                    sourceRows.Add(id, (Required<Label>(row, "source-flow-badge"), Required<Label>(row, "source-latest-flow")));
+                    Button button = Required<Button>(row, "source-focus");
+                    Action click = () => FocusSource(id);
+                    button.clicked += click;
+                    sourceRows.Add(id, (Required<Label>(row, "source-flow-badge"), Required<Label>(row, "source-latest-flow"), button, click));
                     sources.Add(row);
                 }
                 Label label = Cell(labels, "", "node-label", $"node-label-{id}");
@@ -97,7 +100,7 @@ namespace CityFlow.Presentation.UI
                 }
                 nodeLabels.Add(id, label);
             }
-            // This read-only HUD must not block future world selection or wiring gestures.
+            // Only interactive controls block world selection and wiring gestures.
             root.pickingMode = PickingMode.Ignore;
             root.Query().ForEach(element =>
             {
@@ -106,6 +109,16 @@ namespace CityFlow.Presentation.UI
                 element.pickingMode = PickingMode.Ignore;
             });
             Refresh(snapshot);
+        }
+        private void UnbindSources()
+        {
+            foreach (var row in sourceRows.Values) row.Focus.clicked -= row.Click;
+            sourceRows.Clear();
+        }
+        private void FocusSource(string id)
+        {
+            if (simulation == null || simulation.Result != null || overview == null) return;
+            overview.FocusNodeSmooth(id);
         }
         private static void BlockActionSubmission(NavigationSubmitEvent e) => e.StopImmediatePropagation();
 
@@ -139,6 +152,8 @@ namespace CityFlow.Presentation.UI
             {
                 if (sourceRows.TryGetValue(node.Definition.Id, out var row))
                 {
+                    row.Focus.SetEnabled(simulation.Result == null && overview != null && overview.isActiveAndEnabled && !overview.EditingRoute);
+                    row.Focus.EnableInClassList("chosen", overview != null && overview.Focused.NodeId == node.Definition.Id);
                     // Generation history belongs to the network and survives departure from the Buffer.
                     FlowColor? color = node.LastGeneratedColor;
                     row.LatestFlow.text = color?.ToString() ?? "—";

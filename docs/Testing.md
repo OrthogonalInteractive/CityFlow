@@ -28,6 +28,8 @@ DomainはUnityEngine参照を許可したままEditModeでテストする。独�
 
 ## 検証対象
 
+2026-09-27のSource一覧からのカメラ移動は、関連PlayMode **52/52成功**（新規3件）。Pause中の滑らかな移動、屋上Nodeの中央表示、向き・ズーム保持、移動先の切替と手動操作による中断、UIから配線へのクリック非伝播、Wave追加・HUD再生成を確認。東京駅Wave 3の屋上Sourceで実フレームの移動も確認した。[画面・検証方法と制限](Source-Activity-2026-09-26.md#一覧からのカメラ移動2026-09-27)を参照。
+
 仕様§18ごとの実装・テスト対応は [完了条件の追跡](V01-Acceptance.md)、過去のRed/Greenと画面記録は [検証履歴](history/Testing-v01.md) を参照。
 
 | 順序 | 仕様 | 主に確認する振る舞い |
@@ -61,6 +63,14 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 ## 現在の検証状況
 
 2026-09-27の東京駅の3階層・10 Waveゲーム（v0.2 Δ1.3）は、全EditMode **202/202**（東京駅9件を全面更新、Node 360候補の高度帯フィルター1件を追加）、東京駅・出現演出のPlayMode **5/5**成功。階層の隔離とブリッジRelayの配置、駅舎による地上の東西分断、屋上配置、紫Sinkの上層限定、各Waveでの全Sourceから全色への到達、3固定シードで600秒（Wave 10到達）の運行とFLOW保存・Line保持、未配線開始の敗北を確認。到達性は`Tests/Fixtures/GreedyNetworkWiring`の貪欲配線で組み、ブリッジのIN枠はこの配線が削除なしで成立する暫定値。既存の`NodeArrivalTests`の初期出現テストは全体実行で1回失敗し単独再実行で成功した（フレーム時刻依存、東京駅の変更とは無関係）。コンパイルError／Warning **0**。配置と調整値は[東京駅の階層ゲーム](PLATEAU-TokyoStation.md)を参照。
+
+2026-09-27のEditor Pause解除時の時間加算修正は、関連PlayMode **38/38成功**（再現テスト1件）、Pause／WaveのEditMode **12/12成功**。停止中の実時間が`unscaledDeltaTime`へ入り、再開時に生成・輸送・Overloadを一括更新することを再現し、SimulationDriverを`deltaTime`へ変更した。東京駅でも約61秒停止後の最初のフレームで生成数2・ゲーム時計24.85秒を保持し、Game Overなしを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[原因と検証記録](Editor-Pause-2026-09-27.md)を参照。
+
+2026-09-27のマウス位置を中心にするズームは、関連PlayMode **55/55成功**（追加3件と既存2件の拡張）。両方向の補間中の画面位置維持、奥行き・斜め俯瞰・経路編集・部分Viewport、入力中のマウス移動・反転、UI／表示領域外の除外、360との往復、画面端でズーム後のPanを確認。東京駅の実フレームでも最大ずれ0.00353 px、往復後のカメラ位置誤差0.00010 mを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[検証記録](Overview-Zoom-2026-09-27.md#マウス位置を中心にする追加変更)を参照。
+
+2026-09-27の5段階ホイールズームは、関連PlayMode **52/52成功**（新規4件）。小さいInput System入力で1段移動すること、連続入力の集約、両方向の補間・反転・上下限、Pause中の進行、UI上の入力除外、フォーカス・Home・360との切替を確認。東京駅シーンでも実フレームで両方向の補間と5段階を確認した。コンパイルError／Warning **0**、最終Console Error／Warning **0**。[検証記録](Overview-Zoom-2026-09-27.md)を参照。
+
+2026-09-27のLine表出演出は、関連PlayMode **46/46成功**（新規4件）。360確定後のOverview復元、始点からの折れ線・垂直区間の描画、矢印の順次表示、Pause中の進行、初期Line・取消・失敗の除外、Undo・削除・再配線中の後始末と輸送状態の維持を確認。コンパイルError／Warning **0**、テスト後・画面確認後のConsole Error **0**。東京駅の屋上SourceからRelayへの経路で実フレームの進行と途中の表示を確認した。[検証記録](Line-Reveal-2026-09-27.md)を参照。
 
 2026-09-27の#20 Node出現演出は、関連PlayMode **53/53**（新規3件）、EditMode **15/15**成功。初期配置・Wave追加の光る柱、本体拡大・発光、Pause／Resume・Retry、画面外案内、高所Node、即時配線と生成猶予・状態保存を確認。東京駅の初期・Wave 2前後と8秒間の演出を記録し、ExpansionLabの初期・領域拡張はuloopで実画面確認のみ実施。コンパイル・最終ConsoleのError／Warning **0**。[採用内容・画面・確認手順](Node-Arrival-2026-09-27.md)を参照。
 
@@ -119,3 +129,5 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 
 2026-09-26の`TokyoStationWiringLab`ゲーム化は、全EditMode **184/184**、全PlayMode **66/66**成功。専用Stageの未配線開始・5色への到達可能性、実シーンでPause中の配線と再開後の配送、都市表示の透過／復元・Collider保持・Home復帰を確認した。コンパイルError／Warning **0**。UI操作と暫定的なGround／障害物近似は[東京駅の記録](PLATEAU-TokyoStation.md)を参照。
+
+2026-09-27のゲームSEは、関連EditMode **56/56**、PlayMode **24/24成功**。出発／到達の累計、視点に応じた音量・パン、同時発音の上限と優先、Pause・実Editor Pause・Game Over・再開・破棄、承認音源のPCMを確認。東京駅実シーンでも3音のAudioSource／AudioListener出力が非ゼロであることを確認した。コンパイルError／Warning **0**。[検証記録](Gameplay-Audio-2026-09-27.md)を参照。

@@ -95,7 +95,12 @@ namespace CityFlow.Presentation.Connections
                 pitch = 5; IsNode360 = true;
                 overview.enabled = false; ApplyNodePose();
             }
-            else if (!session.IsActive && bookmark.HasValue) Restore();
+            else if (!session.IsActive && bookmark.HasValue)
+            {
+                int? revealedLine = IsNode360 && !IsEditing ? session.LastCreatedLineId : null;
+                Restore();
+                if (revealedLine.HasValue && cityView != null) cityView.RevealNewLine(revealedLine.Value);
+            }
         }
         private void Restore()
         {

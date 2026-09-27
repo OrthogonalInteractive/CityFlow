@@ -135,6 +135,10 @@ BootstrapにUXML・PanelSettingsを割り当て済み。設定を再構成する
 
 WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタンドラッグでOrbit。Source／Relayの左クリックで360モードへ入り、Lineの左クリックで選択する。Sinkは始点にならず、クリック時に理由を短く表示する。Fでフォーカス、Homeで全景へ戻る。カーソルを合わせるとBuffer内訳・接続枠・停止原因・輸送性能を表示する。Input Systemの既定設定に従い、操作時はGame Viewにフォーカスを置く。
 
+ホイールズームは全景を含む5段階。軽く動かすと1段進み、マウス位置を中心に約0.3秒で滑らかにズームイン／アウトする。カーソル下の地面や高い建物は画面上の同じ位置に留まる。同方向の短い連続入力は1回にまとめ、少し間を空けると次の段階へ進む。逆方向はすぐに受け付ける。Pause中・経路編集中も操作できる。
+
+左上のSource一覧をクリックすると、向き・ズームを保ったまま対象のSourceへ滑らかに移動する。屋上のSourceも中央に寄せ、Pause中も操作できる。移動中にPan／Zoom／OrbitやEscを操作すると自動移動を止める。
+
 ## Ground経路Preview
 
 独立した検証用パネルは廃止。Node 360で接続先へホバーすると、建物を迂回する可視グラフ＋A*の候補を破線表示する。長さ・移動時間・推定Throughput・接続枠・無効理由は配線操作欄で確認し、Edit routeボタンで手動編集できる。PreviewだけではLine・接続枠を消費しない。
@@ -142,6 +146,8 @@ WASDまたは中ボタンドラッグでPan、ホイールでZoom、右ボタン
 ## Node 360で接続する
 
 Sourceから新規配線を試す場合は **`Assets/CityFlow/Scenes/WiringLab.unity`** を開いてPlayする。同じ都市形状で初期Lineは0本、Sourceの暫定準備時間は15 s、生成間隔は3 s（準備後に最初の間隔を経て生成）。`S1 → BLUE` を確定するとFLOWが流れ始める。赤Sinkへの接続も追加できる。`Bootstrap` は引き続き固定5本の輸送検証用。
+
+360モードで配線を確定するとOverviewへ戻り、新しいLineが接続元から接続先へ約0.9秒で現れる。方向矢印も順に表示し、高さ方向の区間とPause中の配線に対応する。
 
 1. OverviewでSource／Relayをクリックすると、そのNodeの360モードへ入る。Sinkは終点なので説明を表示してOverviewに留まる。Connectボタンは不要。
 2. 360の正面は、入る直前のOverview画面で上を向いていた方角になる。右ボタンドラッグまたは矢印キーで周囲を見る。All/Near/Mid/Farで距離を絞る。
@@ -241,3 +247,5 @@ Relayは内周102°・外周90°の空白を含む固定配置。Source生成間
 各水平面でGroundと同じXZ可視グラフ＋A*を使い、垂直距離込みの全長で候補を比較する。Port Unit・Width・複数候補・方向反転は未導入。PLATEAUはSDKと都市確認シーンに加え、東京駅周辺の3階層・10 Waveゲームで既存の高さ配線と接続済み。汎用的な実在都市ステージ対応はv0.3の範囲とする。[配置・検証・画面](docs/Relay-Lift-2026-09-25.md)を参照。
 
 並行開発時は別worktreeへUnityプロジェクトを用意し、`uloop launch /絶対パス/CityFlow`で別Editorを起動する。その後も全コマンドに`--project-path /絶対パス/CityFlow`を指定し、既存Editorへ送らない。
+
+ゲームSEはWave開始・Sourceからの出発・Sinkへの到達で鳴る。SourceのBufferに生成しただけでは鳴らず、配線してFLOWが出発すると聞こえる。Overviewは画面中央／ズーム、360は視点からの距離に応じて音量と左右位置が変わる。音量は `Assets/CityFlow/Settings/Audio/GameplayAudio.asset` の `Master Volume` で調整する。ゲーム／EditorのPauseとGame OverではSEも停止する。Unityで試すときはGameビューのMute Audioを解除する。
