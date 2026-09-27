@@ -21,7 +21,7 @@ namespace CityFlow.Tests.PlayMode
     public sealed class TokyoStationWiringLabTests
     {
         [UnityTest]
-        public IEnumerator ThreeWavesKeepTheNetworkAndRetryRestartsTheTwoColorOpening()
+        public IEnumerator WaveTwoKeepsTheWestNetworkAndRetryRestartsTheFiveNodeOpening()
         {
             yield return SceneManager.LoadSceneAsync("TokyoStationWiringLab", LoadSceneMode.Single);
             yield return null;
@@ -32,7 +32,8 @@ namespace CityFlow.Tests.PlayMode
             var session = scope.Container.Resolve<ConnectionSession>();
             var view = Object.FindAnyObjectByType<ValidationCityView>();
             var sceneHandle = SceneManager.GetActiveScene().handle;
-            Connect("S1", "R1"); Connect("R1", "RED"); Connect("R1", "BLUE");
+            Assert.That(clock.NextWaveSeconds, Is.EqualTo(60));
+            Connect("S1", "R1"); Connect("S2", "R1"); Connect("R1", "RED"); Connect("R1", "BLUE");
             var openingLines = network.Snapshot().Lines.ToArray();
             clock.Tick(59.95 - clock.ElapsedSeconds);
             clock.SetPaused(true);
@@ -42,34 +43,30 @@ namespace CityFlow.Tests.PlayMode
             clock.Tick(0.05);
             yield return null; yield return null;
             Assert.That(clock.Wave, Is.EqualTo(2));
-            Assert.That(view.VisibleNodeCount, Is.EqualTo(7));
-            Assert.That(clock.SourceStartRemaining("S2"), Is.EqualTo(20).Within(0.01));
-            Connect("S2", "R2"); Connect("R1", "R2"); Connect("R2", "R1"); Connect("R2", "GREEN");
-            clock.Tick(60);
-            yield return null; yield return null;
-            Assert.That(clock.Wave, Is.EqualTo(3));
-            Assert.That(view.VisibleNodeCount, Is.EqualTo(11));
+            Assert.That(view.VisibleNodeCount, Is.EqualTo(9));
+            Assert.That(clock.SourceStartRemaining("S3"), Is.EqualTo(20).Within(0.01));
+            Assert.That(clock.NextWaveSeconds, Is.EqualTo(120), "Ten authored Waves keep arriving every 60 s.");
+            Assert.That(network.NodeDefinitions.All(n => n.Position.x < -151 && n.Position.y == 3.7f), Is.True,
+                "Waves 1-3 stay on the west plaza ground.");
             Assert.That(SceneManager.GetActiveScene().handle, Is.EqualTo(sceneHandle));
             Assert.That(scope.Container.Resolve<FlowNetwork>(), Is.SameAs(network));
             foreach (var line in openingLines)
                 Assert.That(network.Snapshot().Lines.Single(l => l.Id == line.Id).Route, Is.SameAs(line.Route));
             var root = Object.FindAnyObjectByType<UIDocument>().rootVisualElement;
-            Assert.That(root.Q<Label>("wave-value").text, Is.EqualTo("WAVE 3"));
-            Assert.That(root.Q<Label>("wave-notice").text, Does.Contain("WAVE 3"));
+            Assert.That(root.Q<Label>("wave-value").text, Does.StartWith("WAVE 2"));
+            Assert.That(root.Q<Label>("wave-notice").text, Does.Contain("WAVE 2"));
             Assert.That(root.Q<Button>("arrival-S3"), Is.Not.Null);
-            Connect("S3", "R3"); Connect("R2", "R3"); Connect("R3", "R2");
-            Connect("R3", "YELLOW"); Connect("R2", "PURPLE");
-            clock.Tick(180);
-            Assert.That(clock.Wave, Is.EqualTo(3));
-            Assert.That(clock.NextWaveSeconds, Is.Null);
+            Connect("S3", "R2"); Connect("S4", "R2"); Connect("R2", "GREEN"); Connect("R2", "R1"); Connect("R1", "R2");
+            clock.Tick(50);
+            Assert.That(clock.Wave, Is.EqualTo(2));
             Assert.That(clock.Result, Is.Null);
-            Assert.That(network.Snapshot().DeliveredCount, Is.GreaterThan(70));
-            var feed = network.Snapshot().Lines.Single(l => l.SourceId == "S3");
-            network.RequestDeletion(feed.Id);
-            clock.Tick(120);
+            Assert.That(network.Snapshot().DeliveredCount, Is.GreaterThan(10));
+            // Leaving the Wave 3 Sources unwired loses the session through a Source Overload, not through Relays.
+            clock.Tick(240);
             yield return null;
-            Assert.That(clock.Result?.Wave, Is.EqualTo(3));
-            Assert.That(clock.Result?.SourceId, Is.EqualTo("S3"));
+            Assert.That(clock.Result, Is.Not.Null);
+            Assert.That(clock.Result?.Wave, Is.GreaterThanOrEqualTo(3));
+            Assert.That(network.NodeDefinitions.OfType<SourceNodeDefinition>().Any(n => n.Id == clock.Result?.SourceId), Is.True);
             Assert.That(root.Q("result-overlay").resolvedStyle.display, Is.EqualTo(DisplayStyle.Flex));
             UiPointer.Click(root.Q<Button>("retry-session"));
             CityFlowLifetimeScope? next = null;
@@ -83,7 +80,7 @@ namespace CityFlow.Tests.PlayMode
             Object.FindAnyObjectByType<SimulationDriver>().enabled = false;
             Assert.That(next.Container.Resolve<FlowSimulation>().Wave, Is.EqualTo(1));
             Assert.That(next.Container.Resolve<FlowSimulation>().Result, Is.Null);
-            Assert.That(next.Container.Resolve<FlowNetwork>().NodeDefinitions.Count, Is.EqualTo(4));
+            Assert.That(next.Container.Resolve<FlowNetwork>().NodeDefinitions.Count, Is.EqualTo(5));
             Assert.That(next.Container.Resolve<FlowNetwork>().Snapshot().Lines, Is.Empty);
 
             void Connect(string from, string to)
@@ -107,7 +104,7 @@ namespace CityFlow.Tests.PlayMode
             var session = scope.Container.Resolve<ConnectionSession>();
             var stage = scope.Container.Resolve<StageDefinition>();
             var view = Object.FindAnyObjectByType<ValidationCityView>();
-            Assert.That(view.VisibleNodeCount, Is.EqualTo(4));
+            Assert.That(view.VisibleNodeCount, Is.EqualTo(5));
             Assert.That(network.Snapshot().Lines, Is.Empty);
             Assert.That(view.transform.Find("Ground"), Is.Null, "Keep the imported plaza instead of drawing a validation board.");
             Assert.That(view.transform.Find("Building"), Is.Null);

@@ -60,6 +60,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-27の東京駅の3階層・10 Waveゲーム（v0.2 Δ1.3）は、全EditMode **202/202**（東京駅9件を全面更新、Node 360候補の高度帯フィルター1件を追加）、東京駅・出現演出のPlayMode **5/5**成功。階層の隔離とブリッジRelayの配置、駅舎による地上の東西分断、屋上配置、紫Sinkの上層限定、各Waveでの全Sourceから全色への到達、3固定シードで600秒（Wave 10到達）の運行とFLOW保存・Line保持、未配線開始の敗北を確認。到達性は`Tests/Fixtures/GreedyNetworkWiring`の貪欲配線で組み、ブリッジのIN枠はこの配線が削除なしで成立する暫定値。既存の`NodeArrivalTests`の初期出現テストは全体実行で1回失敗し単独再実行で成功した（フレーム時刻依存、東京駅の変更とは無関係）。コンパイルError／Warning **0**。配置と調整値は[東京駅の階層ゲーム](PLATEAU-TokyoStation.md)を参照。
+
 2026-09-27の#20 Node出現演出は、関連PlayMode **53/53**（新規3件）、EditMode **15/15**成功。初期配置・Wave追加の光る柱、本体拡大・発光、Pause／Resume・Retry、画面外案内、高所Node、即時配線と生成猶予・状態保存を確認。東京駅の初期・Wave 2前後と8秒間の演出を記録し、ExpansionLabの初期・領域拡張はuloopで実画面確認のみ実施。コンパイル・最終ConsoleのError／Warning **0**。[採用内容・画面・確認手順](Node-Arrival-2026-09-27.md)を参照。
 
 2026-09-26のSource最新FLOW一覧は、関連PlayMode **26/26成功**（新規2件）。未生成、最新生成色への更新、配送後・Pause中の保持、Wave追加、HUD再生成、ゲーム状態の不変と入力非遮蔽を確認。東京駅Wave 3の3 SourceでSnapshotとの一致を確認し、1600×900・1036×757で表示を検証。コンパイル・最終ConsoleのError／Warning **0**。[検証記録と画面](Source-Activity-2026-09-26.md)を参照。

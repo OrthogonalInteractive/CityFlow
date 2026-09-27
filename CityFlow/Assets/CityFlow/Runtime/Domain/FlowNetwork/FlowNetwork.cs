@@ -115,6 +115,11 @@ namespace CityFlow.Domain.FlowNetwork
             foreach(NodeDefinition definition in additions) nodes.Add(definition.Id,new NodeState(definition));
             return true;
         }
+        // True when both Nodes exist and share at least one legal Line altitude (v0.2 Δ1.3 candidate filter).
+        public bool SharesAltitude(string firstId, string secondId) =>
+            !string.IsNullOrEmpty(firstId) && !string.IsNullOrEmpty(secondId) &&
+            nodes.TryGetValue(firstId, out NodeState first) && nodes.TryGetValue(secondId, out NodeState second) &&
+            stage.SharesAltitude(first.Definition, second.Definition);
         public ConnectionFailure CheckConnection(string sourceId, string destinationId)
         {
             if (string.IsNullOrEmpty(sourceId) || !nodes.TryGetValue(sourceId, out NodeState source))

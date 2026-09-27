@@ -73,7 +73,9 @@ namespace CityFlow.Application.Connections
             if (SourceId == null) return Array.Empty<ConnectionCandidate>();
             var nodes = network.Snapshot().Nodes;
             NodeSnapshot source = nodes.Single(n => n.Definition.Id == SourceId);
-            return nodes.Where(node => node.Definition.Id != SourceId && node.Definition.Kind != NodeKind.Source).Select(node =>
+            // Δ1.3: Nodes without any shared altitude can never be connected, so they are not offered as targets.
+            return nodes.Where(node => node.Definition.Id != SourceId && node.Definition.Kind != NodeKind.Source &&
+                network.SharesAltitude(SourceId, node.Definition.Id)).Select(node =>
             {
                 Vector3 delta = node.Definition.Position - source.Definition.Position;
                 float distance = delta.magnitude;

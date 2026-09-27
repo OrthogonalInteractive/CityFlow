@@ -48,7 +48,7 @@ PLATEAU SDKは公式Gitリポジトリの `v4.3.0` タグに固定する。初�
 
 SDKのセットアップと、提供された千代田区2025年度CityGMLによる独立した `TokyoStationInspection` シーンを先行する。Sceneビューで東京駅周辺の建物・道路・地形を確認できる。汎用的な実在都市ステージへの対応はv0.3の作業として扱う。[SDKセットアップ](docs/PLATEAU-Setup.md)、[東京駅周辺の確認シーン・再生成手順](docs/PLATEAU-TokyoStation.md)を参照。
 
-`Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、同じ都市形状を暗い配色・琥珀色の輪郭・窓グリッドで表示する配線ゲーム。駅舎の両側600 × 195 mで、4ノード・2色・配線0本から始める。60秒でWave 2（3色・7ノード）、120秒でWave 3（5色・11ノード）へ進み、以後は最終WaveのままGame Overまで生存時間を競う。Sourceをクリックして候補へ配線し、Pause／Resumeで時間を操作する。Wave 2で西側185 m級の屋上Sourceと駅舎上のSink、Wave 3で反対側208 m級の屋上Source／Sinkが加わる。Relayの高さ能力を使い、垂直昇降と一定高度の経路で配送する。
+`Assets/CityFlow/Scenes/TokyoStationWiringLab.unity` は、同じ都市形状を暗い配色・琥珀色の輪郭・窓グリッドで表示する配線ゲーム。駅舎の両側600 × 195 mを下層（地上）・中層（駅舎の屋上群）・上層（高層屋上）の3階層に分け、西側（丸の内側）の地上5ノード・2色・配線0本から60秒ごとにWave 10まで進む。Wave 1〜3は西側の地上だけで4色まで増え、Wave 4で中層と東側（八重洲側）への橋渡しRelay、Wave 7で紫Sinkだけを持つ上層が加わる。駅舎が地上を東西に分断するため、東西を結ぶ経路は中層以上だけ。以後は最終WaveのままGame Overまで生存時間を競う。Sourceをクリックして候補へ配線し、Pause／Resumeで時間を操作する。Node 360の候補には高度帯が重ならない相手を表示しない。
 
 ### VS CodeとC#プロジェクトファイル
 
@@ -238,6 +238,6 @@ Relayは内周102°・外周90°の空白を含む固定配置。Source生成間
 
 `MaximumAltitude`はGroundからのステージ上限[m]で、HeightLabは暫定30。0ならGround専用となり、WiringLab／Bootstrapの配線ルールを維持する。数値・配置・Wave時間はレベル比較用の暫定値。
 
-各水平面でGroundと同じXZ可視グラフ＋A*を使い、垂直距離込みの全長で候補を比較する。Port Unit・Width・複数候補・方向反転は未導入。PLATEAUはSDKと都市確認シーンに加え、東京駅周辺の3 Waveゲームで既存の高さ配線と接続済み。汎用的な実在都市ステージ対応はv0.3の範囲とする。[配置・検証・画面](docs/Relay-Lift-2026-09-25.md)を参照。
+各水平面でGroundと同じXZ可視グラフ＋A*を使い、垂直距離込みの全長で候補を比較する。Port Unit・Width・複数候補・方向反転は未導入。PLATEAUはSDKと都市確認シーンに加え、東京駅周辺の3階層・10 Waveゲームで既存の高さ配線と接続済み。汎用的な実在都市ステージ対応はv0.3の範囲とする。[配置・検証・画面](docs/Relay-Lift-2026-09-25.md)を参照。
 
 並行開発時は別worktreeへUnityプロジェクトを用意し、`uloop launch /絶対パス/CityFlow`で別Editorを起動する。その後も全コマンドに`--project-path /絶対パス/CityFlow`を指定し、既存Editorへ送らない。

@@ -79,6 +79,35 @@ namespace CityFlow.Tests.EditMode
             Assert.That(s.Confirm(),Is.EqualTo(failure)); Assert.That(p.Current?.ConnectionFailure,Is.EqualTo(failure));
             Assert.That(s.IsActive,Is.True); Assert.That(n.Snapshot().Lines.Count,Is.EqualTo(1));
         }
+        [Test] public void CandidatesOmitNodesWithoutASharedAltitudeButKeepSlotAndRouteFailuresVisible()
+        {
+            // v0.2 Δ1.3: a rooftop Sink above every reachable height is not offered; blocked or full targets still are.
+            var wall = new Bounds(new Vector3(40, 10, 0), new Vector3(4, 20, 200));
+            var stage = new StageDefinition(0, new Rect(-10, -100, 120, 200), new[] { wall }, new NodeDefinition[] {
+                new RelayNodeDefinition("LOW", Vector3.zero, maxOutgoing: 1, maximumRise: 8),
+                new RelayNodeDefinition("TALL", new Vector3(0, 0, 30), maximumRise: 40),
+                new SinkNodeDefinition("ROOF", new Vector3(20, 30, 0), FlowColor.Red),
+                new SinkNodeDefinition("GROUND", new Vector3(20, 0, -30), FlowColor.Blue),
+                new SinkNodeDefinition("BEHIND", new Vector3(60, 0, 0), FlowColor.Green),
+                new RelayNodeDefinition("STEP", new Vector3(20, 5, 30), maximumRise: 10) }, maximumAltitude: 60);
+            var n = Network(stage);
+            using var p = new LinePreviewService(n, new LineRoutePlanner(stage, 0.5f));
+            using var s = new ConnectionSession(n, p);
+            Assert.That(s.Begin("LOW"), Is.True);
+            Assert.That(s.Candidates().Select(c => c.Node.Definition.Id), Is.EquivalentTo(new[] { "TALL", "GROUND", "BEHIND", "STEP" }),
+                "ROOF sits above LOW's 8 m ceiling; STEP overlaps LOW between 5 m and 8 m.");
+            Assert.That(s.Candidates().Single(c => c.Node.Definition.Id == "BEHIND").Failure, Is.EqualTo(ConnectionFailure.None),
+                "Obstacle detours are route reasons, not a static exclusion.");
+            n.TryConnect("LOW", "GROUND", new[] { Vector3.zero, new Vector3(20, 0, -30) });
+            Assert.That(s.Candidates().Single(c => c.Node.Definition.Id == "TALL").Failure, Is.EqualTo(ConnectionFailure.OutgoingLimit),
+                "Full slots stay visible with their reason.");
+            s.Cancel();
+            Assert.That(s.Begin("TALL"), Is.True);
+            Assert.That(s.Candidates().Select(c => c.Node.Definition.Id), Does.Contain("ROOF"));
+            Assert.That(n.SharesAltitude("LOW", "ROOF"), Is.False);
+            Assert.That(n.SharesAltitude("TALL", "ROOF"), Is.True);
+            Assert.That(n.SharesAltitude("STEP", "GROUND"), Is.False, "A Relay never descends below its placement.");
+        }
         [Test] public void SelfIsIgnoredAndDuplicateRemainsSelectableWithAReason()
         {
             var stage=Stage(); var n=Network(stage); using var p=new LinePreviewService(n,new LineRoutePlanner(stage,0.5f));
