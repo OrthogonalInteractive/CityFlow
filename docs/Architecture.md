@@ -240,3 +240,11 @@ Game OverではSessionResultにWave・生存時間・配送数・原因Sourceを
 `TokyoStationWiringLab` は駅前でWave 3まで進む配線ゲーム。初期4ノード・2色から60秒で7ノード・3色、120秒で11ノード・5色へ進む。Wave 3以後も生存時間を競い、既存のSource Overloadで終了する。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、既存のDomain／Applicationを使う。建物メッシュの屋上を実測した固定配置と3D Renderer Boundsによる衝突近似を使い、既存のRelay高さ配線を適用する。Source／Sinkは高度固定、Relayは低所12 m・西側190 m・東側屋上から185 mの上昇能力を持つ。地形追従や汎用PLATEAUアダプターは含めない。
 
 Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには保存カメラのHome状態を渡し、F／Orbit後にも駅前の初期表示へ戻せる。
+
+## ゲーム進行のSE（2026-09-27）
+
+`NodeState`／`NodeSnapshot`の累積`DepartedCount`と`DeliveredCount`は、実際のBuffer→Line出発と同色Sinkでの消化だけを数える。`GameplayAudioView`は前回の読み取りとの差と`FlowSimulation.Wave`からSEを再生する。Domainには音源・AudioSource・時間取得を持ち込まず、FLOWの生成や経路、輸送順序を変更しない。
+
+Compositionが`GameplayAudioSettings`とメインカメラを渡し、承認済みのPCM WAVを再生する。Node用8音とWave専用1音を子AudioSourceとして所有し、シーン終了時に破棄する。Overviewは画面中央からの距離と表示範囲、360はカメラからの3D距離で音量を決める。再生中も視点に追従し、左右のパンを反映する。混雑時は近い音を優先し、同じNodeの同時出力は1音にまとめる。抑制した音を後から再生しない。
+
+ゲームPause／Game Over／アプリ中断／無効化では再生を停止する。EditorのPauseはEditorアセンブリの`GameplayAudioEditorPause`から同じ停止処理を呼ぶ。再開時は累積値を読み直し、停止中の音を再送しない。初回Waveは新しいセッションでのみ鳴る。

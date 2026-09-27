@@ -127,3 +127,5 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 
 2026-09-26の`TokyoStationWiringLab`ゲーム化は、全EditMode **184/184**、全PlayMode **66/66**成功。専用Stageの未配線開始・5色への到達可能性、実シーンでPause中の配線と再開後の配送、都市表示の透過／復元・Collider保持・Home復帰を確認した。コンパイルError／Warning **0**。UI操作と暫定的なGround／障害物近似は[東京駅の記録](PLATEAU-TokyoStation.md)を参照。
+
+2026-09-27のゲームSEは、関連EditMode **56/56**、PlayMode **24/24成功**。出発／到達の累計、視点に応じた音量・パン、同時発音の上限と優先、Pause・実Editor Pause・Game Over・再開・破棄、承認音源のPCMを確認。東京駅実シーンでも3音のAudioSource／AudioListener出力が非ゼロであることを確認した。コンパイルError／Warning **0**。[検証記録](Gameplay-Audio-2026-09-27.md)を参照。

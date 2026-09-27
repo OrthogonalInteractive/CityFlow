@@ -8,6 +8,7 @@ using CityFlow.Application.Connections;
 using CityFlow.Presentation.Connections;
 using CityFlow.Domain.FlowNetwork;
 using CityFlow.Presentation.Rendering;
+using CityFlow.Presentation.Audio;
 using CityFlow.Presentation.UI;
 using CityFlow.Presentation.Overview;
 using UnityEngine;
@@ -31,10 +32,13 @@ namespace CityFlow.Composition
         private readonly VolumeProfile obstacleGlow;
         private readonly Material relayHeightSurface;
         private readonly AuthoredCityScenery? authoredScenery;
+        private readonly GameplayAudioSettings audioSettings;
         public CitySceneEntryPoint(StageDefinition stage, FlowNetwork network, FlowSimulation simulation,
             VisualTreeAsset hudLayout, PanelSettings panelSettings, LinePreviewService preview, ConnectionSession connection,
-            Material obstacleSurface, VolumeProfile obstacleGlow, Material relayHeightSurface, AuthoredCityScenery? authoredScenery)
+            Material obstacleSurface, VolumeProfile obstacleGlow, Material relayHeightSurface, AuthoredCityScenery? authoredScenery,
+            GameplayAudioSettings audioSettings)
         {
+            this.audioSettings = audioSettings;
             this.relayHeightSurface = relayHeightSurface;
             this.authoredScenery = authoredScenery;
             this.obstacleSurface = obstacleSurface;
@@ -61,6 +65,9 @@ namespace CityFlow.Composition
                 ? new OverviewViewState(authoredScenery.OverviewFocus, camera.transform.eulerAngles.y, camera.transform.eulerAngles.x, camera)
                 : null;
             overview.Initialize(stage, network, camera, home, view);
+            var audio = new GameObject("Gameplay Audio");
+            audio.transform.SetParent(city.transform, false);
+            audio.AddComponent<GameplayAudioView>().Initialize(network, simulation, camera, audioSettings);
             var connectionController = city.AddComponent<NodeConnectionController>();
             connectionController.Initialize(connection, overview, stage, camera, view, document);
             hud.AddComponent<OverviewDetailsView>().Initialize(overview, network, view, simulation, connectionController, camera);

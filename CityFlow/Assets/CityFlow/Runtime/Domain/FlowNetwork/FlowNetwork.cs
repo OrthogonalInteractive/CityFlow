@@ -15,6 +15,8 @@ namespace CityFlow.Domain.FlowNetwork
         {
             public double OverloadSeconds { get; set; }
             public long GeneratedCount { get; set; }
+            public long DepartedCount { get; set; }
+            public long DeliveredCount { get; set; }
             public FlowColor? LastGeneratedColor { get; set; }
             public NodeDefinition Definition { get; }
             public List<Flow> Buffer { get; } = new List<Flow>();
@@ -167,7 +169,7 @@ namespace CityFlow.Domain.FlowNetwork
         {
             NodeState node = nodes[definition.Id];
             return new NodeSnapshot(definition, node.Incoming.Count, node.Outgoing.Count, node.Buffer, Settings.BufferCapacity(definition.Kind), node.OverloadSeconds,
-                node.GeneratedCount, node.LastGeneratedColor);
+                node.GeneratedCount, node.LastGeneratedColor, node.DepartedCount, node.DeliveredCount);
         }), lines.Select(line => new LineSnapshot(line.Id, line.Source.Definition.Id, line.Destination.Definition.Id,
             line.Route, Settings.MaxInFlight, line.InFlight.Select(flow => new InFlightSnapshot(flow.Flow, flow.Distance, flow.IsStopped)), line.Status, line.PendingRoute)),
             nextFlowId - 1, deliveredCount);

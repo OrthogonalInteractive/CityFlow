@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdd8cb375ad164b94bd0229ff3cce076, type: 3}
+  m_Name: GameplayAudio
+  m_EditorClassIdentifier: CityFlow.Presentation::CityFlow.Presentation.Audio.GameplayAudioSettings
+  wave: {fileID: 8300000, guid: 75e65b4fa5dc24a84a6f104158deae61, type: 3}
+  source: {fileID: 8300000, guid: 512975b71b2fd43fda047528255ee86d, type: 3}
+  sink: {fileID: 8300000, guid: 964fc1450e778477da8c35144cffaa80, type: 3}
+  masterVolume: 0.8

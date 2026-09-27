@@ -247,3 +247,5 @@ Relayは内周102°・外周90°の空白を含む固定配置。Source生成間
 各水平面でGroundと同じXZ可視グラフ＋A*を使い、垂直距離込みの全長で候補を比較する。Port Unit・Width・複数候補・方向反転は未導入。PLATEAUはSDKと都市確認シーンに加え、東京駅周辺の3 Waveゲームで既存の高さ配線と接続済み。汎用的な実在都市ステージ対応はv0.3の範囲とする。[配置・検証・画面](docs/Relay-Lift-2026-09-25.md)を参照。
 
 並行開発時は別worktreeへUnityプロジェクトを用意し、`uloop launch /絶対パス/CityFlow`で別Editorを起動する。その後も全コマンドに`--project-path /絶対パス/CityFlow`を指定し、既存Editorへ送らない。
+
+ゲームSEはWave開始・Sourceからの出発・Sinkへの到達で鳴る。SourceのBufferに生成しただけでは鳴らず、配線してFLOWが出発すると聞こえる。Overviewは画面中央／ズーム、360は視点からの距離に応じて音量と左右位置が変わる。音量は `Assets/CityFlow/Settings/Audio/GameplayAudio.asset` の `Master Volume` で調整する。ゲーム／EditorのPauseとGame OverではSEも停止する。Unityで試すときはGameビューのMute Audioを解除する。

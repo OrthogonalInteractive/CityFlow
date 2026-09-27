@@ -29,6 +29,7 @@ namespace CityFlow.Editor
                 AssetDatabase.CreateAsset(panel, settings + "/ValidationPanelSettings.asset");
             }
             scope.SetHudConfiguration(layout, panel);
+            GameplayAudioSetup.Configure(scope);
         }
     }
 }

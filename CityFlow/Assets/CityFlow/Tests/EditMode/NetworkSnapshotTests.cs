@@ -104,5 +104,30 @@ namespace CityFlow.Tests.EditMode
             Assert.That(network.Snapshot().Nodes[0].OverloadSeconds, Is.Zero);
             Assert.That(warning.Nodes[0].OverloadSeconds, Is.EqualTo(1));
         }
+
+        [Test] public void NodeTransportCountsTrackActualDepartureAndConsumptionAndPreserveHistory()
+        {
+            var network = Network();
+            network.GenerateFlow("A", FlowColor.Red);
+            var generated = network.Snapshot();
+            network.RouteWaitingFlows();
+            Assert.That(network.Snapshot().Nodes[0].DepartedCount, Is.Zero, "Generation and blocked waiting are not departures.");
+            network.TryConnect("A", "B", new[] { A, B });
+            network.TryConnect("B", "C", new[] { B, C });
+            network.RouteWaitingFlows();
+            var departed = network.Snapshot();
+            Assert.That(departed.Nodes[0].DepartedCount, Is.EqualTo(1));
+            network.AdvanceInFlight(10);
+            Assert.That(network.Snapshot().Nodes[1].DeliveredCount, Is.Zero, "A Relay transfer is not Sink consumption.");
+            network.RouteWaitingFlows(); network.AdvanceInFlight(10);
+            var delivered = network.Snapshot();
+            Assert.That(delivered.Nodes[1].DepartedCount, Is.EqualTo(1));
+            Assert.That(delivered.Nodes[2].DeliveredCount, Is.EqualTo(1));
+            Assert.That(delivered.Nodes.Sum(n => n.DeliveredCount), Is.EqualTo(delivered.DeliveredCount));
+            network.RouteWaitingFlows(); network.AdvanceInFlight(10);
+            Assert.That(network.Snapshot().Nodes[2].DeliveredCount, Is.EqualTo(1));
+            Assert.That(generated.Nodes[0].DepartedCount, Is.Zero);
+            Assert.That(departed.Nodes[2].DeliveredCount, Is.Zero);
+        }
     }
 }
