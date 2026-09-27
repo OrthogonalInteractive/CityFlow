@@ -103,7 +103,7 @@ namespace CityFlow.Tests.PlayMode
             Assert.That(Beacons(), Is.Empty);
             var oldBody = GameObject.Find("S1 / Source");
             sim.Tick(0.05); sim.SetPaused(true); yield return null; yield return null;
-            Assert.That(Beacons().Select(r => r.name), Is.EquivalentTo(new[] { "Node beacon S2", "Node beacon R2", "Node beacon GREEN" }));
+            Assert.That(Beacons().Select(r => r.name), Is.EquivalentTo(new[] { "Node beacon S3", "Node beacon S4", "Node beacon R2", "Node beacon GREEN" }));
             Assert.That(GameObject.Find("S1 / Source"), Is.SameAs(oldBody));
             foreach (var node in sim.LatestAdditions)
             {
@@ -111,23 +111,23 @@ namespace CityFlow.Tests.PlayMode
                 Assert.That(beacon.bounds.min.y, Is.EqualTo(node.Position.y).Within(0.001));
                 Assert.That(beacon.bounds.max.y, Is.GreaterThan(Resolve<StageDefinition>().Buildings.Max(b => b.max.y)));
             }
-            Assert.That(sim.SourceStartRemaining("S2"), Is.EqualTo(20).Within(0.001));
-            Assert.That(network.Snapshot().Nodes.Single(n => n.Definition.Id == "S2").GeneratedCount, Is.Zero);
+            Assert.That(sim.SourceStartRemaining("S3"), Is.EqualTo(20).Within(0.001));
+            Assert.That(network.Snapshot().Nodes.Single(n => n.Definition.Id == "S3").GeneratedCount, Is.Zero);
             var state = network.Snapshot();
             Assert.That(state.GeneratedCount, Is.EqualTo(state.DeliveredCount + state.Nodes.Sum(n => n.Buffer.Count) + state.Lines.Sum(l => l.InFlight.Count)));
             var camera = Camera.main; camera.transform.rotation = Quaternion.LookRotation(-camera.transform.forward);
             yield return null; yield return null;
-            var marker = Root.Q<Button>("arrival-S2");
+            var marker = Root.Q<Button>("arrival-S3");
             Assert.That(marker.text, Does.Contain("OFFSCREEN"));
             Assert.That(Root.worldBound.Contains(marker.worldBound.center), Is.True);
             UiPointer.Click(marker); yield return null; yield return null;
             var overview = Object.FindAnyObjectByType<OverviewController>();
-            Assert.That(overview.Selected.NodeId, Is.EqualTo("S2"));
+            Assert.That(overview.Selected.NodeId, Is.EqualTo("S3"));
             var controller = Object.FindAnyObjectByType<NodeConnectionController>();
             controller.BeginSelected(); yield return null; yield return null;
             Assert.That(Beacons(), Is.Empty, "Connection views keep their normal preview presentation.");
             controller.CancelSelection(); yield return null; yield return null;
-            Assert.That(Beacons().Length, Is.EqualTo(3), "Returning while paused restores the same arrivals.");
+            Assert.That(Beacons().Length, Is.EqualTo(4), "Returning while paused restores the same arrivals.");
             Assert.That(network.Snapshot(), Is.SameAs(state));
         }
 

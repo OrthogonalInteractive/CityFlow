@@ -62,6 +62,8 @@ nullable警告や自作コードのコンパイルエラーを残さない。外
 
 ## 現在の検証状況
 
+2026-09-27の東京駅の3階層・10 Waveゲーム（v0.2 Δ1.3）は、全EditMode **202/202**（東京駅9件を全面更新、Node 360候補の高度帯フィルター1件を追加）、東京駅・出現演出のPlayMode **5/5**成功。階層の隔離とブリッジRelayの配置、駅舎による地上の東西分断、屋上配置、紫Sinkの上層限定、各Waveでの全Sourceから全色への到達、3固定シードで600秒（Wave 10到達）の運行とFLOW保存・Line保持、未配線開始の敗北を確認。到達性は`Tests/Fixtures/GreedyNetworkWiring`の貪欲配線で組み、ブリッジのIN枠はこの配線が削除なしで成立する暫定値。既存の`NodeArrivalTests`の初期出現テストは全体実行で1回失敗し単独再実行で成功した（フレーム時刻依存、東京駅の変更とは無関係）。コンパイルError／Warning **0**。配置と調整値は[東京駅の階層ゲーム](PLATEAU-TokyoStation.md)を参照。
+
 2026-09-27のEditor Pause解除時の時間加算修正は、関連PlayMode **38/38成功**（再現テスト1件）、Pause／WaveのEditMode **12/12成功**。停止中の実時間が`unscaledDeltaTime`へ入り、再開時に生成・輸送・Overloadを一括更新することを再現し、SimulationDriverを`deltaTime`へ変更した。東京駅でも約61秒停止後の最初のフレームで生成数2・ゲーム時計24.85秒を保持し、Game Overなしを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[原因と検証記録](Editor-Pause-2026-09-27.md)を参照。
 
 2026-09-27のマウス位置を中心にするズームは、関連PlayMode **55/55成功**（追加3件と既存2件の拡張）。両方向の補間中の画面位置維持、奥行き・斜め俯瞰・経路編集・部分Viewport、入力中のマウス移動・反転、UI／表示領域外の除外、360との往復、画面端でズーム後のPanを確認。東京駅の実フレームでも最大ずれ0.00353 px、往復後のカメラ位置誤差0.00010 mを確認。コンパイルError／Warning **0**、テスト後Console Error **0**（既知のPLATEAU橋梁メッシュWarningあり）。[検証記録](Overview-Zoom-2026-09-27.md#マウス位置を中心にする追加変更)を参照。

@@ -93,6 +93,11 @@ namespace CityFlow.Domain.Spatial
         public float ConnectionCeiling(NodeDefinition node) => Mathf.Min(CeilingHeight,
             node.Position.y + (node is RelayNodeDefinition relay ? relay.MaximumRise : 0));
 
+        // Static altitude compatibility: a Line needs one horizontal height inside both Nodes' bands
+        // (placement Y up to the connection ceiling). Obstacles and slots are not considered here.
+        public bool SharesAltitude(NodeDefinition first, NodeDefinition second) => !AllowsHeight ||
+            Mathf.Max(first.Position.y, second.Position.y) <= Mathf.Min(ConnectionCeiling(first), ConnectionCeiling(second));
+
         public RouteFailure ValidateConnectionRoute(NodeDefinition source, NodeDefinition destination,
             IReadOnlyList<Vector3> points, float clearance, out int invalidSegment)
         {

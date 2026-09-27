@@ -235,9 +235,9 @@ Game OverではSessionResultにWave・生存時間・配送数・原因Sourceを
 - セーブ／ロード、大規模都市の性能目標、PLATEAUの対象都市とSDKバージョン。
 
 
-## 東京駅の小範囲ゲーム
+## 東京駅の階層ゲーム
 
-`TokyoStationWiringLab` は駅前でWave 3まで進む配線ゲーム。初期4ノード・2色から60秒で7ノード・3色、120秒で11ノード・5色へ進む。Wave 3以後も生存時間を競い、既存のSource Overloadで終了する。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、既存のDomain／Applicationを使う。建物メッシュの屋上を実測した固定配置と3D Renderer Boundsによる衝突近似を使い、既存のRelay高さ配線を適用する。Source／Sinkは高度固定、Relayは低所12 m・西側190 m・東側屋上から185 mの上昇能力を持つ。地形追従や汎用PLATEAUアダプターは含めない。
+`TokyoStationWiringLab` は東京駅周辺を下層・中層・上層の3階層に分けてWave 10まで進む配線ゲーム（v0.2 Δ1.3）。初期5ノード・2色から60秒ごとにNodeが増え、Wave 3までは西側の地上だけ、Wave 4で駅舎屋上の中層と東西の橋渡しRelay、Wave 7で紫Sinkだけの上層が加わる。Wave 10以後も生存時間を競い、既存のSource Overloadで終了する。階層はDomainの型ではなく、`RelayNodeDefinition`の配置Yと`MaximumRise`、および`StageDefinition`の「配置位置より下へ伸ばせない」規則だけで表す。`StageDefinition.SharesAltitude`が両端の高度帯の共通部分を静的に判定し、`ConnectionSession.Candidates`が共通部分のない相手をNode 360の候補から除く。`TokyoStationGameplaySetup` が都市のRenderer BoundsをStageConfigurationへ保存し、階層の高度帯から各Relayの上昇量を導く。建物メッシュの屋上をRaycastで実測した固定配置と3D Renderer Boundsによる衝突近似を使う。テスト用の`GreedyNetworkWiring`（`Tests/Fixtures`）は既存Lineを優先する最短経路で各Waveの全色到達を組む一例であり、ゲーム本体には含めない。地形追従や汎用PLATEAUアダプターは含めない。
 
 Compositionは任意の`AuthoredCityScenery`がある場合に都市の既存RendererをValidationCityViewへ渡す。指定がない既存ステージは従来の簡易都市を生成する。Viewは都市の全マテリアルスロットに対する半透明化・復元、都市Rendererのフォーカス減光を担当する。都市メッシュ・Colliderと輸送状態は変更しない。Overviewには保存カメラのHome状態を渡し、F／Orbit後にも駅前の初期表示へ戻せる。
 
